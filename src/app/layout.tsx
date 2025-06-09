@@ -1,9 +1,11 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
+import { CookieConsentBanner } from '@/components/CookieConsentBanner'; // Added import
 
 export const metadata: Metadata = {
   title: {
@@ -15,15 +17,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'LISGE - Local and International Scholars\' Guide to Excellence',
     description: "Empowering Egyptian students with resources for academic and personal growth.",
-    url: 'https://[YOUR_DOMAIN_HERE]', // Replace with your actual domain
+    url: 'https://[YOUR_DOMAIN_HERE]', 
     siteName: 'LISGE',
-    // images: [ // Add a default OG image if you have one
-    //   {
-    //     url: 'https://[YOUR_DOMAIN_HERE]/og-image.png',
-    //     width: 1200,
-    //     height: 630,
-    //   },
-    // ],
     locale: 'en_US',
     type: 'website',
   },
@@ -31,9 +26,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'LISGE - Local and International Scholars\' Guide to Excellence',
     description: "Empowering Egyptian students with resources for academic and personal growth.",
-    // site: '@yourtwitterhandle', // Replace with your Twitter handle if you have one
-    // creator: '@yourtwitterhandle', // Replace with your Twitter handle if you have one
-    // images: ['https://[YOUR_DOMAIN_HERE]/twitter-image.png'], // Replace with your Twitter image
   },
   robots: {
     index: true,
@@ -46,12 +38,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  // icons: { // Add favicon information here if you have favicons
-  //   icon: '/favicon.ico',
-  //   shortcut: '/favicon-16x16.png',
-  //   apple: '/apple-touch-icon.png',
-  // },
-  // manifest: '/site.webmanifest', // If you have a PWA manifest
 };
 
 export default function RootLayout({
@@ -79,6 +65,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <Toaster />
+          <CookieConsentBanner /> {/* Added banner here */}
         </ThemeProvider>
       </body>
     </html>
