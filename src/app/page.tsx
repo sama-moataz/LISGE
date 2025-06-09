@@ -23,10 +23,10 @@ export default function Home() {
         </div>
         <div className="relative z-10 container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold font-headline mb-6 text-primary-foreground bg-primary/80 backdrop-blur-sm py-2 px-4 rounded-md inline-block">
-            LISGE: Your Gateway to <br className="sm:hidden" /> Leadership, Scholarships, and Global Experiences
+            LISGE: Local and International <br className="sm:hidden" /> Scholars' Guide to Excellence
           </h1>
           <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-foreground/90">
-            Welcome to LISGE Hub! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, and transformative summer programs. Explore your potential and embark on your journey to global success.
+            Welcome to LISGE! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, and transformative summer programs. Explore your potential and embark on your journey to global success.
           </p>
           <div className="space-x-0 space-y-4 sm:space-x-4 sm:space-y-0">
             <Button asChild size="lg" className="group">

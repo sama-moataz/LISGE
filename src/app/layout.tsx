@@ -5,8 +5,8 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'LISGE Hub',
-  description: 'Your Gateway to Leadership, Scholarships, and Global Experiences',
+  title: 'LISGE',
+  description: "Local and International Scholars' Guide to Excellence",
 };
 
 export default function RootLayout({

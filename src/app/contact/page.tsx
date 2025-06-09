@@ -6,7 +6,7 @@ import { Mail, MessageCircle, HelpCircle, ExternalLink } from 'lucide-react';
 
 export default function ContactPage() {
   const recipientEmail = "your_email@example.com"; // Replace with actual email
-  const emailSubject = "Inquiry from LISGE Hub User";
+  const emailSubject = "Inquiry from LISGE User";
   const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(emailSubject)}`;
 
   return (
@@ -21,7 +21,7 @@ export default function ContactPage() {
       <Card className="shadow-lg">
         <CardHeader className="items-center text-center">
           <Mail className="h-12 w-12 text-primary mb-4" />
-          <CardTitle className="text-2xl font-headline">Contact LISGE Hub</CardTitle>
+          <CardTitle className="text-2xl font-headline">Contact LISGE</CardTitle>
           <CardDescription>
             I'm here to help you navigate your options and make informed decisions.
           </CardDescription>

@@ -3,9 +3,9 @@ export function Footer() {
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} LISGE Hub. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} LISGE. All rights reserved.</p>
         <p className="mt-1">
-          Your Gateway to Leadership, Scholarships, and Global Experiences.
+          Local and International Scholars' Guide to Excellence.
         </p>
         {/* Placeholder for social media links if needed in the future */}
         {/* <div className="mt-2 space-x-4">
