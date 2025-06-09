@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw } from 'lucide-react';
+import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe } from 'lucide-react'; // Added Globe
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -295,3 +295,4 @@ export default function SummerProgramsPage() {
     </div>
   );
 }
+
