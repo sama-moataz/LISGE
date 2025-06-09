@@ -1,6 +1,8 @@
 
 import type { LucideIcon } from 'lucide-react';
 
+export type LocationFilter = 'All' | 'Egypt' | 'International' | 'Global' | 'Online';
+
 export interface Scholarship {
   id: string;
   name: string;
@@ -9,14 +11,16 @@ export interface Scholarship {
   websiteUrl: string;
   icon?: LucideIcon;
   category?: string;
-  country?: 'Egypt' | 'Abroad' | 'Global'; // Added for potential filtering
-  area?: string; // e.g., STEM, Arts
+  location: 'Egypt' | 'International' | 'Global'; // Standardized
+  // For future expansion:
+  // financialAidType?: 'Full' | 'Partial' | 'Varies' | 'None';
+  // ageRequirement?: string; // e.g., "15-17"
 }
 
 export interface StudyTip {
   id: string;
   title: string;
-  content: string | React.ReactNode; // Allow ReactNode for more complex content
+  content: string | React.ReactNode;
   icon?: LucideIcon;
 }
 
@@ -28,8 +32,10 @@ export interface SummerProgram {
   websiteUrl: string;
   icon?: LucideIcon;
   category?: string;
-  location?: 'Egypt' | 'Abroad' | 'Online';
+  location: 'Egypt' | 'International' | 'Online'; // Standardized
   provider?: string;
+  // For future expansion:
+  // financialAidAvailable?: boolean;
 }
 
 export interface VolunteerOpportunity {
@@ -37,14 +43,16 @@ export interface VolunteerOpportunity {
   name: string;
   organization: string;
   description: string;
-  eligibility?: string; // Optional as not always present
+  eligibility?: string;
   websiteUrl: string;
   icon?: LucideIcon;
-  category?: string; // e.g., Education, Environment, Healthcare
-  location: 'Egypt' | 'International';
+  category?: string;
+  location: 'Egypt' | 'International'; // Standardized
   duration?: string;
   cost?: string;
-  sdgFocus?: string; // e.g., SDG #4 Quality Education
+  sdgFocus?: string;
+  // For future expansion:
+  // financialAidAvailable?: boolean;
 }
 
 export interface PreCollegeCourse {
@@ -55,9 +63,11 @@ export interface PreCollegeCourse {
   eligibility?: string;
   websiteUrl: string;
   icon?: LucideIcon;
-  category?: string; // e.g., STEM, Arts, Humanities
-  location: 'Egypt' | 'International' | 'Online';
+  category?: string;
+  location: 'Egypt' | 'International' | 'Online'; // Standardized
   duration?: string;
   creditsTransferable?: boolean;
   cost?: string;
+  // For future expansion:
+  // financialAidAvailable?: boolean;
 }
