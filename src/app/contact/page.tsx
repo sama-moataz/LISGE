@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  const recipientEmail = "your_email@example.com"; // Replace with actual email
+  const recipientEmail = "samamoataz73@gmail.com"; // Replaced with actual email
   const emailSubject = "Inquiry from LISGE User";
   const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(emailSubject)}`;
 
