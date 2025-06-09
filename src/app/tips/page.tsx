@@ -11,12 +11,6 @@ const studyTips: StudyTip[] = [
     icon: BookOpenText,
   },
   {
-    id: 'deci-insights',
-    title: 'Insights from DECI Level 2',
-    content: 'DECI (Distinguished Egyptian Cambridge Innovators) Level 2 focuses on critical thinking and problem-solving. Key takeaways include analyzing complex problems from multiple perspectives, developing innovative solutions, and effectively communicating your ideas. Practice these skills through debates, case studies, and collaborative projects.',
-    icon: BrainCircuit,
-  },
-  {
     id: 'time-management',
     title: 'Mastering Time Management',
     content: 'Effective time management is crucial for academic success. Use tools like calendars and to-do lists. Prioritize tasks using methods like the Eisenhower Matrix (Urgent/Important). Break down large assignments into smaller, manageable steps. Don\'t forget to schedule breaks to avoid burnout.',
@@ -27,12 +21,6 @@ const studyTips: StudyTip[] = [
     title: 'Boosting Your English for International Tests',
     content: 'For tests like TOEFL or IELTS, consistent practice is key. Expand your vocabulary daily, practice reading academic texts, listen to English podcasts or lectures, and practice speaking and writing regularly. Consider joining study groups or finding a language partner.',
     icon: MessageSquareText,
-  },
-  {
-    id: 'kosen-seminar',
-    title: 'Learning from the KOSEN Seminar',
-    content: 'The KOSEN seminar experience emphasizes hands-on learning, technical skills, and teamwork. Apply these principles by seeking practical experiences in your field of interest, developing technical proficiencies, and actively participating in group projects. These experiences demonstrate practical application of knowledge.',
-    icon: CheckCircle,
   },
 ];
 
