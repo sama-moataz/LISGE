@@ -17,7 +17,7 @@ const navLinks = [
   { href: '/programs', label: 'Summer Programs', icon: Briefcase },
   { href: '/volunteer', label: 'Volunteer', icon: HeartHandshake },
   { href: '/pre-college', label: 'Pre-College', icon: School2 },
-  { href: '/about', label: 'About', icon: UserCircle },
+  // { href: '/about', label: 'About', icon: UserCircle }, // Removed About link
   { href: '/contact', label: 'Contact', icon: Mail },
 ];
 
