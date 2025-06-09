@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Menu, BookOpen, GraduationCap, Lightbulb, Users, UserCircle, Mail, Briefcase } from 'lucide-react';
+import { Menu, BookOpen, GraduationCap, Lightbulb, Users, UserCircle, Mail, Briefcase, HeartHandshake, School2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -13,6 +13,8 @@ const navLinks = [
   { href: '/scholarships', label: 'Scholarships', icon: GraduationCap },
   { href: '/tips', label: 'Study Tips', icon: Lightbulb },
   { href: '/programs', label: 'Summer Programs', icon: Briefcase },
+  { href: '/volunteer', label: 'Volunteer', icon: HeartHandshake },
+  { href: '/pre-college', label: 'Pre-College', icon: School2 },
   { href: '/about', label: 'About', icon: UserCircle },
   { href: '/contact', label: 'Contact', icon: Mail },
 ];
@@ -21,7 +23,7 @@ export function Header() {
   const pathname = usePathname();
 
   const NavLinkItem = ({ href, label, icon: Icon, isMobile = false }: { href: string, label: string, icon: React.ElementType, isMobile?: boolean }) => {
-    const isActive = pathname === href;
+    const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
     const linkClass = cn(
       "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-primary/10 hover:text-primary",
       isActive ? "bg-primary/10 text-primary" : "text-foreground/80 hover:text-foreground",
@@ -54,7 +56,7 @@ export function Header() {
         <Link href="/" className="text-2xl font-bold text-primary font-headline">
           LISGE
         </Link>
-        <nav className="hidden items-center space-x-2 md:flex">
+        <nav className="hidden items-center space-x-1 md:flex">
           {navLinks.map((link) => (
             <NavLinkItem key={link.href} {...link} />
           ))}
