@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2 } from "lucide-react";
+import { ArrowRight, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: 'Home | LISGE - Your Guide to Academic Excellence',
-  description: "Welcome to LISGE! We empower Egyptian students with resources on scholarships, study tips, summer programs, volunteer work, and pre-college courses. Start your journey to global success.",
+  description: "Welcome to LISGE! We empower Egyptian students with resources on scholarships, study tips, summer programs, exchange programs, volunteer work, and pre-college courses. Start your journey to global success.",
 };
 
 export default function Home() {
@@ -32,7 +32,7 @@ export default function Home() {
             LISGE: Local and International <br className="sm:hidden" /> Scholars' Guide to Excellence
           </h1>
           <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-foreground/90">
-            Welcome to LISGE! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, transformative summer programs, volunteer opportunities, and pre-college courses. Explore your potential and embark on your journey to global success.
+            Welcome to LISGE! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, transformative summer programs, exchange programs, volunteer opportunities, and pre-college courses. Explore your potential and embark on your journey to global success.
           </p>
           <div className="space-x-0 space-y-4 sm:space-x-4 sm:space-y-0">
             <Button asChild size="lg" className="group">
@@ -61,6 +61,21 @@ export default function Home() {
             <Button asChild variant="link" className="p-0 h-auto text-primary group">
               <Link href="/scholarships">
                 View Scholarships <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <Globe2 className="h-12 w-12 text-primary mb-4" />
+            <CardTitle className="font-headline text-2xl">Exchange Programs</CardTitle>
+            <CardDescription>Embark on cultural and academic exchange journeys around the world.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="link" className="p-0 h-auto text-primary group">
+              <Link href="/exchange-programs">
+                Explore Exchanges <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </Button>
           </CardContent>

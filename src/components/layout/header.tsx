@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Menu, BookOpen, GraduationCap, Lightbulb, Users, UserCircle, Mail, Briefcase, HeartHandshake, School2 } from 'lucide-react';
+import { Menu, BookOpen, GraduationCap, Lightbulb, Users, UserCircle, Mail, Briefcase, HeartHandshake, School2, Globe2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -11,8 +11,9 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: BookOpen },
-  { href: '/scholarships', label: 'Scholarships', icon: GraduationCap },
   { href: '/tips', label: 'Study Tips', icon: Lightbulb },
+  { href: '/scholarships', label: 'Scholarships', icon: GraduationCap },
+  { href: '/exchange-programs', label: 'Exchange Programs', icon: Globe2 },
   { href: '/programs', label: 'Summer Programs', icon: Briefcase },
   { href: '/volunteer', label: 'Volunteer', icon: HeartHandshake },
   { href: '/pre-college', label: 'Pre-College', icon: School2 },
