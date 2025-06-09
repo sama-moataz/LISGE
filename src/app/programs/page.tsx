@@ -1,4 +1,5 @@
 
+import type { Metadata } from 'next';
 import type { SummerProgram } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,13 +7,19 @@ import Link from 'next/link';
 import { Plane, Users, MapPin, Code2, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 
+export const metadata: Metadata = {
+  title: 'Summer Programs for Students',
+  description: 'Explore exciting summer programs like EducationUSA CCC, Girls Who Code, Brown Pre-College, and Yale Young Global Scholars. Find unique learning and cultural experiences with LISGE.',
+  keywords: ['summer programs', 'EducationUSA CCC', 'Girls Who Code', 'Brown Pre-College', 'Yale Young Global Scholars', 'student summer camps', 'academic summer programs'],
+};
+
 const summerPrograms: SummerProgram[] = [
   {
     id: 'ccc',
     name: 'EducationUSA Competitive College Club (CCC)',
     description: 'A program designed to assist high-achieving Egyptian students in applying to U.S. colleges and universities. Provides guidance, workshops, and resources.',
     eligibility: 'High school students, typically in grades 10-11.',
-    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo', // General link, specific CCC info might vary
+    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo',
     icon: Plane,
     category: "College Prep"
   },
@@ -70,7 +77,7 @@ export default function SummerProgramsPage() {
               <Image 
                 src={`https://placehold.co/600x300.png?text=${encodeURIComponent(program.name)}`}
                 alt={program.name}
-                data-ai-hint="students learning summer"
+                data-ai-hint="students summer"
                 width={600}
                 height={300}
                 className="rounded-md object-cover aspect-[2/1] mb-4"

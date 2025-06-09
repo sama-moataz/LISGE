@@ -1,7 +1,14 @@
 
+import type { Metadata } from 'next';
 import type { StudyTip } from '@/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Lightbulb, BookOpenText, Clock, MessageSquareText, Target, Search, Users, CheckSquare, Languages, Briefcase } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Study Tips for Academic Success',
+  description: 'Get valuable study tips and strategies from LISGE to excel academically. Learn about time management, English proficiency, research, holistic development, and more.',
+  keywords: ['study tips', 'academic success', 'time management', 'English learning', 'research skills', 'student advice Egypt'],
+};
 
 const initialStudyTips: StudyTip[] = [
   {
@@ -84,7 +91,7 @@ export default function StudyTipsPage() {
       <Accordion type="single" collapsible className="w-full space-y-4">
         {allStudyTips.map((tip) => (
           <AccordionItem value={tip.id} key={tip.id} className="bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline">
+            <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline text-left">
               <div className="flex items-center gap-3">
                 {tip.icon ? <tip.icon className="h-6 w-6 text-primary" /> : <Lightbulb className="h-6 w-6 text-primary" />}
                 <span className="font-headline">{tip.title}</span>

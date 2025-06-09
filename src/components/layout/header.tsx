@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: BookOpen },
@@ -61,22 +62,25 @@ export function Header() {
             <NavLinkItem key={link.href} {...link} />
           ))}
         </nav>
-        <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-xs p-6">
-              <nav className="flex flex-col space-y-4">
-                {navLinks.map((link) => (
-                   <NavLinkItem key={link.href} {...link} isMobile={true} />
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full max-w-xs p-6">
+                <nav className="flex flex-col space-y-4">
+                  {navLinks.map((link) => (
+                     <NavLinkItem key={link.href} {...link} isMobile={true} />
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>

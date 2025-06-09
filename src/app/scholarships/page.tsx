@@ -1,10 +1,17 @@
 
+import type { Metadata } from 'next';
 import type { Scholarship } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { Award, BookOpen, Users, Globe, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
+
+export const metadata: Metadata = {
+  title: 'Scholarships for Egyptian Students',
+  description: 'Discover top scholarships like UWC, Rise, YES Program, and Aspire Institute. Find opportunities for local and international study to fund your education with LISGE.',
+  keywords: ['scholarships', 'UWC', 'Rise Program', 'YES Program', 'Aspire Institute', 'international scholarships', 'Egyptian students scholarships'],
+};
 
 const scholarships: Scholarship[] = [
   {

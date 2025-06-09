@@ -1,10 +1,17 @@
 
+import type { Metadata } from 'next';
 import type { VolunteerOpportunity } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { HeartHandshake, Globe, MapPin, ExternalLink, Building, Users, Leaf } from 'lucide-react'; // Added Building and Users
+import { HeartHandshake, Globe, MapPin, ExternalLink, Building, Users, Leaf } from 'lucide-react';
 import Image from 'next/image';
+
+export const metadata: Metadata = {
+  title: 'Volunteer Opportunities for Students',
+  description: 'Find impactful volunteer programs in Egypt and worldwide with LISGE. Explore opportunities with AIESEC, Volunteer World, and more to make a difference.',
+  keywords: ['volunteer opportunities', 'AIESEC Egypt', 'Volunteer World Egypt', 'international volunteering', 'student volunteering', 'community service'],
+};
 
 const volunteerOpportunities: VolunteerOpportunity[] = [
   {
@@ -13,7 +20,7 @@ const volunteerOpportunities: VolunteerOpportunity[] = [
     organization: 'AIESEC in Giza (Arkan Future College)',
     description: 'Contribute to SDG #4 (Quality Education) by helping youth achieve literacy and numeracy. Activities include quizzes, buddy systems, creative math, book clubs, and teaching basic vocabulary in a new language.',
     eligibility: 'English proficiency required. Open to youth aged 18-30 (general AIESEC criteria).',
-    websiteUrl: 'https://aiesec.org/global-volunteer', // General AIESEC link, specific opportunity link might vary
+    websiteUrl: 'https://aiesec.org/global-volunteer',
     icon: Users,
     category: "Education",
     location: 'Egypt',
@@ -27,7 +34,7 @@ const volunteerOpportunities: VolunteerOpportunity[] = [
     organization: 'Volunteer World (Habiba Community)',
     description: 'Help restore women-run food gardens through daily gardening activities, empowering female farmers in the Bedouin community of Nuweiba.',
     eligibility: '18+',
-    websiteUrl: 'https://www.volunteerworld.com/volunteer-abroad/egypt', // General link for Egypt
+    websiteUrl: 'https://www.volunteerworld.com/volunteer-abroad/egypt',
     icon: HeartHandshake,
     category: "Community Development",
     location: 'Egypt',
@@ -88,7 +95,7 @@ export default function VolunteerPage() {
               <Image 
                 src={`https://placehold.co/600x300.png?text=${encodeURIComponent(opportunity.name)}`}
                 alt={opportunity.name}
-                data-ai-hint={opportunity.location === 'Egypt' ? "volunteer Egypt community" : "volunteer global impact"}
+                data-ai-hint={opportunity.location === 'Egypt' ? "Egypt community" : "global impact"}
                 width={600}
                 height={300}
                 className="rounded-md object-cover aspect-[2/1] mb-4"

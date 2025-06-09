@@ -1,8 +1,15 @@
 
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { Mail, MessageCircle, HelpCircle, ExternalLink } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Contact LISGE for Personalized Guidance',
+  description: 'Reach out to LISGE for advice on scholarships, study strategies, summer programs, or general academic path inquiries. Send an email for personalized support.',
+  keywords: ['contact LISGE', 'student guidance email', 'scholarship advice', 'study help Egypt'],
+};
 
 export default function ContactPage() {
   const recipientEmail = "your_email@example.com"; // Replace with actual email

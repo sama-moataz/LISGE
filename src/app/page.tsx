@@ -1,9 +1,15 @@
 
+import type { Metadata } from 'next';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: 'Home | LISGE - Your Guide to Academic Excellence',
+  description: "Welcome to LISGE! We empower Egyptian students with resources on scholarships, study tips, summer programs, volunteer work, and pre-college courses. Start your journey to global success.",
+};
 
 export default function Home() {
   return (
@@ -14,7 +20,7 @@ export default function Home() {
            <Image
             src="https://placehold.co/1200x400.png"
             alt="Global experiences"
-            data-ai-hint="students global education"
+            data-ai-hint="global education"
             fill
             style={{ objectFit: 'cover' }}
             className="opacity-20"

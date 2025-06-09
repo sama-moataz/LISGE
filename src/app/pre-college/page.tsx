@@ -1,10 +1,17 @@
 
+import type { Metadata } from 'next';
 import type { PreCollegeCourse } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { School2, Globe, MapPin, ExternalLink, BookOpen, Laptop } from 'lucide-react';
 import Image from 'next/image';
+
+export const metadata: Metadata = {
+  title: 'Pre-College Programs for University Preparation',
+  description: 'Discover pre-college courses from AUC, GUC, Johns Hopkins, and CIEE. Prepare for university life and academics with LISGE.',
+  keywords: ['pre-college programs', 'AUC College Bound', 'GUC Junior Talents', 'Johns Hopkins pre-college', 'CIEE Global Navigator', 'university preparation'],
+};
 
 const preCollegeCourses: PreCollegeCourse[] = [
   {
@@ -13,7 +20,7 @@ const preCollegeCourses: PreCollegeCourse[] = [
     institution: 'American University in Cairo (AUC)',
     description: 'Experience college life, discover passions, explore courses (e.g., CS, Graphic Design, Political Science, Psychology), and earn transferable credits. Includes social activities and trips.',
     eligibility: 'High school students.',
-    websiteUrl: 'https://www.aucegypt.edu/academics/college-bound-auc', // Example URL, replace with actual if known
+    websiteUrl: 'https://www.aucegypt.edu/academics/college-bound-auc',
     icon: School2,
     category: "Multi-disciplinary",
     location: 'Egypt',
@@ -27,12 +34,12 @@ const preCollegeCourses: PreCollegeCourse[] = [
     institution: 'German University in Cairo (GUC)',
     description: 'Practical, hands-on camps for high school students (16-18) to explore talents in fields like Civil Engineering (e.g., "Build Out of the Box" camp). Provides early exposure to university disciplines.',
     eligibility: 'High school students (16-18).',
-    websiteUrl: 'https://www.guc.edu.eg/', // General GUC link, specific camp info might be deeper
+    websiteUrl: 'https://www.guc.edu.eg/',
     icon: MapPin,
     category: "STEM / Engineering",
     location: 'Egypt',
     duration: "Varies (e.g., 3-day camps)",
-    creditsTransferable: false, // Typically not for such camps, but good to note
+    creditsTransferable: false,
     cost: "Not specified (check website)"
   },
   {
@@ -44,7 +51,7 @@ const preCollegeCourses: PreCollegeCourse[] = [
     websiteUrl: 'https://summer.jhu.edu/programs-courses/pre-college-programs/',
     icon: Globe,
     category: "STEM / Health Sciences / Psychology",
-    location: 'International', // (USA On-campus and Online)
+    location: 'International',
     duration: "2-week sessions (June-August)",
     creditsTransferable: true,
     cost: "$1,950 USD per 1-credit program + $85 application fee. Financial aid available."
@@ -60,7 +67,7 @@ const preCollegeCourses: PreCollegeCourse[] = [
     category: "Various (Language, Arts, Business, Service)",
     location: 'International',
     duration: "3 to 8 weeks",
-    creditsTransferable: true, // Often
+    creditsTransferable: true,
     cost: "Varies (e.g., $7M in scholarships available annually)"
   },
 ];
@@ -91,7 +98,7 @@ export default function PreCollegePage() {
                <Image 
                 src={`https://placehold.co/600x300.png?text=${encodeURIComponent(course.name)}`}
                 alt={course.name}
-                data-ai-hint={course.location === 'Egypt' ? "education egypt university" : "education global study"}
+                data-ai-hint={course.location === 'Egypt' ? "egypt university" : "global study"}
                 width={600}
                 height={300}
                 className="rounded-md object-cover aspect-[2/1] mb-4"

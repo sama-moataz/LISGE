@@ -1,8 +1,14 @@
 
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, BookCheck, Award as AwardIcon, Volleyball } from 'lucide-react';
 
+export const metadata: Metadata = {
+  title: 'About LISGE and Our Founder',
+  description: 'Learn about the founder of LISGE, their journey from Giza, Egypt, academic achievements like DECI and KOSEN, and the motivation behind helping students succeed.',
+  keywords: ['LISGE founder', 'about LISGE', 'student empowerment Egypt', 'DECI program', 'KOSEN seminar'],
+};
 
 export default function AboutPage() {
   return (
@@ -21,7 +27,7 @@ export default function AboutPage() {
               <Image
                 src="https://placehold.co/200x200.png"
                 alt="My Personal Photo"
-                data-ai-hint="person portrait student"
+                data-ai-hint="person student"
                 width={200}
                 height={200}
                 className="object-cover"
