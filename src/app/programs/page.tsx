@@ -1,21 +1,14 @@
 
 "use client";
 
-import type { Metadata } from 'next';
-import type { SummerProgram, LocationFilter } from '@/types';
-import { useState, useEffect } from 'react';
+import type { SummerProgram, ProgramAgeFilter, ProgramFundingFilter, ProgramFocusAreaFilter, ProgramDurationFilter, LocationFilter } from '@/types';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase } from 'lucide-react';
+import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-// export const metadata: Metadata = { // Metadata must be static
-//   title: 'Summer Programs for Students',
-//   description: 'Explore exciting summer programs. Filter by location to find unique learning and cultural experiences with LISGE.',
-//   keywords: ['summer programs', 'EducationUSA CCC', 'Girls Who Code', 'Brown Pre-College', 'Yale Young Global Scholars', 'student summer camps', 'academic summer programs'],
-// };
 
 const summerProgramsData: SummerProgram[] = [
   {
@@ -26,8 +19,12 @@ const summerProgramsData: SummerProgram[] = [
     websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo',
     icon: Plane,
     category: "College Prep",
-    location: 'Egypt', // Program is in Egypt to help apply to US
+    location: 'Egypt', 
     provider: 'EducationUSA',
+    ageRequirement: '16-18',
+    fundingLevel: 'Varies', // Often free but might have some costs
+    focusArea: 'College Prep',
+    programDuration: 'Varies',
   },
   {
     id: 'gwc',
@@ -39,6 +36,10 @@ const summerProgramsData: SummerProgram[] = [
     category: "Tech & Coding",
     location: 'Online',
     provider: 'Girls Who Code',
+    ageRequirement: 'Under 16', // Can be 16-18 too
+    fundingLevel: 'Fully Funded',
+    focusArea: 'Tech & Coding',
+    programDuration: '2-4 Weeks',
   },
   {
     id: 'brown-precollege',
@@ -50,6 +51,10 @@ const summerProgramsData: SummerProgram[] = [
     category: "University Experience",
     location: 'International', // US-based
     provider: 'Brown University',
+    ageRequirement: '16-18',
+    fundingLevel: 'Paid Program',
+    focusArea: 'University Experience',
+    programDuration: 'Varies',
   },
   {
     id: 'yaleygs',
@@ -61,6 +66,10 @@ const summerProgramsData: SummerProgram[] = [
     category: "Global Leadership",
     location: 'International', // US-based, some online
     provider: 'Yale University',
+    ageRequirement: '16-18',
+    fundingLevel: 'Paid Program', // Scholarships available
+    focusArea: 'Global Leadership',
+    programDuration: '2-4 Weeks',
   },
   {
     id: 'guc-junior-talents',
@@ -72,11 +81,71 @@ const summerProgramsData: SummerProgram[] = [
     category: "STEM / Engineering",
     location: 'Egypt',
     provider: 'German University in Cairo',
+    ageRequirement: '16-18',
+    fundingLevel: 'Varies', // Cost not specified
+    focusArea: 'STEM / Engineering',
+    programDuration: '1 Week', // Typically short camps
+  },
+  {
+    id: 'ciee-global-nav',
+    name: 'CIEE Global Navigator High School Summer Abroad',
+    description: 'Explore different cultures, gain real-world experience in 35+ destinations. Programs in Arts & Culture, Business, Language, Leadership & Service. Earn college credits. Scholarships available.',
+    eligibility: 'Students aged 15-18.',
+    websiteUrl: 'https://www.ciee.org/go-abroad/high-school-study-abroad/summer',
+    icon: Globe,
+    category: "Various (Language, Arts, Business, Service)",
+    location: 'International',
+    provider: 'CIEE',
+    ageRequirement: '16-18', // Covers 15-18
+    fundingLevel: 'Paid Program', // Scholarships available
+    focusArea: 'Various',
+    programDuration: '2-4 Weeks', // Can be up to 8 weeks
   },
 ];
 
+const ageOptions: { value: ProgramAgeFilter; label: string }[] = [
+  { value: 'All', label: 'All Ages/Grades' },
+  { value: 'Under 16', label: 'Under 16' },
+  { value: '16-18', label: '16-18' },
+  { value: '18+', label: '18+' },
+];
+
+const fundingOptions: { value: ProgramFundingFilter; label: string }[] = [
+  { value: 'All', label: 'All Funding Levels' },
+  { value: 'Fully Funded', label: 'Fully Funded' },
+  { value: 'Partial Scholarship', label: 'Partial Scholarship' },
+  { value: 'Paid Program', label: 'Paid Program' },
+  { value: 'Varies', label: 'Varies' },
+];
+
+const focusAreaOptions: { value: ProgramFocusAreaFilter; label: string }[] = [
+  { value: 'All', label: 'All Focus Areas' },
+  { value: 'STEM', label: 'STEM' },
+  { value: 'Leadership', label: 'Leadership' },
+  { value: 'Arts', label: 'Arts' },
+  { value: 'Language', label: 'Language' },
+  { value: 'Culture', label: 'Culture' },
+  { value: 'Test Prep', label: 'Test Prep' },
+  { value: 'College Prep', label: 'College Prep' },
+  { value: 'University Experience', label: 'University Experience' },
+  { value: 'Tech & Coding', label: 'Tech & Coding' },
+  { value: 'Global Leadership', label: 'Global Leadership' },
+  { value: 'STEM / Engineering', label: 'STEM / Engineering' },
+  { value: 'Various', label: 'Various/Multi-disciplinary' },
+];
+
+const durationOptions: { value: ProgramDurationFilter; label: string }[] = [
+  { value: 'All', label: 'All Durations' },
+  { value: '1 Week', label: '1 Week' },
+  { value: '2-4 Weeks', label: '2-4 Weeks' },
+  { value: '1 Month+', label: '1 Month+' },
+  { value: 'Academic Year', label: 'Academic Year' },
+  { value: 'Varies', label: 'Varies' },
+];
+
+// Original location filter - kept for potential combined filtering or if needed elsewhere
 const locationOptions: { value: LocationFilter; label: string }[] = [
-  { value: 'All', label: 'All Locations' },
+  { value: 'All', label: 'All Locations (Original)' },
   { value: 'Egypt', label: 'Egypt' },
   { value: 'International', label: 'International' },
   { value: 'Online', label: 'Online' },
@@ -84,22 +153,39 @@ const locationOptions: { value: LocationFilter; label: string }[] = [
 
 export default function SummerProgramsPage() {
   const [mounted, setMounted] = useState(false);
+  // Original location filter state
   const [selectedLocation, setSelectedLocation] = useState<LocationFilter>('All');
-  const [filteredPrograms, setFilteredPrograms] = useState<SummerProgram[]>(summerProgramsData);
+  
+  // New filter states
+  const [selectedAge, setSelectedAge] = useState<ProgramAgeFilter>('All');
+  const [selectedFunding, setSelectedFunding] = useState<ProgramFundingFilter>('All');
+  const [selectedFocusArea, setSelectedFocusArea] = useState<ProgramFocusAreaFilter>('All');
+  const [selectedDuration, setSelectedDuration] = useState<ProgramDurationFilter>('All');
+
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (selectedLocation === 'All') {
-      setFilteredPrograms(summerProgramsData);
-    } else {
-      setFilteredPrograms(
-        summerProgramsData.filter((program) => program.location === selectedLocation)
-      );
-    }
-  }, [selectedLocation]);
+  const filteredPrograms = useMemo(() => {
+    return summerProgramsData.filter(program => {
+      const locationMatch = selectedLocation === 'All' || program.location === selectedLocation;
+      const ageMatch = selectedAge === 'All' || (program.ageRequirement && program.ageRequirement === selectedAge);
+      const fundingMatch = selectedFunding === 'All' || (program.fundingLevel && program.fundingLevel === selectedFunding);
+      const focusAreaMatch = selectedFocusArea === 'All' || (program.focusArea && (Array.isArray(program.focusArea) ? program.focusArea.includes(selectedFocusArea) : program.focusArea === selectedFocusArea));
+      const durationMatch = selectedDuration === 'All' || (program.programDuration && program.programDuration === selectedDuration);
+      
+      return locationMatch && ageMatch && fundingMatch && focusAreaMatch && durationMatch;
+    });
+  }, [selectedLocation, selectedAge, selectedFunding, selectedFocusArea, selectedDuration]);
+
+  const clearFilters = () => {
+    setSelectedLocation('All');
+    setSelectedAge('All');
+    setSelectedFunding('All');
+    setSelectedFocusArea('All');
+    setSelectedDuration('All');
+  };
 
   if (!mounted) {
     return null; 
@@ -110,28 +196,50 @@ export default function SummerProgramsPage() {
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold font-headline text-primary">Experience the World: Summer Programs</h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Discover exciting summer programs. Use the filter to find learning and cultural experiences.
+          Discover exciting summer programs. Use the filters to find learning and cultural experiences.
         </p>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row items-center gap-4 p-4 border rounded-lg shadow-sm bg-card">
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <Filter className="h-5 w-5 text-primary" />
-          Filter by Location:
+      <Card className="p-4 md:p-6 shadow-md">
+        <CardHeader className="p-0 pb-4 mb-4 border-b">
+          <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Programs</CardTitle>
+        </CardHeader>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
+            <SelectTrigger><SelectValue placeholder="Location (Original)" /></SelectTrigger>
+            <SelectContent>
+              {locationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ProgramAgeFilter)}>
+            <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
+            <SelectContent>
+              {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ProgramFundingFilter)}>
+            <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
+            <SelectContent>
+              {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={selectedFocusArea} onValueChange={(value) => setSelectedFocusArea(value as ProgramFocusAreaFilter)}>
+            <SelectTrigger><SelectValue placeholder="Focus Area" /></SelectTrigger>
+            <SelectContent>
+              {focusAreaOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={selectedDuration} onValueChange={(value) => setSelectedDuration(value as ProgramDurationFilter)}>
+            <SelectTrigger><SelectValue placeholder="Duration" /></SelectTrigger>
+            <SelectContent>
+              {durationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
-          <SelectTrigger className="w-full sm:w-[280px]">
-            <SelectValue placeholder="Select location" />
-          </SelectTrigger>
-          <SelectContent>
-            {locationOptions.map(option => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+         <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
+          <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
+        </Button>
+      </Card>
 
       {filteredPrograms.length > 0 ? (
         <div className="grid md:grid-cols-2 gap-6">
@@ -142,11 +250,14 @@ export default function SummerProgramsPage() {
                   {program.icon ? <program.icon className="h-8 w-8 text-accent" /> : <Briefcase className="h-8 w-8 text-accent" />}
                   <CardTitle className="text-2xl font-headline">{program.name}</CardTitle>
                 </div>
-                 <div className="flex flex-wrap gap-2 text-sm">
-                    {program.category && <p className="text-accent-foreground bg-accent/20 px-2 py-1 rounded-full inline-block">{program.category}</p>}
-                    <p className="text-primary-foreground bg-primary/80 px-2 py-1 rounded-full inline-block">{program.location}</p>
+                 <div className="flex flex-wrap gap-2 text-xs mt-1">
+                    {program.focusArea && <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">{Array.isArray(program.focusArea) ? program.focusArea.join(', ') : program.focusArea}</span>}
+                    {program.location && <span className="bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">{program.location}</span>}
+                    {program.programDuration && program.programDuration !== 'All' && <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{program.programDuration}</span>}
+                    {program.fundingLevel && program.fundingLevel !== 'All' && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{program.fundingLevel}</span>}
+                    {program.ageRequirement && program.ageRequirement !== 'All' && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Age: {program.ageRequirement}</span>}
                 </div>
-                <CardDescription className="pt-2 text-base">{program.description}</CardDescription>
+                <CardDescription className="pt-3 text-base">{program.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-3">
                 <Image 
@@ -179,7 +290,7 @@ export default function SummerProgramsPage() {
           ))}
         </div>
       ) : (
-         <p className="text-center text-muted-foreground text-lg py-8">No summer programs found matching your criteria. Try broadening your search.</p>
+         <p className="text-center text-muted-foreground text-lg py-8">No summer programs found matching your criteria. Try broadening your search or clearing some filters.</p>
       )}
     </div>
   );
