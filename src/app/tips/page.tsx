@@ -1,7 +1,7 @@
 
 import type { StudyTip } from '@/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Lightbulb, BookOpenText, Clock, MessageSquareText, Target, Search, Users, CheckSquare, Languages, BriefcaseDiff } from 'lucide-react';
+import { Lightbulb, BookOpenText, Clock, MessageSquareText, Target, Search, Users, CheckSquare, Languages, Briefcase } from 'lucide-react';
 
 const initialStudyTips: StudyTip[] = [
   {
@@ -41,7 +41,7 @@ const expertRecommendations: StudyTip[] = [
     id: 'leverage-programs',
     title: 'Leverage Pre-College and Summer Programs',
     content: 'Participate in pre-college courses or summer academic programs to gain early exposure to university-level studies and specialized fields. These experiences can clarify academic interests, enhance skills, and strengthen university applications.',
-    icon: BriefcaseDiff,
+    icon: Briefcase,
   },
   {
     id: 'strategic-volunteering',
@@ -65,7 +65,7 @@ const expertRecommendations: StudyTip[] = [
     id: 'long-term-pathways',
     title: 'Consider Long-Term Academic Pathways',
     content: 'For those aspiring to study abroad, especially in countries like Germany where undergraduate scholarships may be limited, consider short-term summer courses as a strategic first step. These can build a profile and enhance eligibility for future graduate-level opportunities.',
-    icon: Lightbulb, // Re-using Lightbulb as it fits "idea/strategy"
+    icon: Lightbulb,
   },
 ];
 
