@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe } from 'lucide-react'; // Added Globe
+import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays } from 'lucide-react'; // Added Globe, Landmark, CalendarDays
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -20,11 +20,13 @@ const summerProgramsData: SummerProgram[] = [
     icon: Plane,
     category: "College Prep",
     location: 'Egypt', 
-    provider: 'EducationUSA',
+    provider: 'EducationUSA', // Used as partner
     ageRequirement: '16-18',
-    fundingLevel: 'Varies', // Often free but might have some costs
+    fundingLevel: 'Varies', 
     focusArea: 'College Prep',
     programDuration: 'Varies',
+    partner: 'EducationUSA',
+    deadline: "Varies (check with local EducationUSA center)"
   },
   {
     id: 'gwc',
@@ -36,25 +38,46 @@ const summerProgramsData: SummerProgram[] = [
     category: "Tech & Coding",
     location: 'Online',
     provider: 'Girls Who Code',
-    ageRequirement: 'Under 16', // Can be 16-18 too
+    ageRequirement: 'Under 16', 
     fundingLevel: 'Fully Funded',
     focusArea: 'Tech & Coding',
     programDuration: '2-4 Weeks',
+    partner: 'Girls Who Code',
+    deadline: "Applications typically open early in the year"
   },
   {
-    id: 'brown-precollege',
-    name: 'Brown Pre-College Programs',
-    description: 'Offers a wide range of summer programs for high school students to experience college-level academics at Brown University.',
-    eligibility: 'High school students, specific grade levels vary by program.',
-    websiteUrl: 'https://precollege.brown.edu/',
-    icon: MapPin,
-    category: "University Experience",
-    location: 'International', // US-based
-    provider: 'Brown University',
-    ageRequirement: '16-18',
-    fundingLevel: 'Paid Program',
-    focusArea: 'University Experience',
-    programDuration: 'Varies',
+    id: 'techgirls',
+    name: 'TechGirls Program',
+    description: 'An international summer exchange program designed to empower and inspire young women to pursue careers in science and technology.',
+    eligibility: "Girls aged 15-17, citizen of participating country (incl. Egypt), strong English skills, commitment to community project.",
+    websiteUrl: 'https://techgirlsglobal.org/', // General site, specific link may vary
+    icon: Globe,
+    category: "STEM Leadership",
+    location: 'International', // Takes place in USA
+    provider: 'U.S. Department of State (via Legacy International)',
+    ageRequirement: '16-18', // Simplified to fit filter category
+    fundingLevel: 'Fully Funded', // Implied by exchange program coverage
+    focusArea: 'STEM',
+    programDuration: '2-4 Weeks', // "Three-week summer exchange"
+    partner: 'U.S. Department of State',
+    deadline: "December 6, 2024 (for 2025 program)"
+  },
+  {
+    id: 'daad-summer-courses',
+    name: 'DAAD University Summer Courses',
+    description: 'Offers Egyptian undergraduate students an opportunity for short-term study in Germany, focusing on Language & Regional Studies. Enhances profile for future Master\'s scholarships.',
+    eligibility: "Foreign students and graduates. (Egyptian undergraduate students eligible)",
+    websiteUrl: 'https://www.daad.eg/en/find-funding/scholarship-database/',
+    icon: Globe,
+    category: "Language & Culture",
+    location: 'International', // Germany
+    provider: 'DAAD',
+    ageRequirement: '18+', // Undergraduate
+    fundingLevel: 'Partial Scholarship', // "One-time scholarship of €1,134 plus allowances"
+    focusArea: 'Language',
+    programDuration: 'Varies', // "minimum of 18 teaching days"
+    partner: 'DAAD',
+    deadline: "December (Approximate)"
   },
   {
     id: 'yaleygs',
@@ -64,42 +87,14 @@ const summerProgramsData: SummerProgram[] = [
     websiteUrl: 'https://globalscholars.yale.edu/',
     icon: Users,
     category: "Global Leadership",
-    location: 'International', // US-based, some online
+    location: 'International', 
     provider: 'Yale University',
     ageRequirement: '16-18',
-    fundingLevel: 'Paid Program', // Scholarships available
+    fundingLevel: 'Paid Program', 
     focusArea: 'Global Leadership',
     programDuration: '2-4 Weeks',
-  },
-  {
-    id: 'guc-junior-talents',
-    name: 'GUC "Junior Talents" Camps',
-    description: 'Practical, hands-on camps for high school students (16-18) to explore talents in fields like Civil Engineering. Provides early exposure to university disciplines.',
-    eligibility: 'High school students (16-18).',
-    websiteUrl: 'https://www.guc.edu.eg/',
-    icon: Briefcase,
-    category: "STEM / Engineering",
-    location: 'Egypt',
-    provider: 'German University in Cairo',
-    ageRequirement: '16-18',
-    fundingLevel: 'Varies', // Cost not specified
-    focusArea: 'STEM / Engineering',
-    programDuration: '1 Week', // Typically short camps
-  },
-  {
-    id: 'ciee-global-nav',
-    name: 'CIEE Global Navigator High School Summer Abroad',
-    description: 'Explore different cultures, gain real-world experience in 35+ destinations. Programs in Arts & Culture, Business, Language, Leadership & Service. Earn college credits. Scholarships available.',
-    eligibility: 'Students aged 15-18.',
-    websiteUrl: 'https://www.ciee.org/go-abroad/high-school-study-abroad/summer',
-    icon: Globe,
-    category: "Various (Language, Arts, Business, Service)",
-    location: 'International',
-    provider: 'CIEE',
-    ageRequirement: '16-18', // Covers 15-18
-    fundingLevel: 'Paid Program', // Scholarships available
-    focusArea: 'Various',
-    programDuration: '2-4 Weeks', // Can be up to 8 weeks
+    partner: 'Yale University',
+    deadline: 'Early January (check website)'
   },
 ];
 
@@ -143,9 +138,8 @@ const durationOptions: { value: ProgramDurationFilter; label: string }[] = [
   { value: 'Varies', label: 'Varies' },
 ];
 
-// Original location filter - kept for potential combined filtering or if needed elsewhere
 const locationOptions: { value: LocationFilter; label: string }[] = [
-  { value: 'All', label: 'All Locations (Original)' },
+  { value: 'All', label: 'All Locations' },
   { value: 'Egypt', label: 'Egypt' },
   { value: 'International', label: 'International' },
   { value: 'Online', label: 'Online' },
@@ -153,10 +147,7 @@ const locationOptions: { value: LocationFilter; label: string }[] = [
 
 export default function SummerProgramsPage() {
   const [mounted, setMounted] = useState(false);
-  // Original location filter state
   const [selectedLocation, setSelectedLocation] = useState<LocationFilter>('All');
-  
-  // New filter states
   const [selectedAge, setSelectedAge] = useState<ProgramAgeFilter>('All');
   const [selectedFunding, setSelectedFunding] = useState<ProgramFundingFilter>('All');
   const [selectedFocusArea, setSelectedFocusArea] = useState<ProgramFocusAreaFilter>('All');
@@ -199,47 +190,49 @@ export default function SummerProgramsPage() {
           Discover exciting summer programs. Use the filters to find learning and cultural experiences.
         </p>
       </div>
-
-      <Card className="p-4 md:p-6 shadow-md">
-        <CardHeader className="p-0 pb-4 mb-4 border-b">
-          <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Programs</CardTitle>
-        </CardHeader>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-          <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
-            <SelectTrigger><SelectValue placeholder="Location (Original)" /></SelectTrigger>
-            <SelectContent>
-              {locationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ProgramAgeFilter)}>
-            <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
-            <SelectContent>
-              {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ProgramFundingFilter)}>
-            <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
-            <SelectContent>
-              {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={selectedFocusArea} onValueChange={(value) => setSelectedFocusArea(value as ProgramFocusAreaFilter)}>
-            <SelectTrigger><SelectValue placeholder="Focus Area" /></SelectTrigger>
-            <SelectContent>
-              {focusAreaOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={selectedDuration} onValueChange={(value) => setSelectedDuration(value as ProgramDurationFilter)}>
-            <SelectTrigger><SelectValue placeholder="Duration" /></SelectTrigger>
-            <SelectContent>
-              {durationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-         <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
-          <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
-        </Button>
-      </Card>
+      
+      <div className="sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:-mx-0 md:px-0">
+        <Card className="p-4 md:p-6 shadow-md">
+          <CardHeader className="p-0 pb-4 mb-4 border-b">
+            <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Programs</CardTitle>
+          </CardHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
+              <SelectTrigger><SelectValue placeholder="Location" /></SelectTrigger>
+              <SelectContent>
+                {locationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ProgramAgeFilter)}>
+              <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
+              <SelectContent>
+                {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ProgramFundingFilter)}>
+              <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
+              <SelectContent>
+                {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedFocusArea} onValueChange={(value) => setSelectedFocusArea(value as ProgramFocusAreaFilter)}>
+              <SelectTrigger><SelectValue placeholder="Focus Area" /></SelectTrigger>
+              <SelectContent>
+                {focusAreaOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedDuration} onValueChange={(value) => setSelectedDuration(value as ProgramDurationFilter)}>
+              <SelectTrigger><SelectValue placeholder="Duration" /></SelectTrigger>
+              <SelectContent>
+                {durationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
+            <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
+          </Button>
+        </Card>
+      </div>
 
       {filteredPrograms.length > 0 ? (
         <div className="grid md:grid-cols-2 gap-6">
@@ -248,7 +241,7 @@ export default function SummerProgramsPage() {
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   {program.icon ? <program.icon className="h-8 w-8 text-accent" /> : <Briefcase className="h-8 w-8 text-accent" />}
-                  <CardTitle className="text-2xl font-headline">{program.name}</CardTitle>
+                  <CardTitle className="text-xl font-headline leading-tight">{program.name}</CardTitle>
                 </div>
                  <div className="flex flex-wrap gap-2 text-xs mt-1">
                     {program.focusArea && <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">{Array.isArray(program.focusArea) ? program.focusArea.join(', ') : program.focusArea}</span>}
@@ -257,9 +250,9 @@ export default function SummerProgramsPage() {
                     {program.fundingLevel && program.fundingLevel !== 'All' && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{program.fundingLevel}</span>}
                     {program.ageRequirement && program.ageRequirement !== 'All' && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Age: {program.ageRequirement}</span>}
                 </div>
-                <CardDescription className="pt-3 text-base">{program.description}</CardDescription>
+                <CardDescription className="pt-3 text-sm">{program.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow space-y-3">
+              <CardContent className="flex-grow space-y-3 text-sm">
                 <Image 
                   src={`https://placehold.co/600x300.png?text=${encodeURIComponent(program.name)}`}
                   alt={program.name}
@@ -268,14 +261,20 @@ export default function SummerProgramsPage() {
                   height={300}
                   className="rounded-md object-cover aspect-[2/1] mb-4"
                 />
+                 {program.partner && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Landmark className="h-4 w-4 text-primary" />
+                    <p><strong>Partner:</strong> {program.partner}</p>
+                  </div>
+                )}
                 <div>
-                  <h3 className="font-semibold text-md mb-1">Eligibility:</h3>
-                  <p className="text-sm text-muted-foreground">{program.eligibility}</p>
+                  <h4 className="font-semibold mb-0.5">Eligibility:</h4>
+                  <p className="text-muted-foreground">{program.eligibility}</p>
                 </div>
-                {program.provider && (
-                  <div>
-                    <h3 className="font-semibold text-md mb-1">Provider:</h3>
-                    <p className="text-sm text-muted-foreground">{program.provider}</p>
+                {program.deadline && (
+                  <div className="flex items-center gap-2 text-muted-foreground pt-1">
+                    <CalendarDays className="h-4 w-4 text-primary" />
+                    <p><strong>Deadline:</strong> {program.deadline}</p>
                   </div>
                 )}
               </CardContent>
@@ -295,4 +294,3 @@ export default function SummerProgramsPage() {
     </div>
   );
 }
-

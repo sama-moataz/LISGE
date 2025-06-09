@@ -7,7 +7,10 @@ export type LocationFilter = 'All' | 'Egypt' | 'International' | 'Global' | 'Onl
 export type ScholarshipAgeFilter = 'All' | 'Under 16' | '16-18' | '18+';
 export type ScholarshipFundingFilter = 'All' | 'Fully Funded' | 'Partial Scholarship' | 'No Funding' | 'Varies';
 export type ScholarshipRegionFilter = 'All' | 'USA' | 'Europe' | 'Asia' | 'Egypt/MENA' | 'Global' | 'Other';
-export type ScholarshipTypeFilter = 'All' | 'High School' | 'Undergraduate' | 'Language' | 'Exchange' | 'Varies';
+// Renamed ScholarshipTypeFilter to ScholarshipLevelFilter for clarity and to align with common terminology
+export type ScholarshipLevelFilter = 'All' | 'High School' | 'Undergraduate' | 'Postgraduate' | 'Youth' | 'All Levels' | 'Exchange' | 'Language' | 'Varies';
+export type FundingCountryFilter = 'All' | 'Egypt' | 'USA' | 'Germany' | 'UK' | 'Canada' | 'China' | 'South Korea' | 'Other';
+
 
 export interface Scholarship {
   id: string;
@@ -16,13 +19,17 @@ export interface Scholarship {
   eligibility: string;
   websiteUrl: string;
   icon?: LucideIcon;
-  category?: string; // General category, can be used for initial display or broader grouping
-  location: 'Egypt' | 'International' | 'Global' | 'Online'; // Original general location
-  // New detailed filter fields for Scholarships
-  ageRequirement?: ScholarshipAgeFilter | string; // Can be specific string or predefined filter value
+  category?: string; 
+  location: 'Egypt' | 'International' | 'Global' | 'Online'; 
+  ageRequirement?: ScholarshipAgeFilter | string; 
   fundingLevel?: ScholarshipFundingFilter | string;
   destinationRegion?: ScholarshipRegionFilter | string;
-  scholarshipType?: ScholarshipTypeFilter | string;
+  targetLevel?: ScholarshipLevelFilter | string; // Changed from scholarshipType
+  // New fields inspired by HTML example and report
+  fundingCountry?: FundingCountryFilter | string;
+  partner?: string;
+  coverage?: string;
+  deadline?: string;
 }
 
 // Summer Program Filter Types
@@ -46,35 +53,40 @@ export interface SummerProgram {
   eligibility: string;
   websiteUrl: string;
   icon?: LucideIcon;
-  category?: string; // General category
-  location: 'Egypt' | 'International' | 'Online'; // Original general location
-  provider?: string;
-  // New detailed filter fields for Summer Programs
+  category?: string; 
+  location: 'Egypt' | 'International' | 'Online'; 
+  provider?: string; // Already exists, can be used as partner
   ageRequirement?: ProgramAgeFilter | string;
   fundingLevel?: ProgramFundingFilter | string;
-  focusArea?: ProgramFocusAreaFilter | string | string[]; // Allow single or multiple
+  focusArea?: ProgramFocusAreaFilter | string | string[]; 
   programDuration?: ProgramDurationFilter | string;
+  // New fields
+  partner?: string; // Can alias to provider or be distinct if needed
+  deadline?: string;
 }
 
 export interface VolunteerOpportunity {
   id: string;
   name: string;
-  organization: string;
+  organization: string; // Can be used as partner
   description: string;
   eligibility?: string;
   websiteUrl: string;
   icon?: LucideIcon;
   category?: string;
-  location: 'Egypt' | 'International' | 'Online'; // Added Online for consistency
+  location: 'Egypt' | 'International' | 'Online'; 
   duration?: string;
   cost?: string;
   sdgFocus?: string;
+  // New fields
+  partner?: string; // Can alias to organization
+  deadline?: string;
 }
 
 export interface PreCollegeCourse {
   id: string;
   name: string;
-  institution: string;
+  institution: string; // Can be used as partner
   description: string;
   eligibility?: string;
   websiteUrl: string;
@@ -84,4 +96,7 @@ export interface PreCollegeCourse {
   duration?: string;
   creditsTransferable?: boolean;
   cost?: string;
+  // New fields
+  partner?: string; // Can alias to institution
+  deadline?: string;
 }

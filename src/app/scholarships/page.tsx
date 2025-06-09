@@ -1,113 +1,123 @@
 
 "use client";
 
-import type { Scholarship, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipTypeFilter } from '@/types';
+import type { Scholarship, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types'; // Updated ScholarshipTypeFilter to ScholarshipLevelFilter
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Award, BookOpen, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw } from 'lucide-react';
+import { Award, BookOpen, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info } from 'lucide-react'; // Added Landmark, CalendarDays, Info
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const scholarshipsData: Scholarship[] = [
   {
-    id: 'uwc',
-    name: 'UWC (United World Colleges)',
-    description: 'A global education movement that makes education a force to unite people, nations and cultures for peace and a sustainable future.',
-    eligibility: 'Typically ages 16-19, varies by national committee.',
-    websiteUrl: 'https://www.uwc.org/',
-    icon: Globe,
-    category: "International Baccalaureate",
-    location: 'Global',
-    ageRequirement: '16-18',
-    fundingLevel: 'Varies',
-    destinationRegion: 'Global',
-    scholarshipType: 'High School',
-  },
-  {
-    id: 'rise',
-    name: 'Rise for the World',
-    description: 'Rise is a program that finds promising young people and provides them with opportunities that allow them to work together to serve others over their lifetimes.',
-    eligibility: 'Ages 15-17 at time of application.',
-    websiteUrl: 'https://www.risefortheworld.org/',
-    icon: Award,
-    category: "Global Talent Program",
-    location: 'Global',
-    ageRequirement: '16-18', // Simplified from 15-17 for filter
-    fundingLevel: 'Fully Funded',
-    destinationRegion: 'Global',
-    scholarshipType: 'High School',
-  },
-  {
-    id: 'yes',
-    name: 'Kennedy-Lugar Youth Exchange and Study (YES) Program',
-    description: 'Provides scholarships for high school students from countries with significant Muslim populations to spend up to one academic year in the United States.',
-    eligibility: 'High school students, age requirements vary by country. (Typically 15-17)',
-    websiteUrl: 'https://www.yesprograms.org/',
-    icon: Users,
-    category: "Cultural Exchange",
-    location: 'International',
-    ageRequirement: '16-18', // Simplified
-    fundingLevel: 'Fully Funded',
-    destinationRegion: 'USA',
-    scholarshipType: 'Exchange',
-  },
-  {
-    id: 'aspire',
-    name: 'Aspire Institute Leaders Program',
-    description: 'A fully-funded leadership development program for first-generation college students and recent graduates from underserved backgrounds globally.',
-    eligibility: 'First-generation college students/recent grads, 18-29 years old.',
-    websiteUrl: 'https://www.aspireleaders.org/',
-    icon: BookOpen,
-    category: "Leadership Development",
-    location: 'Global',
-    ageRequirement: '18+',
-    fundingLevel: 'Fully Funded',
-    destinationRegion: 'Global',
-    scholarshipType: 'Undergraduate', // Can also be post-grad
-  },
-  {
-    id: 'hei-local',
-    name: 'HEI Local Scholarships (Private Universities)',
-    description: 'Scholarships for Egyptian public school graduates to pursue programs in Egyptian private universities. Focus on agribusiness, engineering, economics, IT.',
-    eligibility: 'Egyptian public school graduates. Economically disadvantaged.',
-    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo',
-    icon: Award,
-    category: "Higher Education",
-    location: 'Egypt',
-    ageRequirement: '18+', // Assuming for university
-    fundingLevel: 'Varies', // Often full, but can vary
-    destinationRegion: 'Egypt/MENA',
-    scholarshipType: 'Undergraduate',
-  },
-   {
     id: 'guc-thanaweya-amma',
-    name: 'GUC National Top Ranked Thanaweya Amma Scholarship',
+    name: "National Top Ranked Thanaweya Amma Students' Scholarship",
     description: 'Full scholarship for Egyptian citizens ranked top 10 nationally in Al-Thanaweya Al-Amma. Covers study fees, accommodation (if outside Cairo), transportation, etc.',
-    eligibility: 'Top 10 Thanaweya Amma. Pass GUC admission. Maintain 3.00 CGPA.',
+    eligibility: "Egyptian citizen, top 10 national rank in Al-Thanaweya Al-Amma, pass GUC tests, maintain 3.00 GPA.",
     websiteUrl: 'https://www.guc.edu.eg/',
     icon: GraduationCap,
     category: "Full Scholarship",
-    location: 'Egypt',
-    ageRequirement: '18+', // Assuming for university
+    location: 'Egypt', // Destination is Egypt
+    ageRequirement: '18+', 
     fundingLevel: 'Fully Funded',
     destinationRegion: 'Egypt/MENA',
-    scholarshipType: 'Undergraduate',
+    targetLevel: 'Undergraduate',
+    fundingCountry: 'Egypt',
+    partner: 'GUC (in cooperation with MoHESR)',
+    coverage: 'Full tuition, accommodation, transportation, admission test fees, lab insurance.',
+    deadline: "July 30, 2019 (Past example)"
+  },
+  {
+    id: 'mohesr-innovators-gss',
+    name: "Ministry of Higher Education Innovators Support Fund Scholarship (GSS)",
+    description: 'Full scholarship for gifted Egyptian students in Sciences and Technology to study at Nile University.',
+    eligibility: "Egyptian national, Thanaweya Amma/STEM graduate (2023/2024), pass IQ tests, strong extracurriculars, maintain 3.0 CGPA.",
+    websiteUrl: 'https://nu.edu.eg/scholarships/', // Placeholder, replace with actual link
+    icon: Award,
+    category: "STEM Scholarship",
+    location: 'Egypt',
+    ageRequirement: '18+',
+    fundingLevel: 'Fully Funded',
+    destinationRegion: 'Egypt/MENA',
+    targetLevel: 'Undergraduate',
+    fundingCountry: 'Egypt',
+    partner: 'Innovators Support Fund (at Nile University)',
+    coverage: 'Full tuition for specific STEM programs (Fall & Spring semesters).',
+    deadline: "August 22, 2024"
+  },
+  {
+    id: 'hei-local',
+    name: 'U.S.-Egypt HEI Local Scholarships (Private Universities)',
+    description: 'Scholarships for Egyptian public school graduates to pursue programs in Egyptian private universities. Focus on agribusiness, engineering, economics, IT.',
+    eligibility: 'Egyptian public school graduates. Economically disadvantaged. High-achieving.',
+    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo', // General link
+    icon: Users,
+    category: "Higher Education",
+    location: 'Egypt',
+    ageRequirement: '18+', 
+    fundingLevel: 'Varies', 
+    destinationRegion: 'Egypt/MENA',
+    targetLevel: 'Undergraduate',
+    fundingCountry: 'USA',
+    partner: 'U.S. Embassy/USAID',
+    coverage: 'Academic skill-building, English training, internships, entrepreneurship.',
+    deadline: "Varies (check official announcements)"
+  },
+  {
+    id: 'yes-program',
+    name: 'Kennedy-Lugar Youth Exchange and Study (YES) Program',
+    description: 'Provides scholarships for high school students from countries with significant Muslim populations to spend up to one academic year in the United States.',
+    eligibility: 'High school students aged 15-17, Egyptian nationality, min 80% grades.',
+    websiteUrl: 'https://www.yesprograms.org/',
+    icon: Globe,
+    category: "Cultural Exchange",
+    location: 'International', // Destination USA
+    ageRequirement: '16-18', 
+    fundingLevel: 'Fully Funded',
+    destinationRegion: 'USA',
+    targetLevel: 'Exchange', // Or High School
+    fundingCountry: 'USA',
+    partner: 'U.S. Department of State',
+    coverage: 'Full scholarship to spend one academic year in the U.S., living with a host family.',
+    deadline: "May 2024 (for 2025-26)"
   },
   {
     id: 'daad-summer',
     name: 'DAAD University Summer Courses (Germany)',
-    description: 'Language & Regional Studies courses in Germany. One-time payment of €1,134 + allowances. Enhances profile for future Master\'s scholarships.',
+    description: 'Language & Regional Studies courses in Germany. Enhances profile for future Master\'s scholarships.',
     eligibility: 'Egyptian undergraduate students. Approx. deadline Dec.',
     websiteUrl: 'https://www.daad.eg/en/find-funding/scholarship-database/',
     icon: Globe,
     category: "Language & Regional Studies",
     location: 'International',
     ageRequirement: '18+',
-    fundingLevel: 'Partial Scholarship', // It's a grant, not full tuition
+    fundingLevel: 'Partial Scholarship',
     destinationRegion: 'Europe',
-    scholarshipType: 'Language',
+    targetLevel: 'Language', // or Undergraduate Short Course
+    fundingCountry: 'Germany',
+    partner: 'DAAD',
+    coverage: 'One-time scholarship of €1,134 plus allowances for language/regional studies course.',
+    deadline: "December (Approximate)"
+  },
+   {
+    id: 'chevening',
+    name: 'Chevening Scholarships',
+    description: 'Fully funded one-year Master\'s degree at any UK university for individuals with demonstrable leadership potential.',
+    eligibility: "Demonstrable leadership potential, strong academic background, Egyptian citizen.",
+    websiteUrl: 'https://www.chevening.org/egypt/',
+    icon: Award,
+    category: "Postgraduate Leadership",
+    location: 'International',
+    ageRequirement: '18+', // Implied by Master's
+    fundingLevel: 'Fully Funded',
+    destinationRegion: 'UK',
+    targetLevel: 'Postgraduate',
+    fundingCountry: 'UK',
+    partner: 'UK Government (FCDO)',
+    coverage: 'Fully funded (tuition, stipend, travel, allowances).',
+    deadline: "Closed for 2025-2026 (check website for next cycle)"
   },
 ];
 
@@ -128,21 +138,36 @@ const fundingOptions: { value: ScholarshipFundingFilter; label: string }[] = [
 
 const regionOptions: { value: ScholarshipRegionFilter; label: string }[] = [
   { value: 'All', label: 'All Destinations' },
+  { value: 'Egypt/MENA', label: 'Egypt/MENA' },
   { value: 'USA', label: 'USA' },
   { value: 'Europe', label: 'Europe' },
   { value: 'Asia', label: 'Asia' },
-  { value: 'Egypt/MENA', label: 'Egypt/MENA' },
   { value: 'Global', label: 'Global (Multiple/Any)' },
   { value: 'Other', label: 'Other' },
 ];
 
-const typeOptions: { value: ScholarshipTypeFilter; label: string }[] = [
-  { value: 'All', label: 'All Types' },
+const levelOptions: { value: ScholarshipLevelFilter; label: string }[] = [ // Renamed from typeOptions
+  { value: 'All', label: 'All Levels/Types' },
   { value: 'High School', label: 'High School Program' },
   { value: 'Undergraduate', label: 'Undergraduate Degree' },
+  { value: 'Postgraduate', label: 'Postgraduate Degree' },
   { value: 'Language', label: 'Language Course' },
   { value: 'Exchange', label: 'Exchange Program' },
+  { value: 'Youth', label: 'Youth Program'},
+  { value: 'All Levels', label: 'All Levels (General)'},
   { value: 'Varies', label: 'Varies/Other' },
+];
+
+const fundingCountryOptions: { value: FundingCountryFilter; label: string }[] = [
+  { value: 'All', label: 'All Funding Countries' },
+  { value: 'Egypt', label: 'Egypt' },
+  { value: 'USA', label: 'USA' },
+  { value: 'Germany', label: 'Germany' },
+  { value: 'UK', label: 'UK' },
+  { value: 'Canada', label: 'Canada' },
+  { value: 'China', label: 'China' },
+  { value: 'South Korea', label: 'South Korea' },
+  { value: 'Other', label: 'Other' },
 ];
 
 
@@ -151,7 +176,8 @@ export default function ScholarshipsPage() {
   const [selectedAge, setSelectedAge] = useState<ScholarshipAgeFilter>('All');
   const [selectedFunding, setSelectedFunding] = useState<ScholarshipFundingFilter>('All');
   const [selectedRegion, setSelectedRegion] = useState<ScholarshipRegionFilter>('All');
-  const [selectedType, setSelectedType] = useState<ScholarshipTypeFilter>('All');
+  const [selectedLevel, setSelectedLevel] = useState<ScholarshipLevelFilter>('All'); // Renamed from selectedType
+  const [selectedFundingCountry, setSelectedFundingCountry] = useState<FundingCountryFilter>('All');
 
   useEffect(() => {
     setMounted(true);
@@ -162,16 +188,18 @@ export default function ScholarshipsPage() {
       const ageMatch = selectedAge === 'All' || (scholarship.ageRequirement && scholarship.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (scholarship.fundingLevel && scholarship.fundingLevel === selectedFunding);
       const regionMatch = selectedRegion === 'All' || (scholarship.destinationRegion && scholarship.destinationRegion === selectedRegion) || (selectedRegion === 'Egypt/MENA' && scholarship.location === 'Egypt');
-      const typeMatch = selectedType === 'All' || (scholarship.scholarshipType && scholarship.scholarshipType === selectedType);
-      return ageMatch && fundingMatch && regionMatch && typeMatch;
+      const levelMatch = selectedLevel === 'All' || (scholarship.targetLevel && scholarship.targetLevel === selectedLevel); // Renamed from typeMatch
+      const fundingCountryMatch = selectedFundingCountry === 'All' || (scholarship.fundingCountry && scholarship.fundingCountry === selectedFundingCountry);
+      return ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
-  }, [selectedAge, selectedFunding, selectedRegion, selectedType]);
+  }, [selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
   
   const clearFilters = () => {
     setSelectedAge('All');
     setSelectedFunding('All');
     setSelectedRegion('All');
-    setSelectedType('All');
+    setSelectedLevel('All'); // Renamed
+    setSelectedFundingCountry('All');
   };
 
   if (!mounted) {
@@ -187,41 +215,49 @@ export default function ScholarshipsPage() {
         </p>
       </div>
 
-      <Card className="p-4 md:p-6 shadow-md">
-        <CardHeader className="p-0 pb-4 mb-4 border-b">
-          <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Scholarships</CardTitle>
-        </CardHeader>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ScholarshipAgeFilter)}>
-            <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
-            <SelectContent>
-              {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ScholarshipFundingFilter)}>
-            <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
-            <SelectContent>
-              {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={selectedRegion} onValueChange={(value) => setSelectedRegion(value as ScholarshipRegionFilter)}>
-            <SelectTrigger><SelectValue placeholder="Destination" /></SelectTrigger>
-            <SelectContent>
-              {regionOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={selectedType} onValueChange={(value) => setSelectedType(value as ScholarshipTypeFilter)}>
-            <SelectTrigger><SelectValue placeholder="Scholarship Type" /></SelectTrigger>
-            <SelectContent>
-              {typeOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
-          <RefreshCw className="mr-2 h-4 w-4" /> Clear Filters
-        </Button>
-      </Card>
-
+      <div className="sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:-mx-0 md:px-0">
+        <Card className="p-4 md:p-6 shadow-md ">
+          <CardHeader className="p-0 pb-4 mb-4 border-b">
+            <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Scholarships</CardTitle>
+          </CardHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ScholarshipAgeFilter)}>
+              <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
+              <SelectContent>
+                {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ScholarshipFundingFilter)}>
+              <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
+              <SelectContent>
+                {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedRegion} onValueChange={(value) => setSelectedRegion(value as ScholarshipRegionFilter)}>
+              <SelectTrigger><SelectValue placeholder="Destination Region" /></SelectTrigger>
+              <SelectContent>
+                {regionOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as ScholarshipLevelFilter)}> {/* Renamed */}
+              <SelectTrigger><SelectValue placeholder="Target Level/Type" /></SelectTrigger> {/* Renamed placeholder */}
+              <SelectContent>
+                {levelOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedFundingCountry} onValueChange={(value) => setSelectedFundingCountry(value as FundingCountryFilter)}>
+              <SelectTrigger><SelectValue placeholder="Funding Country" /></SelectTrigger>
+              <SelectContent>
+                {fundingCountryOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
+            <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
+          </Button>
+        </Card>
+      </div>
+      
       {filteredScholarships.length > 0 ? (
         <div className="grid md:grid-cols-2 gap-6">
           {filteredScholarships.map((scholarship) => (
@@ -229,18 +265,18 @@ export default function ScholarshipsPage() {
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   {scholarship.icon ? <scholarship.icon className="h-8 w-8 text-accent" /> : <Award className="h-8 w-8 text-accent" />}
-                  <CardTitle className="text-2xl font-headline">{scholarship.name}</CardTitle>
+                  <CardTitle className="text-xl font-headline leading-tight">{scholarship.name}</CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs mt-1">
-                    {scholarship.scholarshipType && <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{scholarship.scholarshipType}</span>}
+                    {scholarship.targetLevel && <span className="bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full">{scholarship.targetLevel}</span>}
                     {scholarship.destinationRegion && <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{scholarship.destinationRegion}</span>}
                     {scholarship.fundingLevel && <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">{scholarship.fundingLevel}</span>}
-                    {scholarship.ageRequirement && scholarship.ageRequirement !== 'All' && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Age: {scholarship.ageRequirement}</span>}
+                    {scholarship.fundingCountry && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Fund: {scholarship.fundingCountry}</span>}
                 </div>
-                <CardDescription className="pt-3 text-base">{scholarship.description}</CardDescription>
+                <CardDescription className="pt-3 text-sm">{scholarship.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow space-y-3">
-                <Image 
+              <CardContent className="flex-grow space-y-3 text-sm">
+                 <Image 
                   src={`https://placehold.co/600x300.png?text=${encodeURIComponent(scholarship.name)}`}
                   alt={scholarship.name}
                   data-ai-hint="education opportunity"
@@ -248,10 +284,30 @@ export default function ScholarshipsPage() {
                   height={300}
                   className="rounded-md object-cover aspect-[2/1] mb-4"
                 />
-                <div>
-                  <h3 className="font-semibold text-md mb-1">Eligibility:</h3>
-                  <p className="text-sm text-muted-foreground">{scholarship.eligibility}</p>
-                </div>
+                {scholarship.partner && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Landmark className="h-4 w-4 text-primary" />
+                    <p><strong>Partner:</strong> {scholarship.partner}</p>
+                  </div>
+                )}
+                {scholarship.coverage && (
+                  <div className="flex items-start gap-2 text-muted-foreground">
+                    <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p><strong>Coverage:</strong> {scholarship.coverage.length > 100 ? scholarship.coverage.substring(0,100) + '...' : scholarship.coverage}</p>
+                  </div>
+                )}
+                {scholarship.eligibility && (
+                  <div>
+                    <h4 className="font-semibold mb-0.5">Eligibility:</h4>
+                    <p className="text-muted-foreground">{scholarship.eligibility.length > 120 ? scholarship.eligibility.substring(0,120) + '...' : scholarship.eligibility}</p>
+                  </div>
+                )}
+                {scholarship.deadline && (
+                  <div className="flex items-center gap-2 text-muted-foreground pt-1">
+                    <CalendarDays className="h-4 w-4 text-primary" /> 
+                    <p><strong>Deadline:</strong> {scholarship.deadline}</p>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full group">
