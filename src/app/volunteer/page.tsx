@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { HeartHandshake, Globe, MapPin, ExternalLink, Building, Users, Leaf, Filter, Info, CalendarDays, Landmark } from 'lucide-react';
+import { HeartHandshake, Globe, MapPin, ExternalLink, Building, Users, Leaf, Filter, Info, CalendarDays, Landmark, DollarSign } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -225,3 +225,4 @@ export default function VolunteerPage() {
     </div>
   );
 }
+
