@@ -1,21 +1,14 @@
 
 "use client";
 
-import type { Metadata } from 'next';
 import type { VolunteerOpportunity, LocationFilter } from '@/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { HeartHandshake, Globe, MapPin, ExternalLink, Building, Users, Leaf, Filter } from 'lucide-react';
+import { HeartHandshake, Globe, MapPin, ExternalLink, Building, Users, Leaf, Filter, Info, CalendarDays, Landmark } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-// export const metadata: Metadata = { // Metadata must be static
-//   title: 'Volunteer Opportunities for Students',
-//   description: 'Find impactful volunteer programs. Filter by location to make a difference with LISGE.',
-//   keywords: ['volunteer opportunities', 'AIESEC Egypt', 'Volunteer World Egypt', 'international volunteering', 'student volunteering', 'community service'],
-// };
 
 const volunteerOpportunitiesData: VolunteerOpportunity[] = [
   {
@@ -24,13 +17,16 @@ const volunteerOpportunitiesData: VolunteerOpportunity[] = [
     organization: 'AIESEC in Giza (Arkan Future College)',
     description: 'Contribute to SDG #4 (Quality Education) by helping youth achieve literacy and numeracy.',
     eligibility: 'English proficiency required. Open to youth aged 18-30 (general AIESEC criteria).',
-    websiteUrl: 'https://aiesec.org/global-volunteer', // Example, use specific link if available
+    websiteUrl: 'https://aiesec.org/global-volunteer', 
     icon: Users,
     category: "Education",
     location: 'Egypt',
     duration: "6 weeks",
     cost: "Approx. 790.16 USD (food & accommodation often provided/subsidized)",
-    sdgFocus: "SDG #4: Quality Education"
+    sdgFocus: "SDG #4: Quality Education",
+    partner: "AIESEC & Arkan Future College",
+    coverage: "Volunteer placement, potential for accommodation/food subsidies.",
+    deadline: "Ongoing (check AIESEC portal)"
   },
   {
     id: 'volunteerworld-women-nuweiba',
@@ -43,7 +39,10 @@ const volunteerOpportunitiesData: VolunteerOpportunity[] = [
     category: "Community Development",
     location: 'Egypt',
     duration: "1-12 weeks",
-    cost: "From 319 € per week (includes housing, food, Wi-Fi)"
+    cost: "From 319 € per week (includes housing, food, Wi-Fi)",
+    partner: "Habiba Community (via Volunteer World)",
+    coverage: "Housing, food, Wi-Fi included in program fee.",
+    deadline: "Varies (check Volunteer World)"
   },
   {
     id: 'volunteerworld-regen-agri-sinai',
@@ -56,7 +55,10 @@ const volunteerOpportunitiesData: VolunteerOpportunity[] = [
     category: "Environmental Conservation",
     location: 'Egypt',
     duration: "1-12 weeks",
-    cost: "From 319 € per week (includes housing, food, Wi-Fi)"
+    cost: "From 319 € per week (includes housing, food, Wi-Fi)",
+    partner: "Habiba Community (via Volunteer World)",
+    coverage: "Housing, food, Wi-Fi included in program fee.",
+    deadline: "Varies (check Volunteer World)"
   },
   {
     id: 'aiesec-global-general',
@@ -69,7 +71,10 @@ const volunteerOpportunitiesData: VolunteerOpportunity[] = [
     category: "Various SDGs",
     location: 'International',
     duration: "6-8 weeks",
-    cost: "Program fee (e.g. ~785 USD) + travel. Food/accommodation often included."
+    cost: "Program fee (e.g. ~785 USD) + travel. Food/accommodation often included.",
+    partner: "AIESEC",
+    coverage: "Cross-cultural volunteer placement, food/accommodation often included in program fee.",
+    deadline: "Ongoing (check AIESEC portal for specific projects)"
   },
 ];
 
@@ -77,26 +82,23 @@ const locationOptions: { value: LocationFilter; label: string }[] = [
   { value: 'All', label: 'All Locations' },
   { value: 'Egypt', label: 'Egypt' },
   { value: 'International', label: 'International' },
+  // { value: 'Online', label: 'Online' }, // Not common for volunteer, can be added if needed
 ];
 
 
 export default function VolunteerPage() {
   const [mounted, setMounted] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<LocationFilter>('All');
-  const [filteredOpportunities, setFilteredOpportunities] = useState<VolunteerOpportunity[]>(volunteerOpportunitiesData);
-
+  
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (selectedLocation === 'All') {
-      setFilteredOpportunities(volunteerOpportunitiesData);
-    } else {
-      setFilteredOpportunities(
-        volunteerOpportunitiesData.filter((op) => op.location === selectedLocation)
-      );
-    }
+  const filteredOpportunities = useMemo(() => {
+    return volunteerOpportunitiesData.filter(op => {
+      const locationMatch = selectedLocation === 'All' || op.location === selectedLocation;
+      return locationMatch;
+    });
   }, [selectedLocation]);
 
   if (!mounted) {
@@ -112,23 +114,26 @@ export default function VolunteerPage() {
         </p>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row items-center gap-4 p-4 border rounded-lg shadow-sm bg-card">
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <Filter className="h-5 w-5 text-primary" />
-          Filter by Location:
-        </div>
-        <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
-          <SelectTrigger className="w-full sm:w-[280px]">
-            <SelectValue placeholder="Select location" />
-          </SelectTrigger>
-          <SelectContent>
-            {locationOptions.map(option => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:-mx-0 md:px-0">
+        <Card className="p-4 md:p-6 shadow-md">
+           <CardHeader className="p-0 pb-4 mb-4 border-b">
+            <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Opportunities</CardTitle>
+          </CardHeader>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
+              <SelectTrigger className="w-full sm:w-[280px]">
+                <SelectValue placeholder="Select location" />
+              </SelectTrigger>
+              <SelectContent>
+                {locationOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </Card>
       </div>
 
       {filteredOpportunities.length > 0 ? (
@@ -140,44 +145,62 @@ export default function VolunteerPage() {
                   {opportunity.icon ? <opportunity.icon className="h-8 w-8 text-accent" /> : <HeartHandshake className="h-8 w-8 text-accent" />}
                   <CardTitle className="text-2xl font-headline">{opportunity.name}</CardTitle>
                 </div>
-                 <div className="flex flex-wrap gap-2 text-sm">
-                    {opportunity.category && <p className="text-accent-foreground bg-accent/20 px-2 py-1 rounded-full inline-block">{opportunity.category}</p>}
-                     <p className="text-primary-foreground bg-primary/80 px-2 py-1 rounded-full inline-block">{opportunity.location}</p>
+                 <div className="flex flex-wrap gap-2 text-xs">
+                    {opportunity.category && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full">{opportunity.category}</span>}
+                     <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{opportunity.location}</span>
                 </div>
                 <p className="text-sm font-medium text-muted-foreground pt-1">{opportunity.organization}</p>
-                <CardDescription className="pt-2 text-base">{opportunity.description}</CardDescription>
+                <CardDescription className="pt-2 text-sm">{opportunity.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow space-y-3">
+              <CardContent className="flex-grow space-y-3 text-sm">
                 <Image 
                   src={`https://placehold.co/600x300.png?text=${encodeURIComponent(opportunity.name)}`}
                   alt={opportunity.name}
-                   data-ai-hint={opportunity.location === 'Egypt' ? "Egypt community" : "global impact"}
+                   data-ai-hint={opportunity.location === 'Egypt' ? "egypt community" : "global impact"}
                   width={600}
                   height={300}
                   className="rounded-md object-cover aspect-[2/1] mb-4"
                 />
+                {opportunity.partner && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Landmark className="h-4 w-4 text-primary" />
+                    <p><strong>Partner:</strong> {opportunity.partner}</p>
+                  </div>
+                )}
+                {opportunity.coverage && (
+                  <div className="flex items-start gap-2 text-muted-foreground">
+                    <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p><strong>Coverage:</strong> {opportunity.coverage.length > 100 ? opportunity.coverage.substring(0,100) + '...' : opportunity.coverage}</p>
+                  </div>
+                )}
                 {opportunity.eligibility && (
                   <div>
-                    <h3 className="font-semibold text-md mb-1">Eligibility:</h3>
-                    <p className="text-sm text-muted-foreground">{opportunity.eligibility}</p>
+                    <h4 className="font-semibold mb-0.5">Eligibility:</h4>
+                    <p className="text-muted-foreground">{opportunity.eligibility}</p>
                   </div>
                 )}
                 {opportunity.duration && (
-                  <div>
-                    <h3 className="font-semibold text-md mb-1">Duration:</h3>
-                    <p className="text-sm text-muted-foreground">{opportunity.duration}</p>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                     <CalendarDays className="h-4 w-4 text-primary" />
+                    <p><strong>Duration:</strong> {opportunity.duration}</p>
                   </div>
                 )}
                 {opportunity.cost && (
-                   <div>
-                    <h3 className="font-semibold text-md mb-1">Cost:</h3>
-                    <p className="text-sm text-muted-foreground">{opportunity.cost}</p>
+                   <div className="flex items-center gap-2 text-muted-foreground">
+                    <DollarSign className="h-4 w-4 text-primary" />
+                    <p><strong>Cost:</strong> {opportunity.cost}</p>
                   </div>
                 )}
                 {opportunity.sdgFocus && (
-                   <div>
-                    <h3 className="font-semibold text-md mb-1">SDG Focus:</h3>
-                    <p className="text-sm text-muted-foreground">{opportunity.sdgFocus}</p>
+                   <div className="flex items-center gap-2 text-muted-foreground">
+                    <Globe className="h-4 w-4 text-primary" />
+                    <p><strong>SDG Focus:</strong> {opportunity.sdgFocus}</p>
+                  </div>
+                )}
+                 {opportunity.deadline && (
+                  <div className="flex items-center gap-2 text-muted-foreground pt-1">
+                    <CalendarDays className="h-4 w-4 text-primary" /> 
+                    <p><strong>Deadline:</strong> {opportunity.deadline}</p>
                   </div>
                 )}
               </CardContent>

@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays, BookOpen } from 'lucide-react'; // Added Globe, Landmark, CalendarDays, BookOpen
+import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays, BookOpen, DollarSign } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -20,12 +20,13 @@ const summerProgramsData: SummerProgram[] = [
     icon: Plane,
     category: "College Prep",
     location: 'Egypt', 
-    provider: 'EducationUSA', // Used as partner
+    provider: 'EducationUSA',
     ageRequirement: '16-18',
-    fundingLevel: 'Varies', 
+    fundingLevel: 'Varies', // Often free or low-cost for CCC itself
     focusArea: 'College Prep',
-    programDuration: 'Varies',
+    programDuration: 'Varies', // Academic year long engagement
     partner: 'EducationUSA',
+    coverage: "Guidance, workshops, and resources for U.S. college applications.",
     deadline: "Varies (check with local EducationUSA center)"
   },
   {
@@ -38,11 +39,12 @@ const summerProgramsData: SummerProgram[] = [
     category: "Tech & Coding",
     location: 'Online',
     provider: 'Girls Who Code',
-    ageRequirement: 'Under 16', 
+    ageRequirement: 'Under 16', // Target grades 9-12, can include under 16
     fundingLevel: 'Fully Funded',
     focusArea: 'Tech & Coding',
     programDuration: '2-4 Weeks',
     partner: 'Girls Who Code',
+    coverage: "Virtual coding instruction and tech job exposure.",
     deadline: "Applications typically open early in the year"
   },
   {
@@ -50,17 +52,18 @@ const summerProgramsData: SummerProgram[] = [
     name: 'TechGirls Program',
     description: 'An international summer exchange program designed to empower and inspire young women to pursue careers in science and technology.',
     eligibility: "Girls aged 15-17, citizen of participating country (incl. Egypt), strong English skills, commitment to community project.",
-    websiteUrl: 'https://techgirlsglobal.org/', // General site, specific link may vary
-    icon: Globe,
+    websiteUrl: 'https://techgirlsglobal.org/',
+    icon: Briefcase, // Consistent with Exchange programs
     category: "STEM Leadership",
     location: 'International', // Takes place in USA
     provider: 'U.S. Department of State (via Legacy International)',
-    ageRequirement: '16-18', // Simplified to fit filter category
-    fundingLevel: 'Fully Funded', // Implied by exchange program coverage
+    ageRequirement: '16-18',
+    fundingLevel: 'Fully Funded',
     focusArea: 'STEM',
     programDuration: '2-4 Weeks', // "Three-week summer exchange"
     partner: 'U.S. Department of State',
-    deadline: "December 6, 2024 (for 2025 program)"
+    coverage: "Full coverage for three-week summer exchange in the U.S. focused on STEM.",
+    deadline: "December (Typical, check official site)"
   },
   {
     id: 'daad-summer-courses',
@@ -73,10 +76,11 @@ const summerProgramsData: SummerProgram[] = [
     location: 'International', // Germany
     provider: 'DAAD',
     ageRequirement: '18+', // Undergraduate
-    fundingLevel: 'Partial Scholarship', // "One-time scholarship of €1,134 plus allowances"
+    fundingLevel: 'Partial Scholarship',
     focusArea: 'Language',
     programDuration: 'Varies', // "minimum of 18 teaching days"
     partner: 'DAAD',
+    coverage: "One-time scholarship of €1,134 plus allowances for course fees, travel, and living expenses.",
     deadline: "December (Approximate)"
   },
   {
@@ -87,13 +91,14 @@ const summerProgramsData: SummerProgram[] = [
     websiteUrl: 'https://globalscholars.yale.edu/',
     icon: Users,
     category: "Global Leadership",
-    location: 'International', 
+    location: 'International', // Can be Online or in USA
     provider: 'Yale University',
     ageRequirement: '16-18',
-    fundingLevel: 'Paid Program', 
+    fundingLevel: 'Paid Program', // Need-based financial aid available
     focusArea: 'Global Leadership',
     programDuration: '2-4 Weeks',
     partner: 'Yale University',
+    coverage: "Academic sessions, lectures, workshops. Fee covers tuition, housing, meals for on-campus. Aid available.",
     deadline: 'Early January (check website)'
   },
 ];
@@ -134,7 +139,7 @@ const durationOptions: { value: ProgramDurationFilter; label: string }[] = [
   { value: '1 Week', label: '1 Week' },
   { value: '2-4 Weeks', label: '2-4 Weeks' },
   { value: '1 Month+', label: '1 Month+' },
-  { value: 'Academic Year', label: 'Academic Year' },
+  { value: 'Academic Year', label: 'Academic Year' }, // Less common for summer programs but possible for longer engagements
   { value: 'Varies', label: 'Varies' },
 ];
 
@@ -265,6 +270,12 @@ export default function SummerProgramsPage() {
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Landmark className="h-4 w-4 text-primary" />
                     <p><strong>Partner:</strong> {program.partner}</p>
+                  </div>
+                )}
+                {program.coverage && (
+                  <div className="flex items-start gap-2 text-muted-foreground">
+                    <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p><strong>Coverage:</strong> {program.coverage.length > 100 ? program.coverage.substring(0,100) + '...' : program.coverage}</p>
                   </div>
                 )}
                 <div>

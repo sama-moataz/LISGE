@@ -1,12 +1,12 @@
 
 "use client";
 
-import type { Scholarship, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types'; // Updated ScholarshipTypeFilter to ScholarshipLevelFilter
+import type { Scholarship, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Award, BookOpen, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign } from 'lucide-react'; // Added Landmark, CalendarDays, Info, MapPin, DollarSign
+import { Award, BookOpen, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -18,7 +18,7 @@ const scholarshipsData: Scholarship[] = [
     eligibility: "Egyptian citizen, top 10 national rank in Al-Thanaweya Al-Amma, pass GUC tests, maintain 3.00 GPA.",
     websiteUrl: 'https://www.guc.edu.eg/',
     icon: GraduationCap,
-    category: "Full Scholarship",
+    category: "Full Scholarship", // General category
     location: 'Egypt', // Destination is Egypt
     ageRequirement: '18+', 
     fundingLevel: 'Fully Funded',
@@ -27,14 +27,14 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'Egypt',
     partner: 'GUC (in cooperation with MoHESR)',
     coverage: 'Full tuition, accommodation, transportation, admission test fees, lab insurance.',
-    deadline: "July 30, 2019 (Past example)"
+    deadline: "July 30 (Typical, check official site)" // Example, may vary yearly
   },
   {
     id: 'mohesr-innovators-gss',
     name: "Ministry of Higher Education Innovators Support Fund Scholarship (GSS)",
     description: 'Full scholarship for gifted Egyptian students in Sciences and Technology to study at Nile University.',
-    eligibility: "Egyptian national, Thanaweya Amma/STEM graduate (2023/2024), pass IQ tests, strong extracurriculars, maintain 3.0 CGPA.",
-    websiteUrl: 'https://nu.edu.eg/scholarships/', // Placeholder, replace with actual link
+    eligibility: "Egyptian national, Thanaweya Amma/STEM graduate, pass IQ tests, strong extracurriculars, maintain 3.0 CGPA.",
+    websiteUrl: 'https://nu.edu.eg/scholarships/',
     icon: Award,
     category: "STEM Scholarship",
     location: 'Egypt',
@@ -45,7 +45,7 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'Egypt',
     partner: 'Innovators Support Fund (at Nile University)',
     coverage: 'Full tuition for specific STEM programs (Fall & Spring semesters).',
-    deadline: "August 22, 2024"
+    deadline: "August 22 (Typical, check official site)"
   },
   {
     id: 'hei-local',
@@ -57,7 +57,7 @@ const scholarshipsData: Scholarship[] = [
     category: "Higher Education",
     location: 'Egypt',
     ageRequirement: '18+', 
-    fundingLevel: 'Varies', 
+    fundingLevel: 'Varies', // Can be full or partial
     destinationRegion: 'Egypt/MENA',
     targetLevel: 'Undergraduate',
     fundingCountry: 'USA',
@@ -77,11 +77,11 @@ const scholarshipsData: Scholarship[] = [
     ageRequirement: '16-18', 
     fundingLevel: 'Fully Funded',
     destinationRegion: 'USA',
-    targetLevel: 'Exchange', // Or High School
+    targetLevel: 'Exchange',
     fundingCountry: 'USA',
     partner: 'U.S. Department of State',
     coverage: 'Full scholarship to spend one academic year in the U.S., living with a host family.',
-    deadline: "May 2024 (for 2025-26)"
+    deadline: "May (Typical, for next academic year)"
   },
   {
     id: 'daad-summer',
@@ -95,7 +95,7 @@ const scholarshipsData: Scholarship[] = [
     ageRequirement: '18+',
     fundingLevel: 'Partial Scholarship',
     destinationRegion: 'Europe',
-    targetLevel: 'Language', // or Undergraduate Short Course
+    targetLevel: 'Language',
     fundingCountry: 'Germany',
     partner: 'DAAD',
     coverage: 'One-time scholarship of €1,134 plus allowances for language/regional studies course.',
@@ -117,7 +117,7 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'UK',
     partner: 'UK Government (FCDO)',
     coverage: 'Fully funded (tuition, stipend, travel, allowances).',
-    deadline: "Closed for 2025-2026 (check website for next cycle)"
+    deadline: "Typically November (check website for next cycle)"
   },
 ];
 
@@ -132,7 +132,7 @@ const fundingOptions: { value: ScholarshipFundingFilter; label: string }[] = [
   { value: 'All', label: 'All Funding Levels' },
   { value: 'Fully Funded', label: 'Fully Funded' },
   { value: 'Partial Scholarship', label: 'Partial Scholarship' },
-  { value: 'No Funding', label: 'No Funding' },
+  { value: 'No Funding', label: 'No Funding' }, // Less common for scholarships but possible
   { value: 'Varies', label: 'Varies' },
 ];
 
@@ -141,20 +141,22 @@ const regionOptions: { value: ScholarshipRegionFilter; label: string }[] = [
   { value: 'Egypt/MENA', label: 'Egypt/MENA' },
   { value: 'USA', label: 'USA' },
   { value: 'Europe', label: 'Europe' },
+  { value: 'UK', label: 'UK'},
+  { value: 'Canada', label: 'Canada'},
   { value: 'Asia', label: 'Asia' },
   { value: 'Global', label: 'Global (Multiple/Any)' },
   { value: 'Other', label: 'Other' },
 ];
 
-const levelOptions: { value: ScholarshipLevelFilter; label: string }[] = [ // Renamed from typeOptions
+const levelOptions: { value: ScholarshipLevelFilter; label: string }[] = [
   { value: 'All', label: 'All Levels/Types' },
   { value: 'High School', label: 'High School Program' },
   { value: 'Undergraduate', label: 'Undergraduate Degree' },
   { value: 'Postgraduate', label: 'Postgraduate Degree' },
   { value: 'Language', label: 'Language Course' },
   { value: 'Exchange', label: 'Exchange Program' },
+  { value: 'Research', label: 'Research Grant/Fellowship'},
   { value: 'Youth', label: 'Youth Program'},
-  { value: 'All Levels', label: 'All Levels (General)'},
   { value: 'Varies', label: 'Varies/Other' },
 ];
 
@@ -176,7 +178,7 @@ export default function ScholarshipsPage() {
   const [selectedAge, setSelectedAge] = useState<ScholarshipAgeFilter>('All');
   const [selectedFunding, setSelectedFunding] = useState<ScholarshipFundingFilter>('All');
   const [selectedRegion, setSelectedRegion] = useState<ScholarshipRegionFilter>('All');
-  const [selectedLevel, setSelectedLevel] = useState<ScholarshipLevelFilter>('All'); // Renamed from selectedType
+  const [selectedLevel, setSelectedLevel] = useState<ScholarshipLevelFilter>('All');
   const [selectedFundingCountry, setSelectedFundingCountry] = useState<FundingCountryFilter>('All');
 
   useEffect(() => {
@@ -188,7 +190,7 @@ export default function ScholarshipsPage() {
       const ageMatch = selectedAge === 'All' || (scholarship.ageRequirement && scholarship.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (scholarship.fundingLevel && scholarship.fundingLevel === selectedFunding);
       const regionMatch = selectedRegion === 'All' || (scholarship.destinationRegion && scholarship.destinationRegion === selectedRegion) || (selectedRegion === 'Egypt/MENA' && scholarship.location === 'Egypt');
-      const levelMatch = selectedLevel === 'All' || (scholarship.targetLevel && scholarship.targetLevel === selectedLevel); // Renamed from typeMatch
+      const levelMatch = selectedLevel === 'All' || (scholarship.targetLevel && scholarship.targetLevel === selectedLevel);
       const fundingCountryMatch = selectedFundingCountry === 'All' || (scholarship.fundingCountry && scholarship.fundingCountry === selectedFundingCountry);
       return ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
@@ -198,7 +200,7 @@ export default function ScholarshipsPage() {
     setSelectedAge('All');
     setSelectedFunding('All');
     setSelectedRegion('All');
-    setSelectedLevel('All'); // Renamed
+    setSelectedLevel('All');
     setSelectedFundingCountry('All');
   };
 
@@ -239,8 +241,8 @@ export default function ScholarshipsPage() {
                 {regionOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as ScholarshipLevelFilter)}> {/* Renamed */}
-              <SelectTrigger><SelectValue placeholder="Target Level/Type" /></SelectTrigger> {/* Renamed placeholder */}
+            <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as ScholarshipLevelFilter)}>
+              <SelectTrigger><SelectValue placeholder="Target Level/Type" /></SelectTrigger>
               <SelectContent>
                 {levelOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
               </SelectContent>
@@ -268,10 +270,10 @@ export default function ScholarshipsPage() {
                   <CardTitle className="text-xl font-headline leading-tight">{scholarship.name}</CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs mt-1">
-                    {scholarship.targetLevel && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full">{scholarship.targetLevel}</span>}
+                    {scholarship.targetLevel && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><GraduationCap size={12}/>{scholarship.targetLevel}</span>}
                     {scholarship.destinationRegion && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{scholarship.destinationRegion}</span>}
                     {scholarship.fundingLevel && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{scholarship.fundingLevel}</span>}
-                    {scholarship.fundingCountry && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full">Fund: {scholarship.fundingCountry}</span>}
+                    {scholarship.fundingCountry && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><Globe size={12}/>Fund: {scholarship.fundingCountry}</span>}
                 </div>
                 <CardDescription className="pt-3 text-sm">{scholarship.description}</CardDescription>
               </CardHeader>

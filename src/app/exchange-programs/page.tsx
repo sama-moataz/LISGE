@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Globe2, ExternalLink, Filter, RefreshCw, Landmark, CalendarDays, Info, MapPin, Users, GraduationCap, DollarSign } from 'lucide-react';
+import { Globe2, ExternalLink, Filter, RefreshCw, Landmark, CalendarDays, Info, MapPin, Users, GraduationCap, DollarSign, Briefcase } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -27,7 +27,7 @@ const exchangeProgramsData: ExchangeProgram[] = [
     fundingCountry: 'USA',
     partner: 'U.S. Department of State',
     coverage: 'Full scholarship to spend one academic year in the U.S., living with a host family.',
-    deadline: "May 2024 (for 2025-26)",
+    deadline: "May (Typical, for next academic year)",
     duration: "1 Academic Year"
   },
   {
@@ -35,14 +35,14 @@ const exchangeProgramsData: ExchangeProgram[] = [
     name: 'Study in Canada Scholarships (SiCS)',
     description: 'Provides short-term exchange opportunities for students from select countries, including Egypt, to pursue studies or conduct research at Canadian post-secondary institutions.',
     eligibility: "Students from select countries (incl. Egypt) enrolled in a post-secondary institution.",
-    websiteUrl: 'https://www.educanada.ca/scholarships-bourses/can/institutions/study-in-canada-sep-etudes-au-canada-pct.aspx?lang=eng', // More specific link
+    websiteUrl: 'https://www.educanada.ca/scholarships-bourses/can/institutions/study-in-canada-sep-etudes-au-canada-pct.aspx?lang=eng',
     icon: GraduationCap,
     category: "Academic Exchange",
     location: 'International',
-    ageRequirement: '18+', // Implied by post-secondary
+    ageRequirement: '18+',
     fundingLevel: 'Fully Funded', // For the research component
     destinationRegion: 'Canada',
-    targetLevel: 'Varies', // Undergraduate/Postgraduate
+    targetLevel: 'Research', // More specific than Varies
     fundingCountry: 'Canada',
     partner: 'Global Affairs Canada',
     coverage: 'Fully funded research opportunities (4-6 months). Travel, living allowance, health insurance, visa fees.',
@@ -55,17 +55,17 @@ const exchangeProgramsData: ExchangeProgram[] = [
     description: 'An international summer exchange program designed to empower and inspire young women to pursue careers in science and technology.',
     eligibility: "Girls aged 15-17, citizen of participating country (incl. Egypt), strong English skills, commitment to community project.",
     websiteUrl: 'https://techgirlsglobal.org/',
-    icon: Globe2,
-    category: "STEM Exchange",
+    icon: Briefcase, // Changed from Globe2 to align with Summer Programs icon for TechGirls
+    category: "STEM Exchange", // More specific
     location: 'International',
     ageRequirement: '16-18',
     fundingLevel: 'Fully Funded',
     destinationRegion: 'USA',
-    targetLevel: 'High School',
+    targetLevel: 'High School', // More specific
     fundingCountry: 'USA',
     partner: 'U.S. Department of State',
     coverage: 'Three-week summer exchange in the U.S. focused on STEM, all program costs covered.',
-    deadline: "December 6, 2024 (for 2025 program)",
+    deadline: "December (Typical, check official site)",
     duration: "3 Weeks"
   },
 ];
@@ -74,7 +74,7 @@ const locationOptions: { value: LocationFilter; label: string }[] = [
   { value: 'All', label: 'All Locations' },
   { value: 'Egypt', label: 'Egypt' },
   { value: 'International', label: 'International' },
-  { value: 'Online', label: 'Online' }, // Though less common for exchange
+  { value: 'Online', label: 'Online' },
 ];
 
 const ageOptions: { value: AgeFilter; label: string }[] = [
@@ -107,9 +107,13 @@ const regionOptions: { value: RegionFilter; label: string }[] = [
 const levelOptions: { value: LevelFilter; label: string }[] = [
   { value: 'All', label: 'All Levels/Types' },
   { value: 'High School', label: 'High School Program' },
-  { value: 'Undergraduate', label: 'Undergraduate' },
-  { value: 'Postgraduate', label: 'Postgraduate' },
+  { value: 'Undergraduate', label: 'Undergraduate Exchange' },
+  { value: 'Postgraduate', label: 'Postgraduate Exchange' },
   { value: 'Youth', label: 'Youth Program'},
+  { value: 'Cultural Exchange', label: 'Cultural Exchange'},
+  { value: 'Academic Exchange', label: 'Academic Exchange'},
+  { value: 'STEM Exchange', label: 'STEM Exchange'},
+  { value: 'Research', label: 'Research Exchange'},
   { value: 'Varies', label: 'Varies/Other' },
 ];
 
@@ -204,7 +208,7 @@ export default function ExchangeProgramsPage() {
               </SelectContent>
             </Select>
             <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as LevelFilter)}>
-              <SelectTrigger><SelectValue placeholder="Target Level" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Target Level/Type" /></SelectTrigger>
               <SelectContent>
                 {levelOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
               </SelectContent>
@@ -232,10 +236,10 @@ export default function ExchangeProgramsPage() {
                   <CardTitle className="text-xl font-headline leading-tight">{program.name}</CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs mt-1">
-                    {program.targetLevel && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full">{program.targetLevel}</span>}
+                    {program.targetLevel && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><GraduationCap size={12}/>{program.targetLevel}</span>}
                     {program.destinationRegion && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{program.destinationRegion}</span>}
                     {program.fundingLevel && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{program.fundingLevel}</span>}
-                    {program.fundingCountry && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full">Fund: {program.fundingCountry}</span>}
+                    {program.fundingCountry && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><Globe2 size={12}/>Fund: {program.fundingCountry}</span>}
                     {program.duration && <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><CalendarDays size={12}/>{program.duration}</span>}
                 </div>
                 <CardDescription className="pt-3 text-sm">{program.description}</CardDescription>

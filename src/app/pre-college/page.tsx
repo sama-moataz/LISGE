@@ -1,21 +1,15 @@
 
 "use client";
 
-import type { Metadata } from 'next';
 import type { PreCollegeCourse, LocationFilter } from '@/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { School2, Globe, MapPin, ExternalLink, BookOpen, Laptop, Filter } from 'lucide-react';
+import { School2, Globe, MapPin, ExternalLink, BookOpen, Laptop, Filter, Info, CalendarDays, Landmark, DollarSign } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// export const metadata: Metadata = { // Metadata must be static
-//   title: 'Pre-College Programs for University Preparation',
-//   description: 'Discover pre-college courses. Filter by location to prepare for university life and academics with LISGE.',
-//   keywords: ['pre-college programs', 'AUC College Bound', 'GUC Junior Talents', 'Johns Hopkins pre-college', 'CIEE Global Navigator', 'university preparation'],
-// };
 
 const preCollegeCoursesData: PreCollegeCourse[] = [
   {
@@ -30,7 +24,10 @@ const preCollegeCoursesData: PreCollegeCourse[] = [
     location: 'Egypt',
     duration: "3 weeks (e.g., July 27 - Aug 14, 2025)",
     creditsTransferable: true,
-    cost: "Not specified (check website)"
+    cost: "Not specified (check website)",
+    partner: "American University in Cairo (AUC)",
+    coverage: "College-level courses, social activities, trips, potential transferable credits.",
+    deadline: "Varies (check AUC website)"
   },
   {
     id: 'guc-junior-talents',
@@ -38,27 +35,33 @@ const preCollegeCoursesData: PreCollegeCourse[] = [
     institution: 'German University in Cairo (GUC)',
     description: 'Practical, hands-on camps for high school students (16-18) to explore talents in fields like Civil Engineering (e.g., "Build Out of the Box" camp). Provides early exposure to university disciplines.',
     eligibility: 'High school students (16-18).',
-    websiteUrl: 'https://www.guc.edu.eg/', // General site, specific page for camps if available
-    icon: MapPin,
+    websiteUrl: 'https://www.guc.edu.eg/',
+    icon: School2, // Changed from MapPin for consistency
     category: "STEM / Engineering",
     location: 'Egypt',
     duration: "Varies (e.g., 3-day camps)",
     creditsTransferable: false,
-    cost: "Not specified (check website)"
+    cost: "Not specified (check website)",
+    partner: "German University in Cairo (GUC)",
+    coverage: "Hands-on camps in various fields, early exposure to university disciplines.",
+    deadline: "Varies (check GUC website)"
   },
   {
     id: 'jhu-pre-college',
     name: 'JHU Pre-College Summer Programs',
     institution: 'Johns Hopkins University (JHU)',
     description: 'Fast-paced, college-level learning for academically advanced high school students. On-campus and online options in fields like medicine, neuroscience, psychology. Earn academic credit.',
-    eligibility: 'Academically advanced high school students. English proficiency (TOEFL, IELTS, Duolingo) may be required for international students.',
+    eligibility: 'Academically advanced high school students. English proficiency may be required for international students.',
     websiteUrl: 'https://summer.jhu.edu/programs-courses/pre-college-programs/',
     icon: Globe,
     category: "STEM / Health Sciences / Psychology",
     location: 'International', // Primarily US, some online options
     duration: "2-week sessions (June-August)",
     creditsTransferable: true,
-    cost: "$1,950 USD per 1-credit program + $85 application fee. Financial aid available."
+    cost: "$1,950 USD per 1-credit program + $85 application fee. Financial aid available.",
+    partner: "Johns Hopkins University",
+    coverage: "College-level courses, potential academic credit. Financial aid available.",
+    deadline: "Varies (typically Spring, check JHU website)"
   },
   {
     id: 'ciee-global-navigator',
@@ -72,7 +75,10 @@ const preCollegeCoursesData: PreCollegeCourse[] = [
     location: 'International',
     duration: "3 to 8 weeks",
     creditsTransferable: true,
-    cost: "Varies (e.g., $7M in scholarships available annually)"
+    cost: "Varies (scholarships available, e.g., $7M annually)",
+    partner: "CIEE",
+    coverage: "Cultural immersion, academic programs, potential college credits. Scholarships available.",
+    deadline: "Varies (check CIEE website)"
   },
 ];
 
@@ -80,24 +86,25 @@ const locationOptions: { value: LocationFilter; label: string }[] = [
   { value: 'All', label: 'All Locations' },
   { value: 'Egypt', label: 'Egypt' },
   { value: 'International', label: 'International' },
-  { value: 'Online', label: 'Online' }, // JHU has online options
+  { value: 'Online', label: 'Online' },
 ];
 
 export default function PreCollegePage() {
   const [mounted, setMounted] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<LocationFilter>('All');
-  const [filteredCourses, setFilteredCourses] = useState<PreCollegeCourse[]>(preCollegeCoursesData);
-
+  
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
+  const filteredCourses = useMemo(() => {
     if (selectedLocation === 'All') {
-      setFilteredCourses(preCollegeCoursesData);
+      return preCollegeCoursesData;
     } else {
-      setFilteredCourses(
-        preCollegeCoursesData.filter((course) => course.location === selectedLocation || (selectedLocation === 'International' && course.location === 'Online' && course.institution !== 'AUC' && course.institution !== 'GUC')) // Basic online logic
+      return preCollegeCoursesData.filter(course => 
+        course.location === selectedLocation || 
+        (selectedLocation === 'Online' && course.location === 'International' && course.description.toLowerCase().includes('online')) || // Basic check for online if primary location is Int'l
+        (selectedLocation === 'Online' && course.location === 'Online')
       );
     }
   }, [selectedLocation]);
@@ -115,23 +122,26 @@ export default function PreCollegePage() {
         </p>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row items-center gap-4 p-4 border rounded-lg shadow-sm bg-card">
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <Filter className="h-5 w-5 text-primary" />
-          Filter by Location:
-        </div>
-        <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
-          <SelectTrigger className="w-full sm:w-[280px]">
-            <SelectValue placeholder="Select location" />
-          </SelectTrigger>
-          <SelectContent>
-            {locationOptions.map(option => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:-mx-0 md:px-0">
+        <Card className="p-4 md:p-6 shadow-md">
+          <CardHeader className="p-0 pb-4 mb-4 border-b">
+            <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Programs</CardTitle>
+          </CardHeader>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
+              <SelectTrigger className="w-full sm:w-[280px]">
+                <SelectValue placeholder="Select location" />
+              </SelectTrigger>
+              <SelectContent>
+                {locationOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </Card>
       </div>
       
       {filteredCourses.length > 0 ? (
@@ -141,16 +151,16 @@ export default function PreCollegePage() {
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   {course.icon ? <course.icon className="h-8 w-8 text-accent" /> : <School2 className="h-8 w-8 text-accent" />}
-                  <CardTitle className="text-2xl font-headline">{course.name}</CardTitle>
+                  <CardTitle className="text-xl font-headline leading-tight">{course.name}</CardTitle>
                 </div>
                 <p className="text-sm font-medium text-muted-foreground">{course.institution}</p>
-                <div className="flex flex-wrap gap-2 text-sm mt-1">
-                    {course.category && <p className="text-accent-foreground bg-accent/20 px-2 py-1 rounded-full inline-block">{course.category}</p>}
-                    <p className="text-primary-foreground bg-primary/80 px-2 py-1 rounded-full inline-block">{course.location}</p>
+                <div className="flex flex-wrap gap-2 text-xs mt-1">
+                    {course.category && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><BookOpen size={12}/>{course.category}</span>}
+                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{course.location}</span>
                 </div>
-                <CardDescription className="pt-2 text-base">{course.description}</CardDescription>
+                <CardDescription className="pt-3 text-sm">{course.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow space-y-3">
+              <CardContent className="flex-grow space-y-3 text-sm">
                  <Image 
                   src={`https://placehold.co/600x300.png?text=${encodeURIComponent(course.name)}`}
                   alt={course.name}
@@ -159,28 +169,46 @@ export default function PreCollegePage() {
                   height={300}
                   className="rounded-md object-cover aspect-[2/1] mb-4"
                 />
-                {course.eligibility && (
-                  <div>
-                    <h3 className="font-semibold text-md mb-1">Eligibility:</h3>
-                    <p className="text-sm text-muted-foreground">{course.eligibility}</p>
+                {course.partner && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Landmark className="h-4 w-4 text-primary" />
+                    <p><strong>Institution/Partner:</strong> {course.partner}</p>
                   </div>
                 )}
-                 {course.duration && (
+                {course.coverage && (
+                  <div className="flex items-start gap-2 text-muted-foreground">
+                    <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p><strong>Key Offerings:</strong> {course.coverage.length > 100 ? course.coverage.substring(0,100) + '...' : course.coverage}</p>
+                  </div>
+                )}
+                {course.eligibility && (
                   <div>
-                    <h3 className="font-semibold text-md mb-1">Duration:</h3>
-                    <p className="text-sm text-muted-foreground">{course.duration}</p>
+                    <h4 className="font-semibold mb-0.5">Eligibility:</h4>
+                    <p className="text-muted-foreground">{course.eligibility}</p>
+                  </div>
+                )}
+                {course.duration && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                     <CalendarDays className="h-4 w-4 text-primary" />
+                    <p><strong>Duration:</strong> {course.duration}</p>
                   </div>
                 )}
                 {course.creditsTransferable !== undefined && (
-                   <div>
-                    <h3 className="font-semibold text-md mb-1">Credits Transferable:</h3>
-                    <p className="text-sm text-muted-foreground">{course.creditsTransferable ? 'Yes' : 'No/Varies'}</p>
+                   <div className="flex items-center gap-2 text-muted-foreground">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                    <p><strong>Credits Transferable:</strong> {course.creditsTransferable ? 'Yes' : 'No/Varies'}</p>
                   </div>
                 )}
                 {course.cost && (
-                   <div>
-                    <h3 className="font-semibold text-md mb-1">Cost:</h3>
-                    <p className="text-sm text-muted-foreground">{course.cost}</p>
+                   <div className="flex items-center gap-2 text-muted-foreground">
+                    <DollarSign className="h-4 w-4 text-primary" />
+                    <p><strong>Cost:</strong> {course.cost}</p>
+                  </div>
+                )}
+                {course.deadline && (
+                  <div className="flex items-center gap-2 text-muted-foreground pt-1">
+                    <CalendarDays className="h-4 w-4 text-primary" /> 
+                    <p><strong>Deadline:</strong> {course.deadline}</p>
                   </div>
                 )}
               </CardContent>
