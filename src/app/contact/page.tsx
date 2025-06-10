@@ -64,7 +64,6 @@ export default function ContactPage() {
       </Card>
 
       <div className="text-center text-muted-foreground text-sm p-4 bg-secondary/50 rounded-lg">
-        <p>Your message will be sent via Formspree. Please allow some time for a response.</p>
         <p>If you encounter any issues with the form, you can also reach out directly to <a href="mailto:samamoataz73@gmail.com" className="text-primary hover:underline">samamoataz73@gmail.com</a>.</p>
       </div>
     </div>
