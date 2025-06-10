@@ -1,108 +1,81 @@
 
 import type { Metadata } from 'next';
-import type { StudyTip } from '@/types';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Lightbulb, BookOpenText, Clock, MessageSquareText, Target, Search, Users, CheckSquare, Languages, Briefcase } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Lightbulb, CheckSquare, Target, Users, Calendar } from 'lucide-react'; // Using generic icons
 
 export const metadata: Metadata = {
-  title: 'Study Tips for Academic Success',
-  description: 'Get valuable study tips and strategies from LISGE to excel academically. Learn about time management, English proficiency, research, holistic development, and more.',
-  keywords: ['study tips', 'academic success', 'time management', 'English learning', 'research skills', 'student advice Egypt'],
+  title: 'SAT/PSAT Study Plan Guide',
+  description: 'Learn how to create an effective study plan for the SAT or PSAT. Set goals, understand your strengths, and choose study activities.',
+  keywords: ['SAT study plan', 'PSAT study plan', 'test preparation', 'study goals', 'College Board', 'Khan Academy'],
 };
-
-const initialStudyTips: StudyTip[] = [
-  {
-    id: 'brag-file',
-    title: 'Building Your Academic Brag File',
-    content: 'Your academic brag file is a collection of all your achievements, awards, certificates, and notable projects. Keep it updated! This will be invaluable when applying for scholarships, programs, or universities. Include transcripts, recommendation letters (or requests), essays you\'re proud of, and records of extracurricular activities.',
-    icon: BookOpenText,
-  },
-  {
-    id: 'time-management',
-    title: 'Mastering Time Management',
-    content: 'Effective time management is crucial for academic success. Use tools like calendars and to-do lists. Prioritize tasks using methods like the Eisenhower Matrix (Urgent/Important). Break down large assignments into smaller, manageable steps. Don\'t forget to schedule breaks to avoid burnout.',
-    icon: Clock,
-  },
-  {
-    id: 'english-boost',
-    title: 'Boosting Your English for International Tests',
-    content: 'For tests like TOEFL or IELTS, consistent practice is key. Expand your vocabulary daily, practice reading academic texts, listen to English podcasts or lectures, and practice speaking and writing regularly. Consider joining study groups or finding a language partner.',
-    icon: MessageSquareText,
-  },
-];
-
-const expertRecommendations: StudyTip[] = [
-  {
-    id: 'proactive-research',
-    title: 'Proactive Research and Application',
-    content: 'Given the competitive nature and varying deadlines of scholarships and programs, begin your research early. Regularly check official websites of institutions (e.g., GUC, AUC, Nile University), governmental bodies (e.g., U.S. Embassy in Egypt, Ministry of Higher Education), and international platforms (e.g., Bachelorsportal.com, Volunteer World, AIESEC) for the most current information.',
-    icon: Search,
-  },
-  {
-    id: 'holistic-development',
-    title: 'Focus on Holistic Development',
-    content: 'Beyond academic grades, cultivate a strong profile demonstrating leadership potential, extracurricular involvement, community service, and English language proficiency. Many scholarships and programs emphasize these qualities, recognizing their importance for future success.',
-    icon: Users,
-  },
-  {
-    id: 'leverage-programs',
-    title: 'Leverage Pre-College and Summer Programs',
-    content: 'Participate in pre-college courses or summer academic programs to gain early exposure to university-level studies and specialized fields. These experiences can clarify academic interests, enhance skills, and strengthen university applications.',
-    icon: Briefcase,
-  },
-  {
-    id: 'strategic-volunteering',
-    title: 'Explore Volunteerism Strategically',
-    content: 'Engage with reputable volunteer organizations, both locally and internationally, that align with personal interests and career aspirations. Volunteering offers invaluable practical experience, networking opportunities, and a chance to contribute meaningfully to society.',
-    icon: Target,
-  },
-  {
-    id: 'english-proficiency',
-    title: 'Prioritize English Language Proficiency',
-    content: 'A strong command of English is a recurring requirement for many international scholarships and exchange programs, as well as a significant asset for local opportunities. Invest in improving English language skills through dedicated training or immersive experiences.',
-    icon: Languages,
-  },
-  {
-    id: 'comprehensive-support',
-    title: 'Seek Comprehensive Support',
-    content: 'Utilize the resources offered by advising centers (e.g., EducationUSA via AMIDEAST), program coordinators (e.g., AIESEC, CIEE), and university admissions offices. These resources can provide guidance on eligibility, application processes, visa requirements, and financial assistance.',
-    icon: CheckSquare,
-  },
-  {
-    id: 'long-term-pathways',
-    title: 'Consider Long-Term Academic Pathways',
-    content: 'For those aspiring to study abroad, especially in countries like Germany where undergraduate scholarships may be limited, consider short-term summer courses as a strategic first step. These can build a profile and enhance eligibility for future graduate-level opportunities.',
-    icon: Lightbulb,
-  },
-];
-
-const allStudyTips = [...initialStudyTips, ...expertRecommendations];
 
 export default function StudyTipsPage() {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl md:text-4xl font-bold font-headline text-primary">Smart Strategies for Academic Success</h1>
+        <h1 className="text-3xl md:text-4xl font-bold font-headline text-primary">Creating Your SAT/PSAT Study Plan</h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Gain valuable insights and practical tips to excel in your studies and applications.
+          So you&apos;ve got an SAT or PSAT-related assessment coming up, and it&apos;s time to start studying. What do you do now? We recommend creating a study plan to keep you on track. This page will give you the tools to create one of your own.
         </p>
       </div>
 
-      <Accordion type="single" collapsible className="w-full space-y-4">
-        {allStudyTips.map((tip) => (
-          <AccordionItem value={tip.id} key={tip.id} className="bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline text-left">
-              <div className="flex items-center gap-3">
-                {tip.icon ? <tip.icon className="h-6 w-6 text-primary" /> : <Lightbulb className="h-6 w-6 text-primary" />}
-                <span className="font-headline">{tip.title}</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-6 pb-4 text-base text-muted-foreground">
-              {typeof tip.content === 'string' ? <p>{tip.content}</p> : tip.content}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-headline flex items-center gap-2">
+            <Target className="h-7 w-7 text-primary" />
+            Set Your Goals
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 text-muted-foreground">
+          <div>
+            <h3 className="text-xl font-semibold mb-3 text-foreground">If you&apos;re just getting started:</h3>
+            <p className="mb-4">
+              The most important thing you can do is understand your own strengths and challenge areas. Knowing this information will help you identify the areas where you could use the most skill review. There are a few ways to check your knowledge:
+            </p>
+            <ul className="list-disc space-y-3 pl-5">
+              <li>
+                <strong>Bluebook™ practice test:</strong> This is the best and most accurate way to ensure you&apos;re measuring your knowledge of the skills on the actual test. It&apos;s also a valuable introduction to the Bluebook testing app, which you&apos;ll use both for practice tests and on test day. Plus, when you practice in Bluebook, your practice scores will be available in My Practice, where you&apos;ll find helpful information about your performance on different content areas so you can target your practice more effectively.
+              </li>
+              <li>
+                <strong>Khan Academy® diagnostic:</strong> For a skill check outside of Bluebook, take Khan Academy&apos;s SAT Course Challenge for both the Reading and Writing Test and the Math Test. These challenges will give you a snapshot of your performance on different content areas, which you can use to decide what you want to study.
+              </li>
+              <li>
+                <strong>In-school test review:</strong> You may know the areas where you need to study just from the tests you&apos;ve already taken in school. Review your old tests from your math classes and your English or language arts classes and see if you notice any skill gaps you can boost. If you&apos;re feeling stuck, check out our page with more information about what different questions look like on the test to help you identify the skills you need to work on. This method will help you start studying right away so you can be more prepared when you take the diagnostic or practice test.
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold mb-3 text-foreground">If you&apos;ve already taken a practice test or an assessment in the SAT Suite:</h3>
+            <p className="mb-4">
+              You&apos;re off to a great start! Your results from a previous practice test or assessment are the most helpful tool to create your study plan. Keep your practice scores in My Practice or your official score report from your assessment handy, and check out these study activities to put your results to use:
+            </p>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>Skill Booster</li>
+              <li>Question Bank Review</li>
+              <li>Khan Academy Review</li>
+            </ul>
+            <p className="mt-4">
+              Once you feel like you&apos;ve boosted your challenge areas, take another practice test and see how you&apos;ve improved. We recommend spacing your practice tests out by at least two weeks if your study schedule allows.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-headline flex items-center gap-2">
+            <CheckSquare className="h-7 w-7 text-primary" />
+            Choose Your Study Activities
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-muted-foreground">
+          <p>
+            When you&apos;re creating a study plan, it&apos;s important to consider how much time you can spend studying each day. These activities will help you build a plan that works for you. This list isn&apos;t meant to set a particular order for your practice, so feel free to pick and choose the activities that fit your schedule.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
+    

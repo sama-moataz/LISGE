@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Menu, BookOpen, GraduationCap, Lightbulb, Users, UserCircle, Mail, Briefcase, HeartHandshake, School2, Globe2 } from 'lucide-react';
+import { Menu, BookOpen, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Mail, Library } from 'lucide-react'; // Added Library
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -17,7 +17,7 @@ const navLinks = [
   { href: '/programs', label: 'Summer Programs', icon: Briefcase },
   { href: '/volunteer', label: 'Volunteer', icon: HeartHandshake },
   { href: '/pre-college', label: 'Pre-College', icon: School2 },
-  // { href: '/about', label: 'About', icon: UserCircle }, // Removed About link
+  { href: '/resources', label: 'Resources', icon: Library }, // Added Resources link
   { href: '/contact', label: 'Contact', icon: Mail },
 ];
 
@@ -87,3 +87,5 @@ export function Header() {
     </header>
   );
 }
+
+    

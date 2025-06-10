@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2 } from "lucide-react";
+import { ArrowRight, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Library } from "lucide-react"; // Added Library
 
 export const metadata: Metadata = {
   title: 'Home | LISGE - Your Guide to Academic Excellence',
-  description: "Welcome to LISGE! We empower Egyptian students with resources on scholarships, study tips, summer programs, exchange programs, volunteer work, and pre-college courses. Start your journey to global success.",
+  description: "Welcome to LISGE! We empower Egyptian students with resources on scholarships, study tips, summer programs, exchange programs, volunteer work, pre-college courses, and test preparation. Start your journey to global success.",
 };
 
 export default function Home() {
@@ -32,7 +32,7 @@ export default function Home() {
             LISGE: Local and International <br className="sm:hidden" /> Scholars' Guide to Excellence
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8 text-foreground/90 bg-background/70 dark:bg-black/50 backdrop-blur-sm py-3 px-4 rounded-md">
-            Welcome to LISGE! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, transformative summer programs, exchange programs, volunteer opportunities, and pre-college courses. Explore your potential and embark on your journey to global success.
+            Welcome to LISGE! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, transformative summer programs, exchange programs, volunteer opportunities, pre-college courses, and test preparation. Explore your potential and embark on your journey to global success.
           </p>
           <div className="space-x-0 space-y-4 sm:space-x-4 sm:space-y-0">
             <Button asChild size="lg" className="group">
@@ -140,7 +140,24 @@ export default function Home() {
             </Button>
           </CardContent>
         </Card>
+
+        <Card className="hover:shadow-xl transition-shadow duration-300 md:col-span-2 lg:col-span-1">
+          <CardHeader>
+            <Library className="h-12 w-12 text-primary mb-4" />
+            <CardTitle className="font-headline text-2xl">Test Prep Resources</CardTitle>
+            <CardDescription>Find materials and guidance for SAT, IELTS, TOEFL, and more.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="link" className="p-0 h-auto text-primary group">
+              <Link href="/resources">
+                View Resources <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
 }
+
+    
