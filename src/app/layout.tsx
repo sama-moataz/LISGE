@@ -5,7 +5,8 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
-import { CookieConsentBanner } from '@/components/CookieConsentBanner'; // Added import
+import { CookieConsentBanner } from '@/components/CookieConsentBanner';
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
@@ -65,7 +66,8 @@ export default function RootLayout({
           </main>
           <Footer />
           <Toaster />
-          <CookieConsentBanner /> {/* Added banner here */}
+          <CookieConsentBanner />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
