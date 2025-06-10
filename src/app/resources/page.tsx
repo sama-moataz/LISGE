@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Globe, CheckCircle } from 'lucide-react';
+import Link from 'next/link'; // Added Link import
 
 export const metadata: Metadata = {
   title: 'Test Preparation Resources',
@@ -35,10 +36,18 @@ export default function ResourcesPage() {
             <h3 className="text-xl font-semibold mb-2 text-foreground">Official SAT Practice:</h3>
             <ul className="list-disc space-y-2 pl-5">
               <li>
-                <strong>Khan Academy Official SAT Practice:</strong> This is hands-down the best free resource. It&apos;s developed in partnership with the College Board (creators of the SAT) and offers personalized practice, full-length practice tests, video lessons, and tips.
+                <strong>
+                  <Link href="https://www.khanacademy.org/SAT" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    Khan Academy Official SAT Practice
+                  </Link>:
+                </strong> This is hands-down the best free resource. It&apos;s developed in partnership with the College Board (creators of the SAT) and offers personalized practice, full-length practice tests, video lessons, and tips.
               </li>
               <li>
-                <strong>The College Board Website:</strong> Provides free official full-length practice tests, daily practice questions, and detailed information about the test structure and content.
+                <strong>
+                  <Link href="https://satsuite.collegeboard.org/digital/digital-practice-preparation/practice-tests" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    The College Board Website
+                  </Link>:
+                </strong> Provides free official full-length practice tests, daily practice questions, and detailed information about the test structure and content.
               </li>
             </ul>
           </div>
@@ -77,13 +86,25 @@ export default function ResourcesPage() {
             <h3 className="text-xl font-semibold mb-2 text-foreground">Official IELTS Practice:</h3>
             <ul className="list-disc space-y-2 pl-5">
               <li>
-                <strong>British Council IELTS Website:</strong> Offers free practice tests, preparation materials, and tips directly from one of the co-creators of the test.
+                <strong>
+                  <Link href="https://takeielts.britishcouncil.org/take-ielts/prepare/free-ielts-practice-tests" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    British Council IELTS Website
+                  </Link>:
+                </strong> Offers free practice tests, preparation materials, and tips directly from one of the co-creators of the test.
               </li>
               <li>
-                <strong>IDP IELTS Website:</strong> Another co-creator, also provides free practice tests, sample questions, and preparation resources.
+                <strong>
+                  <Link href="https://ielts.idp.com/prepare/free-ielts-practice-tests" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    IDP IELTS Website
+                  </Link>:
+                </strong> Another co-creator, also provides free practice tests, sample questions, and preparation resources.
               </li>
               <li>
-                <strong>Cambridge English (by Cambridge University Press & Assessment):</strong> Publishes official IELTS preparation books.
+                <strong>
+                  <Link href="https://www.cambridgeenglish.org/exams-and-tests/ielts/preparation/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    Cambridge English
+                  </Link> (by Cambridge University Press & Assessment):
+                </strong> Publishes official IELTS preparation books.
               </li>
             </ul>
           </div>
@@ -98,12 +119,26 @@ export default function ResourcesPage() {
           <div>
             <h3 className="text-xl font-semibold mb-2 text-foreground">Online Platforms & Courses:</h3>
             <ul className="list-disc space-y-2 pl-5">
-              <li><strong>IELTS Liz:</strong> A popular website offering free lessons, tips, and practice exercises for all sections.</li>
               <li>
-                <strong>E2 Test Prep:</strong> Offers comprehensive online courses, live classes, and personalized feedback for a fee, but often has free trial content.
+                <strong>
+                  <Link href="https://ieltsliz.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    IELTS Liz
+                  </Link>:
+                </strong> A popular website offering free lessons, tips, and practice exercises for all sections.
               </li>
               <li>
-                <strong>GregMat+ (for Writing/Speaking strategies):</strong> While primarily for GRE/GMAT, Greg&apos;s teaching style for verbal sections can be very helpful for IELTS writing and speaking strategies.
+                <strong>
+                  <Link href="https://www.e2testprep.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    E2 Test Prep
+                  </Link>:
+                </strong> Offers comprehensive online courses, live classes, and personalized feedback for a fee, but often has free trial content.
+              </li>
+              <li>
+                <strong>
+                  <Link href="https://www.gregmat.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    GregMat+
+                  </Link> (for Writing/Speaking strategies):
+                </strong> While primarily for GRE/GMAT, Greg&apos;s teaching style for verbal sections can be very helpful for IELTS writing and speaking strategies.
               </li>
             </ul>
           </div>
@@ -126,10 +161,18 @@ export default function ResourcesPage() {
             <h3 className="text-xl font-semibold mb-2 text-foreground">Official TOEFL Practice:</h3>
             <ul className="list-disc space-y-2 pl-5">
               <li>
-                <strong>ETS (Educational Testing Service) Official TOEFL Website:</strong> As the test creator, ETS provides free practice tests, sample questions, and detailed information about the test structure.
+                <strong>
+                  <Link href="https://www.ets.org/toefl/test-takers/ibt/prepare.html" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    ETS (Educational Testing Service) Official TOEFL Website
+                  </Link>:
+                </strong> As the test creator, ETS provides free practice tests, sample questions, and detailed information about the test structure.
               </li>
               <li>
-                <strong>TOEFL iBT Free Practice Test:</strong> Available directly on the ETS website.
+                <strong>
+                  <Link href="https://www.ets.org/toefl/test-takers/ibt/prepare/tests.html" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    TOEFL iBT Free Practice Test
+                  </Link>:
+                </strong> Available directly on the ETS website.
               </li>
             </ul>
           </div>
@@ -145,10 +188,20 @@ export default function ResourcesPage() {
             <h3 className="text-xl font-semibold mb-2 text-foreground">Online Platforms & Courses:</h3>
             <ul className="list-disc space-y-2 pl-5">
               <li>
-                <strong>Magoosh TOEFL Prep:</strong> Offers video lessons, practice questions, full-length tests, and score prediction. Highly regarded for its comprehensive approach. (Paid, but good value).
+                <strong>
+                  <Link href="https://toefl.magoosh.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    Magoosh TOEFL Prep
+                  </Link>:
+                </strong> Offers video lessons, practice questions, full-length tests, and score prediction. Highly regarded for its comprehensive approach. (Paid, but good value).
               </li>
               <li><strong>Kaplan TOEFL iBT Prep Plus:</strong> Another popular option with content review and practice.</li>
-              <li><strong>BestMyTest:</strong> Provides practice tests, lessons, and often has a good free trial.</li>
+              <li>
+                <strong>
+                  <Link href="https://www.bestmytest.com/toefl" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    BestMyTest
+                  </Link>:
+                </strong> Provides practice tests, lessons, and often has a good free trial.
+              </li>
             </ul>
           </div>
         </CardContent>
