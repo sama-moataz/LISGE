@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays } from 'lucide-react'; // Added Globe, Landmark, CalendarDays
+import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays, BookOpen } from 'lucide-react'; // Added Globe, Landmark, CalendarDays, BookOpen
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -244,11 +244,11 @@ export default function SummerProgramsPage() {
                   <CardTitle className="text-xl font-headline leading-tight">{program.name}</CardTitle>
                 </div>
                  <div className="flex flex-wrap gap-2 text-xs mt-1">
-                    {program.focusArea && <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">{Array.isArray(program.focusArea) ? program.focusArea.join(', ') : program.focusArea}</span>}
-                    {program.location && <span className="bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">{program.location}</span>}
-                    {program.programDuration && program.programDuration !== 'All' && <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{program.programDuration}</span>}
-                    {program.fundingLevel && program.fundingLevel !== 'All' && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{program.fundingLevel}</span>}
-                    {program.ageRequirement && program.ageRequirement !== 'All' && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Age: {program.ageRequirement}</span>}
+                    {program.focusArea && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><BookOpen size={12}/>{Array.isArray(program.focusArea) ? program.focusArea.join(', ') : program.focusArea}</span>}
+                    {program.location && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{program.location}</span>}
+                    {program.programDuration && program.programDuration !== 'All' && <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><CalendarDays size={12}/>{program.programDuration}</span>}
+                    {program.fundingLevel && program.fundingLevel !== 'All' && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{program.fundingLevel}</span>}
+                    {program.ageRequirement && program.ageRequirement !== 'All' && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full">Age: {program.ageRequirement}</span>}
                 </div>
                 <CardDescription className="pt-3 text-sm">{program.description}</CardDescription>
               </CardHeader>

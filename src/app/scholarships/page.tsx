@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Award, BookOpen, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info } from 'lucide-react'; // Added Landmark, CalendarDays, Info
+import { Award, BookOpen, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign } from 'lucide-react'; // Added Landmark, CalendarDays, Info, MapPin, DollarSign
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -268,10 +268,10 @@ export default function ScholarshipsPage() {
                   <CardTitle className="text-xl font-headline leading-tight">{scholarship.name}</CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs mt-1">
-                    {scholarship.targetLevel && <span className="bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full">{scholarship.targetLevel}</span>}
-                    {scholarship.destinationRegion && <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{scholarship.destinationRegion}</span>}
-                    {scholarship.fundingLevel && <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">{scholarship.fundingLevel}</span>}
-                    {scholarship.fundingCountry && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Fund: {scholarship.fundingCountry}</span>}
+                    {scholarship.targetLevel && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full">{scholarship.targetLevel}</span>}
+                    {scholarship.destinationRegion && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{scholarship.destinationRegion}</span>}
+                    {scholarship.fundingLevel && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{scholarship.fundingLevel}</span>}
+                    {scholarship.fundingCountry && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full">Fund: {scholarship.fundingCountry}</span>}
                 </div>
                 <CardDescription className="pt-3 text-sm">{scholarship.description}</CardDescription>
               </CardHeader>

@@ -232,11 +232,11 @@ export default function ExchangeProgramsPage() {
                   <CardTitle className="text-xl font-headline leading-tight">{program.name}</CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs mt-1">
-                    {program.targetLevel && <span className="bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full">{program.targetLevel}</span>}
-                    {program.destinationRegion && <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{program.destinationRegion}</span>}
-                    {program.fundingLevel && <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{program.fundingLevel}</span>}
-                    {program.fundingCountry && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Fund: {program.fundingCountry}</span>}
-                     {program.duration && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full flex items-center gap-1"><CalendarDays size={12}/>{program.duration}</span>}
+                    {program.targetLevel && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full">{program.targetLevel}</span>}
+                    {program.destinationRegion && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{program.destinationRegion}</span>}
+                    {program.fundingLevel && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{program.fundingLevel}</span>}
+                    {program.fundingCountry && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full">Fund: {program.fundingCountry}</span>}
+                    {program.duration && <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><CalendarDays size={12}/>{program.duration}</span>}
                 </div>
                 <CardDescription className="pt-3 text-sm">{program.description}</CardDescription>
               </CardHeader>
