@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Globe2, ExternalLink, Filter, RefreshCw, Landmark, CalendarDays, Info, MapPin, Users, GraduationCap, DollarSign, Briefcase } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const exchangeProgramsData: ExchangeProgram[] = [
   {
@@ -40,9 +41,9 @@ const exchangeProgramsData: ExchangeProgram[] = [
     category: "Academic Exchange",
     location: 'International',
     ageRequirement: '18+',
-    fundingLevel: 'Fully Funded', // For the research component
+    fundingLevel: 'Fully Funded', 
     destinationRegion: 'Canada',
-    targetLevel: 'Research', // More specific than Varies
+    targetLevel: 'Research', 
     fundingCountry: 'Canada',
     partner: 'Global Affairs Canada',
     coverage: 'Fully funded research opportunities (4-6 months). Travel, living allowance, health insurance, visa fees.',
@@ -55,13 +56,13 @@ const exchangeProgramsData: ExchangeProgram[] = [
     description: 'An international summer exchange program designed to empower and inspire young women to pursue careers in science and technology.',
     eligibility: "Girls aged 15-17, citizen of participating country (incl. Egypt), strong English skills, commitment to community project.",
     websiteUrl: 'https://techgirlsglobal.org/',
-    icon: Briefcase, // Changed from Globe2 to align with Summer Programs icon for TechGirls
-    category: "STEM Exchange", // More specific
+    icon: Briefcase, 
+    category: "STEM Exchange", 
     location: 'International',
     ageRequirement: '16-18',
     fundingLevel: 'Fully Funded',
     destinationRegion: 'USA',
-    targetLevel: 'High School', // More specific
+    targetLevel: 'High School', 
     fundingCountry: 'USA',
     partner: 'U.S. Department of State',
     coverage: 'Three-week summer exchange in the U.S. focused on STEM, all program costs covered.',
@@ -178,51 +179,59 @@ export default function ExchangeProgramsPage() {
       </div>
 
       <div className="sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:-mx-0 md:px-0">
-        <Card className="p-4 md:p-6 shadow-md">
-          <CardHeader className="p-0 pb-4 mb-4 border-b">
-            <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Exchange Programs</CardTitle>
-          </CardHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
-              <SelectTrigger><SelectValue placeholder="Location (Program Base)" /></SelectTrigger>
-              <SelectContent>
-                {locationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as AgeFilter)}>
-              <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
-              <SelectContent>
-                {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as FundingFilter)}>
-              <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
-              <SelectContent>
-                {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedRegion} onValueChange={(value) => setSelectedRegion(value as RegionFilter)}>
-              <SelectTrigger><SelectValue placeholder="Destination Region" /></SelectTrigger>
-              <SelectContent>
-                {regionOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as LevelFilter)}>
-              <SelectTrigger><SelectValue placeholder="Target Level/Type" /></SelectTrigger>
-              <SelectContent>
-                {levelOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedFundingCountry} onValueChange={(value) => setSelectedFundingCountry(value as FundingCountryFilter)}>
-              <SelectTrigger><SelectValue placeholder="Funding Country" /></SelectTrigger>
-              <SelectContent>
-                {fundingCountryOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
-            <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
-          </Button>
+        <Card className="shadow-md">
+          <Accordion type="single" collapsible className="w-full" defaultValue="filters-exchange">
+            <AccordionItem value="filters-exchange" className="border-b-0">
+              <AccordionTrigger className="p-4 md:p-6 hover:no-underline">
+                <div className="flex justify-between w-full items-center">
+                  <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Exchange Programs</CardTitle>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="p-4 md:p-6 pt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Location (Program Base)" /></SelectTrigger>
+                    <SelectContent>
+                      {locationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as AgeFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
+                    <SelectContent>
+                      {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as FundingFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
+                    <SelectContent>
+                      {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedRegion} onValueChange={(value) => setSelectedRegion(value as RegionFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Destination Region" /></SelectTrigger>
+                    <SelectContent>
+                      {regionOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as LevelFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Target Level/Type" /></SelectTrigger>
+                    <SelectContent>
+                      {levelOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedFundingCountry} onValueChange={(value) => setSelectedFundingCountry(value as FundingCountryFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Funding Country" /></SelectTrigger>
+                    <SelectContent>
+                      {fundingCountryOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
+                  <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </div>
       
@@ -299,3 +308,5 @@ export default function ExchangeProgramsPage() {
     </div>
   );
 }
+
+    

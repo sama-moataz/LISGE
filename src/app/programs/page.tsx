@@ -6,9 +6,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays, BookOpen, DollarSign } from 'lucide-react';
+import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays, BookOpen, DollarSign, Info } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const summerProgramsData: SummerProgram[] = [
   {
@@ -22,9 +23,9 @@ const summerProgramsData: SummerProgram[] = [
     location: 'Egypt', 
     provider: 'EducationUSA',
     ageRequirement: '16-18',
-    fundingLevel: 'Varies', // Often free or low-cost for CCC itself
+    fundingLevel: 'Varies', 
     focusArea: 'College Prep',
-    programDuration: 'Varies', // Academic year long engagement
+    programDuration: 'Varies', 
     partner: 'EducationUSA',
     coverage: "Guidance, workshops, and resources for U.S. college applications.",
     deadline: "Varies (check with local EducationUSA center)"
@@ -39,7 +40,7 @@ const summerProgramsData: SummerProgram[] = [
     category: "Tech & Coding",
     location: 'Online',
     provider: 'Girls Who Code',
-    ageRequirement: 'Under 16', // Target grades 9-12, can include under 16
+    ageRequirement: 'Under 16', 
     fundingLevel: 'Fully Funded',
     focusArea: 'Tech & Coding',
     programDuration: '2-4 Weeks',
@@ -53,14 +54,14 @@ const summerProgramsData: SummerProgram[] = [
     description: 'An international summer exchange program designed to empower and inspire young women to pursue careers in science and technology.',
     eligibility: "Girls aged 15-17, citizen of participating country (incl. Egypt), strong English skills, commitment to community project.",
     websiteUrl: 'https://techgirlsglobal.org/',
-    icon: Briefcase, // Consistent with Exchange programs
+    icon: Briefcase, 
     category: "STEM Leadership",
-    location: 'International', // Takes place in USA
+    location: 'International', 
     provider: 'U.S. Department of State (via Legacy International)',
     ageRequirement: '16-18',
     fundingLevel: 'Fully Funded',
     focusArea: 'STEM',
-    programDuration: '2-4 Weeks', // "Three-week summer exchange"
+    programDuration: '2-4 Weeks', 
     partner: 'U.S. Department of State',
     coverage: "Full coverage for three-week summer exchange in the U.S. focused on STEM.",
     deadline: "December (Typical, check official site)"
@@ -73,12 +74,12 @@ const summerProgramsData: SummerProgram[] = [
     websiteUrl: 'https://www.daad.eg/en/find-funding/scholarship-database/',
     icon: Globe,
     category: "Language & Culture",
-    location: 'International', // Germany
+    location: 'International', 
     provider: 'DAAD',
-    ageRequirement: '18+', // Undergraduate
+    ageRequirement: '18+', 
     fundingLevel: 'Partial Scholarship',
     focusArea: 'Language',
-    programDuration: 'Varies', // "minimum of 18 teaching days"
+    programDuration: 'Varies', 
     partner: 'DAAD',
     coverage: "One-time scholarship of €1,134 plus allowances for course fees, travel, and living expenses.",
     deadline: "December (Approximate)"
@@ -91,10 +92,10 @@ const summerProgramsData: SummerProgram[] = [
     websiteUrl: 'https://globalscholars.yale.edu/',
     icon: Users,
     category: "Global Leadership",
-    location: 'International', // Can be Online or in USA
+    location: 'International', 
     provider: 'Yale University',
     ageRequirement: '16-18',
-    fundingLevel: 'Paid Program', // Need-based financial aid available
+    fundingLevel: 'Paid Program', 
     focusArea: 'Global Leadership',
     programDuration: '2-4 Weeks',
     partner: 'Yale University',
@@ -139,7 +140,7 @@ const durationOptions: { value: ProgramDurationFilter; label: string }[] = [
   { value: '1 Week', label: '1 Week' },
   { value: '2-4 Weeks', label: '2-4 Weeks' },
   { value: '1 Month+', label: '1 Month+' },
-  { value: 'Academic Year', label: 'Academic Year' }, // Less common for summer programs but possible for longer engagements
+  { value: 'Academic Year', label: 'Academic Year' }, 
   { value: 'Varies', label: 'Varies' },
 ];
 
@@ -197,45 +198,53 @@ export default function SummerProgramsPage() {
       </div>
       
       <div className="sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:-mx-0 md:px-0">
-        <Card className="p-4 md:p-6 shadow-md">
-          <CardHeader className="p-0 pb-4 mb-4 border-b">
-            <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Programs</CardTitle>
-          </CardHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
-              <SelectTrigger><SelectValue placeholder="Location" /></SelectTrigger>
-              <SelectContent>
-                {locationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ProgramAgeFilter)}>
-              <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
-              <SelectContent>
-                {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ProgramFundingFilter)}>
-              <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
-              <SelectContent>
-                {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedFocusArea} onValueChange={(value) => setSelectedFocusArea(value as ProgramFocusAreaFilter)}>
-              <SelectTrigger><SelectValue placeholder="Focus Area" /></SelectTrigger>
-              <SelectContent>
-                {focusAreaOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedDuration} onValueChange={(value) => setSelectedDuration(value as ProgramDurationFilter)}>
-              <SelectTrigger><SelectValue placeholder="Duration" /></SelectTrigger>
-              <SelectContent>
-                {durationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
-            <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
-          </Button>
+        <Card className="shadow-md">
+          <Accordion type="single" collapsible className="w-full" defaultValue="filters-programs">
+            <AccordionItem value="filters-programs" className="border-b-0">
+              <AccordionTrigger className="p-4 md:p-6 hover:no-underline">
+                <div className="flex justify-between w-full items-center">
+                  <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Programs</CardTitle>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="p-4 md:p-6 pt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  <Select value={selectedLocation} onValueChange={(value) => setSelectedLocation(value as LocationFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Location" /></SelectTrigger>
+                    <SelectContent>
+                      {locationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ProgramAgeFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
+                    <SelectContent>
+                      {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ProgramFundingFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
+                    <SelectContent>
+                      {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedFocusArea} onValueChange={(value) => setSelectedFocusArea(value as ProgramFocusAreaFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Focus Area" /></SelectTrigger>
+                    <SelectContent>
+                      {focusAreaOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedDuration} onValueChange={(value) => setSelectedDuration(value as ProgramDurationFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Duration" /></SelectTrigger>
+                    <SelectContent>
+                      {durationOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
+                  <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </div>
 
@@ -305,3 +314,5 @@ export default function SummerProgramsPage() {
     </div>
   );
 }
+
+    

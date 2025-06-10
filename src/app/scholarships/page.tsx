@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Award, BookOpen, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const scholarshipsData: Scholarship[] = [
   {
@@ -18,8 +19,8 @@ const scholarshipsData: Scholarship[] = [
     eligibility: "Egyptian citizen, top 10 national rank in Al-Thanaweya Al-Amma, pass GUC tests, maintain 3.00 GPA.",
     websiteUrl: 'https://www.guc.edu.eg/',
     icon: GraduationCap,
-    category: "Full Scholarship", // General category
-    location: 'Egypt', // Destination is Egypt
+    category: "Full Scholarship",
+    location: 'Egypt', 
     ageRequirement: '18+', 
     fundingLevel: 'Fully Funded',
     destinationRegion: 'Egypt/MENA',
@@ -27,7 +28,7 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'Egypt',
     partner: 'GUC (in cooperation with MoHESR)',
     coverage: 'Full tuition, accommodation, transportation, admission test fees, lab insurance.',
-    deadline: "July 30 (Typical, check official site)" // Example, may vary yearly
+    deadline: "July 30 (Typical, check official site)"
   },
   {
     id: 'mohesr-innovators-gss',
@@ -52,12 +53,12 @@ const scholarshipsData: Scholarship[] = [
     name: 'U.S.-Egypt HEI Local Scholarships (Private Universities)',
     description: 'Scholarships for Egyptian public school graduates to pursue programs in Egyptian private universities. Focus on agribusiness, engineering, economics, IT.',
     eligibility: 'Egyptian public school graduates. Economically disadvantaged. High-achieving.',
-    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo', // General link
+    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo', 
     icon: Users,
     category: "Higher Education",
     location: 'Egypt',
     ageRequirement: '18+', 
-    fundingLevel: 'Varies', // Can be full or partial
+    fundingLevel: 'Varies', 
     destinationRegion: 'Egypt/MENA',
     targetLevel: 'Undergraduate',
     fundingCountry: 'USA',
@@ -73,7 +74,7 @@ const scholarshipsData: Scholarship[] = [
     websiteUrl: 'https://www.yesprograms.org/',
     icon: Globe,
     category: "Cultural Exchange",
-    location: 'International', // Destination USA
+    location: 'International', 
     ageRequirement: '16-18', 
     fundingLevel: 'Fully Funded',
     destinationRegion: 'USA',
@@ -110,7 +111,7 @@ const scholarshipsData: Scholarship[] = [
     icon: Award,
     category: "Postgraduate Leadership",
     location: 'International',
-    ageRequirement: '18+', // Implied by Master's
+    ageRequirement: '18+', 
     fundingLevel: 'Fully Funded',
     destinationRegion: 'UK',
     targetLevel: 'Postgraduate',
@@ -132,7 +133,7 @@ const fundingOptions: { value: ScholarshipFundingFilter; label: string }[] = [
   { value: 'All', label: 'All Funding Levels' },
   { value: 'Fully Funded', label: 'Fully Funded' },
   { value: 'Partial Scholarship', label: 'Partial Scholarship' },
-  { value: 'No Funding', label: 'No Funding' }, // Less common for scholarships but possible
+  { value: 'No Funding', label: 'No Funding' }, 
   { value: 'Varies', label: 'Varies' },
 ];
 
@@ -218,45 +219,54 @@ export default function ScholarshipsPage() {
       </div>
 
       <div className="sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:-mx-0 md:px-0">
-        <Card className="p-4 md:p-6 shadow-md ">
-          <CardHeader className="p-0 pb-4 mb-4 border-b">
-            <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Scholarships</CardTitle>
-          </CardHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ScholarshipAgeFilter)}>
-              <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
-              <SelectContent>
-                {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ScholarshipFundingFilter)}>
-              <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
-              <SelectContent>
-                {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedRegion} onValueChange={(value) => setSelectedRegion(value as ScholarshipRegionFilter)}>
-              <SelectTrigger><SelectValue placeholder="Destination Region" /></SelectTrigger>
-              <SelectContent>
-                {regionOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as ScholarshipLevelFilter)}>
-              <SelectTrigger><SelectValue placeholder="Target Level/Type" /></SelectTrigger>
-              <SelectContent>
-                {levelOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={selectedFundingCountry} onValueChange={(value) => setSelectedFundingCountry(value as FundingCountryFilter)}>
-              <SelectTrigger><SelectValue placeholder="Funding Country" /></SelectTrigger>
-              <SelectContent>
-                {fundingCountryOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
-            <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
-          </Button>
+        <Card className="shadow-md">
+          <Accordion type="single" collapsible className="w-full" defaultValue="filters-scholarships">
+            <AccordionItem value="filters-scholarships" className="border-b-0">
+              <AccordionTrigger className="p-4 md:p-6 hover:no-underline">
+                <div className="flex justify-between w-full items-center">
+                  <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Scholarships</CardTitle>
+                  {/* Optional: Add a count of active filters here if desired */}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="p-4 md:p-6 pt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  <Select value={selectedAge} onValueChange={(value) => setSelectedAge(value as ScholarshipAgeFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Age/Grade" /></SelectTrigger>
+                    <SelectContent>
+                      {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedFunding} onValueChange={(value) => setSelectedFunding(value as ScholarshipFundingFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Funding Level" /></SelectTrigger>
+                    <SelectContent>
+                      {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedRegion} onValueChange={(value) => setSelectedRegion(value as ScholarshipRegionFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Destination Region" /></SelectTrigger>
+                    <SelectContent>
+                      {regionOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as ScholarshipLevelFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Target Level/Type" /></SelectTrigger>
+                    <SelectContent>
+                      {levelOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedFundingCountry} onValueChange={(value) => setSelectedFundingCountry(value as FundingCountryFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Funding Country" /></SelectTrigger>
+                    <SelectContent>
+                      {fundingCountryOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={clearFilters} variant="outline" className="w-full sm:w-auto">
+                  <RefreshCw className="mr-2 h-4 w-4" /> Clear All Filters
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </div>
       
@@ -327,3 +337,5 @@ export default function ScholarshipsPage() {
     </div>
   );
 }
+
+    
