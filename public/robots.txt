@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://[YOUR_DOMAIN_HERE]/sitemap.xml
+Sitemap: https://lisge.vercel.app/sitemap.xml

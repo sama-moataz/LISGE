@@ -10,23 +10,34 @@ import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
-    default: 'LISGE - Local and International Scholars\' Guide to Excellence',
+    default: 'LISGE: Global Scholars’ Hub', // Updated
     template: '%s | LISGE',
   },
-  description: "LISGE (Local and International Scholars' Guide to Excellence) empowers Egyptian students with resources on scholarships, study tips, summer programs, volunteer opportunities, and pre-college courses.",
-  keywords: ['LISGE', 'scholarships Egypt', 'study abroad Egypt', 'summer programs Egypt', 'volunteer Egypt', 'pre-college Egypt', 'student guidance Egypt'],
+  description: "LISGE helps students discover scholarships, tips, and resources to excel locally and internationally.", // Updated
+  keywords: ['scholarships', 'student guide', 'Egypt', 'international studies', 'LISGE', 'global scholars'], // Updated
+  authors: [{ name: 'LISGE Team' }], // Using Next.js 'authors' field
   openGraph: {
-    title: 'LISGE - Local and International Scholars\' Guide to Excellence',
-    description: "Empowering Egyptian students with resources for academic and personal growth.",
-    url: 'https://[YOUR_DOMAIN_HERE]', 
+    title: 'LISGE: Global Scholars’ Hub', // Updated
+    description: "Find top scholarships, study tips, and guidance tailored for local and international students.", // Updated
+    url: 'https://lisge.vercel.app', // Updated
     siteName: 'LISGE',
+    images: [ // Added image based on prompt
+      {
+        url: 'https://lisge.vercel.app/preview.jpg',
+        width: 1200, // Example width
+        height: 630, // Example height
+        alt: 'LISGE: Global Scholars’ Hub Preview',
+      },
+    ],
     locale: 'en_US',
-    type: 'website',
+    type: 'website', // Updated
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LISGE - Local and International Scholars\' Guide to Excellence',
-    description: "Empowering Egyptian students with resources for academic and personal growth.",
+    title: 'LISGE: Global Scholars’ Hub', // Updated
+    description: "Empowering students to reach global excellence.", // Updated
+    images: ['https://lisge.vercel.app/preview.jpg'], // Added image based on prompt
+    // site: '@yourtwitterhandle', // Optional: Add if you have a Twitter handle
   },
   robots: {
     index: true,
