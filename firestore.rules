@@ -1,0 +1,60 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.email == request.auth.token.email // Can be null for phone auth
+                    && request.resource.data.role == 'user'
+                    && 'name' in request.resource.data
+                    && request.resource.data.createdAt == request.time; // Ensure createdAt is server timestamp
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && !(request.resource.data.role != resource.data.role)
+                    && !(request.resource.data.uid != resource.data.uid)
+                    && !(request.resource.data.email != resource.data.email)
+                    && !(request.resource.data.createdAt != resource.data.createdAt); // Prevent changing createdAt
+      allow delete: if false; // Generally, don't allow client-side deletion of user profiles
+    }
+
+    match /scholarships/{scholarshipId} {
+      allow read: if true;
+      allow list: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /tips/{tipId} {
+      allow read: if true;
+      allow list: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Assuming "programs" page refers to summer programs for now
+    match /summer-programs/{programId} {
+      allow read: if true;
+      allow list: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    match /exchange-programs/{programId} {
+      allow read: if true;
+      allow list: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /pre-college/{programId} {
+      allow read: if true;
+      allow list: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /volunteer-opportunities/{opportunityId} {
+      allow read: if true;
+      allow list: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}

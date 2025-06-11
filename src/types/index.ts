@@ -116,3 +116,14 @@ export interface PreCollegeCourse {
   coverage?: string; // What the course includes
   deadline?: string;
 }
+
+// User Profile for Firestore
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  name: string | null;
+  role: 'user' | 'admin';
+  createdAt: any; // Firestore Timestamp or ServerTimestamp
+  lastLoginAt?: any; // Firestore Timestamp or ServerTimestamp
+  photoURL?: string | null; // Optional, from Auth or custom
+}

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Menu, BookOpen, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Mail, Library, LogIn, LogOut, UserPlus, ShieldCheck } from 'lucide-react';
+import { Menu, BookOpen, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Mail, Library, LogIn, LogOut, UserPlus, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { usePathname, useRouter } from 'next/navigation';
@@ -18,8 +18,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 const mainNavLinks = [
@@ -37,69 +37,74 @@ const mainNavLinks = [
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAdmin, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth(); // Removed isAdmin, use userProfile.role
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.push('/'); // Redirect to homepage after logout
+      router.push('/'); 
     } catch (error) {
       console.error("Logout error:", error);
-      // Handle logout error (e.g., show a toast notification)
     }
   };
   
-  const NavLinkItem = ({ href, label, icon: Icon, isMobile = false, onClick }: { href: string, label: string, icon: React.ElementType, isMobile?: boolean, onClick?: () => void }) => {
-    const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+  const NavLinkItem = ({ href, label, icon: Icon, isMobile = false, action, disabled = false }: { href?: string, label: string, icon: React.ElementType, isMobile?: boolean, action?: () => void, disabled?: boolean }) => {
+    const isActive = href ? (pathname === href || (href !== '/' && pathname.startsWith(href))) : false;
     const linkClass = cn(
-      "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-primary/10 hover:text-primary",
+      "flex items-center w-full text-left gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-primary/10 hover:text-primary",
       isActive ? "bg-primary/10 text-primary" : "text-foreground/80 hover:text-foreground",
-      isMobile ? "text-base" : ""
+      isMobile ? "text-base" : "",
+      disabled ? "opacity-50 cursor-not-allowed" : ""
     );
 
-    if (isMobile) {
+    const content = (
+      <>
+        <Icon className={cn("h-4 w-4", isMobile && "h-5 w-5")} />
+        {label}
+      </>
+    );
+
+    if (action) {
       return (
-        <SheetClose asChild>
-          <Link href={href} className={linkClass} onClick={onClick}>
-            <Icon className="h-5 w-5" />
-            {label}
-          </Link>
-        </SheetClose>
+        <button onClick={action} className={linkClass} disabled={disabled}>
+          {content}
+        </button>
       );
     }
     
-    if (onClick) {
-         return (
-            <button onClick={onClick} className={linkClass}>
-                <Icon className="h-4 w-4" />
-                {label}
-            </button>
+    if (href) {
+      if (isMobile) {
+        return (
+          <SheetClose asChild>
+            <Link href={href} className={linkClass}>
+              {content}
+            </Link>
+          </SheetClose>
         );
+      }
+      return (
+        <Link href={href} className={linkClass}>
+          {content}
+        </Link>
+      );
     }
-
-    return (
-      <Link href={href} className={linkClass}>
-        <Icon className="h-4 w-4" />
-        {label}
-      </Link>
-    );
+    
+    return <div className={linkClass}>{content}</div>; // Fallback for items without href or action
   };
 
-  const getAvatarFallback = (email: string | null | undefined) => {
-    if (!email) return "U";
-    return email.substring(0, 2).toUpperCase();
+  const getAvatarFallback = () => {
+    if (userProfile?.name) return userProfile.name.substring(0, 2).toUpperCase();
+    if (userProfile?.email) return userProfile.email.substring(0, 2).toUpperCase();
+    return "U";
   };
 
-  const mobileNavLinks = [...mainNavLinks];
+  const mobileNavLinksConfig = [...mainNavLinks];
   if (!loading) {
     if (user) {
-      if (isAdmin) {
-        mobileNavLinks.push({ href: '/admin', label: 'Admin Dashboard', icon: ShieldCheck });
-      }
-      // mobileNavLinks.push({ href: '#logout', label: 'Logout', icon: LogOut, onClick: handleLogout });
+      mobileNavLinksConfig.unshift({ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard });
     } else {
-      mobileNavLinks.push({ href: '/login', label: 'Login', icon: LogIn });
-      mobileNavLinks.push({ href: '/signup', label: 'Sign Up', icon: UserPlus });
+      mobileNavLinksConfig.push({ href: '/auth/login', label: 'Login', icon: LogIn });
+      mobileNavLinksConfig.push({ href: '/auth/signup', label: 'Sign Up', icon: UserPlus });
     }
   }
 
@@ -112,22 +117,25 @@ export function Header() {
         </Link>
         <nav className="hidden items-center space-x-1 md:flex">
           {mainNavLinks.map((link) => (
-            <NavLinkItem key={link.href} {...link} />
+            <NavLinkItem key={link.href} href={link.href} label={link.label} icon={link.icon} />
           ))}
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           {loading ? (
-            <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6 animate-pulse" />
-            </Button>
-          ) : user ? (
+             <div className="flex items-center gap-2">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-6 w-6 animate-pulse" />
+                </Button>
+             </div>
+          ) : user && userProfile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || "User"} />
-                    <AvatarFallback>{getAvatarFallback(user.email)}</AvatarFallback>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={userProfile.photoURL || `https://avatar.iran.run/public/boy?username=${userProfile.email || userProfile.uid}`} alt={userProfile.name || "User"} />
+                    <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -135,23 +143,21 @@ export function Header() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {user.displayName || user.email?.split('@')[0]}
+                      {userProfile.name || userProfile.email?.split('@')[0]}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
+                      {userProfile.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin" className="cursor-pointer">
-                      <ShieldCheck className="mr-2 h-4 w-4" />
-                      Admin Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" className="cursor-pointer">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
@@ -160,41 +166,40 @@ export function Header() {
           ) : (
             <div className="hidden md:flex items-center gap-1">
               <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Login</Link>
+                <Link href="/auth/login">Login</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/signup">Sign Up</Link>
+                <Link href="/auth/signup">Sign Up</Link>
               </Button>
             </div>
           )}
           <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
+                <Button variant="ghost" size="icon" disabled={loading}>
+                  {loading ? <Loader2 className="h-6 w-6 animate-spin"/> : <Menu className="h-6 w-6" />}
                   <span className="sr-only">Toggle navigation menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-full max-w-xs p-6">
-                <nav className="flex flex-col space-y-4">
-                  {mobileNavLinks.map((link) => (
+              <SheetContent side="right" className="w-full max-w-xs p-4">
+                <nav className="flex flex-col space-y-2 mt-4">
+                  {mobileNavLinksConfig.map((link) => (
                      <NavLinkItem 
-                        key={link.href} 
+                        key={link.label} 
                         href={link.href}
                         label={link.label}
                         icon={link.icon}
-                        // @ts-ignore next-line
-                        onClick={link.onClick}
                         isMobile={true} 
                       />
                   ))}
-                  {/* Specific handling for logout in mobile if not part of mobileNavLinks logic */}
                    {!loading && user && (
                      <SheetClose asChild>
-                        <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-foreground/80 hover:text-foreground hover:bg-primary/10">
-                            <LogOut className="h-5 w-5" />
-                            Logout
-                        </Button>
+                        <NavLinkItem 
+                            label="Logout"
+                            icon={LogOut}
+                            action={handleLogout}
+                            isMobile={true} 
+                        />
                      </SheetClose>
                    )}
                 </nav>
