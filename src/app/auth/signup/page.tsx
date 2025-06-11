@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { UserPlus, Loader2, Mail, KeyRound, User } from 'lucide-react'; // Added Mail, KeyRound, User
+import { UserPlus, Loader2, Mail, KeyRound, User } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
@@ -39,40 +39,59 @@ export default function SignupPage() {
     }
     setLoading(true);
     console.log(`[Signup Page] Attempting signup with: ${email}`);
+    let firebaseUser; // Declare firebaseUser here to access in Firestore catch block
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
+      firebaseUser = userCredential.user;
       console.log(`[Signup] User created in Auth with UID: ${firebaseUser.uid}`);
 
       await updateAuthProfile(firebaseUser, { displayName: name });
       console.log(`[Signup] Firebase Auth profile updated with name: ${name}`);
 
-      const userDocRef = doc(db, "USERS", firebaseUser.uid); 
-      const userProfileData = {
-        uid: firebaseUser.uid,
-        name: name,
-        email: firebaseUser.email,
-        role: 'user', 
-        createdAt: serverTimestamp(),
-        lastLoginAt: serverTimestamp(), 
-        photoURL: firebaseUser.photoURL || null,
-      };
-      console.log("[Signup] Creating user profile in Firestore (USERS collection):", userProfileData);
-      await setDoc(userDocRef, userProfileData);
-      console.log("[Signup] User profile successfully created in Firestore.");
+      // Nested try-catch for Firestore profile creation
+      try {
+        const userDocRef = doc(db, "USERS", firebaseUser.uid); 
+        const userProfileData = {
+          uid: firebaseUser.uid,
+          name: name,
+          email: firebaseUser.email,
+          role: 'user', 
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(), 
+          photoURL: firebaseUser.photoURL || null,
+        };
+        console.log("[Signup] Creating user profile in Firestore (USERS collection):", userProfileData);
+        await setDoc(userDocRef, userProfileData);
+        console.log("[Signup] User profile successfully created in Firestore.");
 
-      toast({
-        title: "Account Created!",
-        description: "Welcome to LISGE Hub.",
-      });
-      router.push('/dashboard'); 
-    } catch (err: any) {
+        toast({
+          title: "Account Created!",
+          description: "Welcome to LISGE Hub.",
+        });
+        router.push('/dashboard'); 
+
+      } catch (firestoreError: any) {
+        console.error(`[Signup] CRITICAL: Firebase Auth user ${firebaseUser?.uid} created, but FAILED to create Firestore profile: `, firestoreError);
+        const profileCreationErrorMessage = `Account authentication successful, but profile setup in our database failed: ${firestoreError.message}. ` +
+                                            `Please try logging in. If the problem persists, contact support with your email and this UID: ${firebaseUser?.uid || 'N/A'}.`;
+        setError(profileCreationErrorMessage);
+        toast({
+          title: "Signup Incomplete",
+          description: profileCreationErrorMessage,
+          variant: "destructive",
+          duration: 15000, // Longer duration for this critical error
+        });
+        // Important: Do not redirect. Let the user see the error on the signup page.
+      }
+
+    } catch (authError: any) { // This outer catch handles errors from createUserWithEmailAndPassword or updateAuthProfile
       let friendlyMessage = "Failed to create account. Please try again.";
-      if (err.code === 'auth/email-already-in-use') {
+      if (authError.code === 'auth/email-already-in-use') {
         friendlyMessage = "This email address is already registered. Please try logging in or use a different email.";
-      } else if (err.code === 'auth/weak-password') {
+      } else if (authError.code === 'auth/weak-password') {
         friendlyMessage = "The password is too weak. Please choose a stronger password.";
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (authError.code === 'auth/invalid-email') {
         friendlyMessage = "The email address is not valid. Please enter a valid email.";
       }
       setError(friendlyMessage);
@@ -81,7 +100,7 @@ export default function SignupPage() {
         description: friendlyMessage,
         variant: "destructive",
       });
-      console.error("[Signup] Error:", err.code, err.message);
+      console.error("[Signup] Auth Error (createUser or updateProfile):", authError.code, authError.message);
     } finally {
       setLoading(false);
     }
@@ -146,7 +165,7 @@ export default function SignupPage() {
                 disabled={loading}
               />
             </div>
-            {error && <p className="text-sm text-destructive py-1 text-center">{error}</p>}
+            {error && <p className="text-sm text-destructive py-1 text-center whitespace-pre-wrap">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="animate-spin mr-2" /> : null}
               {loading ? 'Creating account...' : 'Sign Up'}
