@@ -2,17 +2,17 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation'; 
-import Link from 'next/link'; 
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Loader2, ShieldCheck, LogOut } from 'lucide-react'; // UserCircle removed as it's not used directly
+import { Loader2, ShieldCheck, LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { format, isValid } from 'date-fns'; 
-import type { Timestamp } from 'firebase/firestore'; 
+import { format, isValid } from 'date-fns';
+import type { Timestamp } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -33,8 +33,6 @@ export default function DashboardPage() {
             description: authError || "There was an issue with your session. Please log in again.",
             variant: "destructive",
         });
-        // Optionally redirect to login if authError is critical
-        // router.push('/auth/login?redirect=/dashboard'); 
     }
   }, [user, loading, router, authError, toast]);
 
@@ -42,7 +40,7 @@ export default function DashboardPage() {
     try {
       await signOut(auth);
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      router.push('/'); 
+      router.push('/');
     } catch (error: any) {
       console.error("[Dashboard] Logout error:", error);
       toast({ title: "Logout Error", description: error.message || "Failed to log out.", variant: "destructive" });
@@ -58,7 +56,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (authError && !userProfile) { // Show error more prominently if profile also failed to load
+  if (authError && !userProfile) {
      return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)] text-center">
          <Card className="w-full max-w-md shadow-lg">
@@ -78,8 +76,6 @@ export default function DashboardPage() {
   }
 
   if (!user || !userProfile) {
-    // This case should ideally be handled by the useEffect redirect,
-    // but acts as a fallback or during brief state transitions.
     return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -109,12 +105,14 @@ export default function DashboardPage() {
       } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
         dateToFormat = new Date(timestamp);
       } else {
+        console.warn("[Dashboard] Timestamp is of unexpected type:", typeof timestamp, timestamp);
         return 'Invalid Date Object';
       }
       
       if (isValid(dateToFormat)) {
         return format(dateToFormat, "MMMM d, yyyy 'at' h:mm a");
       }
+      console.warn("[Dashboard] Formatted date is invalid. Original timestamp:", timestamp, "Parsed date:", dateToFormat);
       return 'Invalid Date';
     } catch (e) {
       console.warn("[Dashboard] Failed to format timestamp:", timestamp, e);
@@ -157,10 +155,12 @@ export default function DashboardPage() {
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-primary">Admin Tools</h3>
                 <p className="text-muted-foreground mb-2">
-                  Manage LISGE content sections from here. (Functionality Coming Soon)
+                  Manage LISGE content sections from here.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button variant="outline" disabled>Manage Scholarships</Button>
+                  <Button asChild variant="outline">
+                     <Link href="/admin/scholarships">Manage Scholarships</Link>
+                  </Button>
                   <Button variant="outline" disabled>Manage Study Tips</Button>
                   <Button variant="outline" disabled>Manage Summer Programs</Button>
                   <Button variant="outline" disabled>Manage Exchange Programs</Button>

@@ -1,5 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
+import type { Timestamp } from 'firebase/firestore';
 
 export type LocationFilter = 'All' | 'Egypt' | 'International' | 'Global' | 'Online';
 
@@ -7,27 +8,29 @@ export type LocationFilter = 'All' | 'Egypt' | 'International' | 'Global' | 'Onl
 export type AgeFilter = 'All' | 'Under 16' | '16-18' | '18+';
 export type FundingFilter = 'All' | 'Fully Funded' | 'Partial Scholarship' | 'Paid Program' | 'No Funding' | 'Varies';
 export type RegionFilter = 'All' | 'USA' | 'Europe' | 'Asia' | 'Egypt/MENA' | 'Global' | 'Canada' | 'UK' | 'Other';
-export type LevelFilter = 'All' | 'High School' | 'Undergraduate' | 'Postgraduate' | 'Youth' | 'All Levels' | 'Exchange' | 'Language' | 'Research' | 'Varies' | 'STEM' | 'Cultural Exchange' | 'Academic Exchange' | 'STEM Exchange'; // Added more specific levels/types
+export type LevelFilter = 'All' | 'High School' | 'Undergraduate' | 'Postgraduate' | 'Youth' | 'All Levels' | 'Exchange' | 'Language' | 'Research' | 'Varies' | 'STEM' | 'Cultural Exchange' | 'Academic Exchange' | 'STEM Exchange';
 export type FundingCountryFilter = 'All' | 'Egypt' | 'USA' | 'Germany' | 'UK' | 'Canada' | 'China' | 'South Korea' | 'Other';
 
-
 export interface Scholarship {
-  id: string;
+  id: string; // Firestore document ID
   name: string;
   description: string;
   eligibility: string;
   websiteUrl: string;
-  icon?: LucideIcon;
-  category?: string; // General category, can be used for broader grouping
-  location: 'Egypt' | 'International' | 'Global' | 'Online'; // Where the opportunity is based or takes place
+  iconName?: string; // Name of the lucide-react icon
+  category?: string;
+  location: 'Egypt' | 'International' | 'Global' | 'Online';
   ageRequirement?: AgeFilter | string;
   fundingLevel?: FundingFilter | string;
-  destinationRegion?: RegionFilter | string; // For international opportunities, the target study/exchange region
-  targetLevel?: LevelFilter | string; // Academic or program level
-  fundingCountry?: FundingCountryFilter | string; // Country providing the funds
-  partner?: string; // Partner organization(s)
-  coverage?: string; // What the scholarship/program covers
-  deadline?: string; // Application deadline
+  destinationRegion?: RegionFilter | string;
+  targetLevel?: LevelFilter | string;
+  fundingCountry?: FundingCountryFilter | string;
+  partner?: string;
+  coverage?: string;
+  deadline?: string;
+  imageUrl?: string; // URL for the scholarship image
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface ExchangeProgram {
@@ -36,13 +39,13 @@ export interface ExchangeProgram {
   description: string;
   eligibility: string;
   websiteUrl: string;
-  icon?: LucideIcon;
-  category?: string; // e.g., "Cultural Exchange", "Academic Exchange"
-  location: 'Egypt' | 'International' | 'Global' | 'Online'; // Program's operational base or destination type
+  icon?: LucideIcon; // Keep as LucideIcon for now, will update if/when managed by admin
+  category?: string;
+  location: 'Egypt' | 'International' | 'Global' | 'Online';
   ageRequirement?: AgeFilter | string;
   fundingLevel?: FundingFilter | string;
-  destinationRegion?: RegionFilter | string; // Specific region student will go to
-  targetLevel?: LevelFilter | string; // e.g., High School, Undergraduate
+  destinationRegion?: RegionFilter | string;
+  targetLevel?: LevelFilter | string;
   fundingCountry?: FundingCountryFilter | string;
   partner?: string;
   coverage?: string;
@@ -69,15 +72,15 @@ export interface SummerProgram {
   eligibility: string;
   websiteUrl: string;
   icon?: LucideIcon;
-  category?: string; // e.g., "STEM Leadership", "College Prep"
-  location: 'Egypt' | 'International' | 'Online'; // Where the program takes place
-  provider?: string; // Can be used as partner
+  category?: string;
+  location: 'Egypt' | 'International' | 'Online';
+  provider?: string;
   ageRequirement?: AgeFilter | string;
   fundingLevel?: FundingFilter | string;
   focusArea?: ProgramFocusAreaFilter | string | string[];
   programDuration?: ProgramDurationFilter | string;
   partner?: string;
-  coverage?: string; // What the program offers/covers
+  coverage?: string;
   deadline?: string;
 }
 
@@ -89,7 +92,7 @@ export interface VolunteerOpportunity {
   eligibility?: string;
   websiteUrl: string;
   icon?: LucideIcon;
-  category?: string; // e.g., "Education", "Community Development"
+  category?: string;
   location: 'Egypt' | 'International' | 'Online';
   duration?: string;
   cost?: string;
@@ -107,13 +110,13 @@ export interface PreCollegeCourse {
   eligibility?: string;
   websiteUrl: string;
   icon?: LucideIcon;
-  category?: string; // e.g., "Multi-disciplinary", "STEM"
+  category?: string;
   location: 'Egypt' | 'International' | 'Online';
   duration?: string;
   creditsTransferable?: boolean;
   cost?: string;
-  partner?: string; // Could be the institution itself or a collaborator
-  coverage?: string; // What the course includes
+  partner?: string;
+  coverage?: string;
   deadline?: string;
 }
 
@@ -122,8 +125,9 @@ export interface UserProfile {
   uid: string;
   email: string | null;
   name: string | null;
-  role: 'user' | 'admin';
-  createdAt: any; // Firestore Timestamp or ServerTimestamp
-  lastLoginAt?: any; // Firestore Timestamp or ServerTimestamp
-  photoURL?: string | null; // Optional, from Auth or custom
+  role: 'user' | 'Admin'; // Ensure 'Admin' matches Firestore
+  createdAt: Timestamp; // Firestore Timestamp or ServerTimestamp
+  lastLoginAt?: Timestamp; // Firestore Timestamp or ServerTimestamp
+  photoURL?: string | null;
+  phoneNumber?: string | null;
 }

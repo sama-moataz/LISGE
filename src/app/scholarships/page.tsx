@@ -6,19 +6,21 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Award, BookOpen, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign } from 'lucide-react';
+import { Award, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign, Globe, Loader2, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { getScholarships, seedInitialScholarships } from '@/lib/firestoreService'; // Import service
+import IconByName from '@/components/IconByName'; // Import IconByName
 
-const scholarshipsData: Scholarship[] = [
+// Initial static data (can be used for seeding or as a fallback if Firestore is empty)
+const initialScholarshipsData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>[] = [
   {
-    id: 'guc-thanaweya-amma',
     name: "National Top Ranked Thanaweya Amma Students' Scholarship",
     description: 'Full scholarship for Egyptian citizens ranked top 10 nationally in Al-Thanaweya Al-Amma. Covers study fees, accommodation (if outside Cairo), transportation, etc.',
     eligibility: "Egyptian citizen, top 10 national rank in Al-Thanaweya Al-Amma, pass GUC tests, maintain 3.00 GPA.",
     websiteUrl: 'https://www.guc.edu.eg/',
-    icon: GraduationCap,
+    iconName: "GraduationCap",
     category: "Full Scholarship",
     location: 'Egypt',
     ageRequirement: '18+',
@@ -28,15 +30,15 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'Egypt',
     partner: 'GUC (in cooperation with MoHESR)',
     coverage: 'Full tuition, accommodation, transportation, admission test fees, lab insurance.',
-    deadline: "July 30 (Typical, check official site)"
+    deadline: "July 30 (Typical, check official site)",
+    imageUrl: "/images/scholarship-guc-thanaweya-amma.jpg"
   },
   {
-    id: 'mohesr-innovators-gss',
     name: "Ministry of Higher Education Innovators Support Fund Scholarship (GSS)",
     description: 'Full scholarship for gifted Egyptian students in Sciences and Technology to study at Nile University.',
     eligibility: "Egyptian national, Thanaweya Amma/STEM graduate, pass IQ tests, strong extracurriculars, maintain 3.0 CGPA.",
     websiteUrl: 'https://nu.edu.eg/scholarships/',
-    icon: Award,
+    iconName: "Award",
     category: "STEM Scholarship",
     location: 'Egypt',
     ageRequirement: '18+',
@@ -46,15 +48,15 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'Egypt',
     partner: 'Innovators Support Fund (at Nile University)',
     coverage: 'Full tuition for specific STEM programs (Fall & Spring semesters).',
-    deadline: "August 22 (Typical, check official site)"
+    deadline: "August 22 (Typical, check official site)",
+    imageUrl: "/images/scholarship-mohesr-innovators-gss.jpg"
   },
   {
-    id: 'hei-local',
     name: 'U.S.-Egypt HEI Local Scholarships (Private Universities)',
     description: 'Scholarships for Egyptian public school graduates to pursue programs in Egyptian private universities. Focus on agribusiness, engineering, economics, IT.',
     eligibility: 'Egyptian public school graduates. Economically disadvantaged. High-achieving.',
     websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo',
-    icon: Users,
+    iconName: "Users", // Users icon (Lucide)
     category: "Higher Education",
     location: 'Egypt',
     ageRequirement: '18+',
@@ -64,15 +66,15 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'USA',
     partner: 'U.S. Embassy/USAID',
     coverage: 'Academic skill-building, English training, internships, entrepreneurship.',
-    deadline: "Varies (check official announcements)"
+    deadline: "Varies (check official announcements)",
+    imageUrl: "/images/scholarship-hei-local.jpg"
   },
   {
-    id: 'yes-program',
     name: 'Kennedy-Lugar Youth Exchange and Study (YES) Program',
     description: 'Provides scholarships for high school students from countries with significant Muslim populations to spend up to one academic year in the United States.',
     eligibility: 'High school students aged 15-17, Egyptian nationality, min 80% grades.',
     websiteUrl: 'https://www.yesprograms.org/',
-    icon: Globe,
+    iconName: "Globe",
     category: "Cultural Exchange",
     location: 'International',
     ageRequirement: '16-18',
@@ -82,15 +84,15 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'USA',
     partner: 'U.S. Department of State',
     coverage: 'Full scholarship to spend one academic year in the U.S., living with a host family.',
-    deadline: "May (Typical, for next academic year)"
+    deadline: "May (Typical, for next academic year)",
+    imageUrl: "/images/scholarship-yes-program.jpg"
   },
   {
-    id: 'daad-summer',
     name: 'DAAD University Summer Courses (Germany)',
     description: 'Language & Regional Studies courses in Germany. Enhances profile for future Master\'s scholarships.',
     eligibility: 'Egyptian undergraduate students. Approx. deadline Dec.',
     websiteUrl: 'https://www.daad.eg/en/find-funding/scholarship-database/',
-    icon: Globe,
+    iconName: "Globe",
     category: "Language & Regional Studies",
     location: 'International',
     ageRequirement: '18+',
@@ -100,15 +102,15 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'Germany',
     partner: 'DAAD',
     coverage: 'One-time scholarship of €1,134 plus allowances for language/regional studies course.',
-    deadline: "December (Approximate)"
+    deadline: "December (Approximate)",
+    imageUrl: "/images/scholarship-daad-summer.jpg"
   },
    {
-    id: 'chevening',
     name: 'Chevening Scholarships',
     description: 'Fully funded one-year Master\'s degree at any UK university for individuals with demonstrable leadership potential.',
     eligibility: "Demonstrable leadership potential, strong academic background, Egyptian citizen.",
     websiteUrl: 'https://www.chevening.org/egypt/',
-    icon: Award,
+    iconName: "Award",
     category: "Postgraduate Leadership",
     location: 'International',
     ageRequirement: '18+',
@@ -118,9 +120,11 @@ const scholarshipsData: Scholarship[] = [
     fundingCountry: 'UK',
     partner: 'UK Government (FCDO)',
     coverage: 'Fully funded (tuition, stipend, travel, allowances).',
-    deadline: "Typically November (check website for next cycle)"
+    deadline: "Typically November (check website for next cycle)",
+    imageUrl: "/images/scholarship-chevening.jpg"
   },
 ];
+
 
 const ageOptions: { value: ScholarshipAgeFilter; label: string }[] = [
   { value: 'All', label: 'All Ages/Grades' },
@@ -133,7 +137,7 @@ const fundingOptions: { value: ScholarshipFundingFilter; label: string }[] = [
   { value: 'All', label: 'All Funding Levels' },
   { value: 'Fully Funded', label: 'Fully Funded' },
   { value: 'Partial Scholarship', label: 'Partial Scholarship' },
-  { value: 'No Funding', label: 'No Funding' },
+  { value: 'No Funding', label: 'No Funding' }, // Should be 'Paid Program' or similar if it's about cost to user
   { value: 'Varies', label: 'Varies' },
 ];
 
@@ -176,6 +180,10 @@ const fundingCountryOptions: { value: FundingCountryFilter; label: string }[] = 
 
 export default function ScholarshipsPage() {
   const [mounted, setMounted] = useState(false);
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [selectedAge, setSelectedAge] = useState<ScholarshipAgeFilter>('All');
   const [selectedFunding, setSelectedFunding] = useState<ScholarshipFundingFilter>('All');
   const [selectedRegion, setSelectedRegion] = useState<ScholarshipRegionFilter>('All');
@@ -184,10 +192,37 @@ export default function ScholarshipsPage() {
 
   useEffect(() => {
     setMounted(true);
+    const fetchAndMaybeSeedScholarships = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        let data = await getScholarships();
+        if (data.length === 0) {
+          // console.log("No scholarships found in Firestore, attempting to seed initial data...");
+          // await seedInitialScholarships(initialScholarshipsData);
+          // console.log("Seeding complete, fetching again.");
+          // data = await getScholarships();
+          // For now, if Firestore is empty, use static data to avoid accidental re-seeding in prod.
+          // In a real scenario, seeding would be a one-time admin action.
+          // To use static data as fallback if DB is empty:
+          // setScholarships(initialScholarshipsData.map((s, i) => ({...s, id: `static-${i}`} as Scholarship)));
+           console.log("No scholarships found in Firestore. Displaying empty or seeding if configured.");
+        }
+        setScholarships(data);
+      } catch (err: any) {
+        console.error("Error fetching scholarships:", err);
+        setError(err.message || "Failed to load scholarships. Displaying static data as fallback.");
+        // Fallback to static data on error - consider if this is desired UX
+        // setScholarships(initialScholarshipsData.map((s, i) => ({...s, id: `static-${i}`} as Scholarship)));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAndMaybeSeedScholarships();
   }, []);
 
   const filteredScholarships = useMemo(() => {
-    return scholarshipsData.filter(scholarship => {
+    return scholarships.filter(scholarship => {
       const ageMatch = selectedAge === 'All' || (scholarship.ageRequirement && scholarship.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (scholarship.fundingLevel && scholarship.fundingLevel === selectedFunding);
       const regionMatch = selectedRegion === 'All' || (scholarship.destinationRegion && scholarship.destinationRegion === selectedRegion) || (selectedRegion === 'Egypt/MENA' && scholarship.location === 'Egypt');
@@ -195,7 +230,7 @@ export default function ScholarshipsPage() {
       const fundingCountryMatch = selectedFundingCountry === 'All' || (scholarship.fundingCountry && scholarship.fundingCountry === selectedFundingCountry);
       return ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
-  }, [selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
+  }, [scholarships, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
 
   const clearFilters = () => {
     setSelectedAge('All');
@@ -204,10 +239,40 @@ export default function ScholarshipsPage() {
     setSelectedLevel('All');
     setSelectedFundingCountry('All');
   };
+  
+  // Placeholder for seeding function trigger if needed for development
+  // const handleSeed = async () => {
+  //   try {
+  //     await seedInitialScholarships(initialScholarshipsData);
+  //     alert("Seeding successful! Refresh to see data.");
+  //     const data = await getScholarships(); // Re-fetch after seeding
+  //     setScholarships(data);
+  //   } catch (error) {
+  //     console.error("Seeding failed:", error);
+  //     alert("Seeding failed. Check console.");
+  //   }
+  // };
 
-  if (!mounted) {
-    return null;
+
+  if (!mounted || isLoading) { // Keep !mounted check for initial SSR/hydration
+    return (
+        <div className="flex justify-center items-center min-h-[calc(100vh-300px)]">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="ml-4 text-lg text-muted-foreground">Loading scholarships...</p>
+        </div>
+    );
   }
+  
+  if (error) {
+    return (
+        <div className="text-center py-10">
+            <p className="text-destructive text-lg">{error}</p>
+            <p className="text-muted-foreground mt-2">Please try refreshing the page. If the issue persists, contact support.</p>
+            {/* <Button onClick={handleSeed} className="mt-4">Try Seeding Data (Dev Only)</Button> */}
+        </div>
+    );
+  }
+
 
   return (
     <div className="space-y-8">
@@ -271,11 +336,11 @@ export default function ScholarshipsPage() {
 
       {filteredScholarships.length > 0 ? (
         <div className="grid md:grid-cols-2 gap-6">
-          {filteredScholarships.map((scholarship, index) => (
+          {filteredScholarships.map((scholarship) => (
             <Card key={scholarship.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  {scholarship.icon ? <scholarship.icon className="h-8 w-8 text-accent" /> : <Award className="h-8 w-8 text-accent" />}
+                  <IconByName name={scholarship.iconName} className="h-8 w-8 text-accent" fallbackIcon={Award} />
                   <CardTitle className="text-xl font-headline leading-tight">{scholarship.name}</CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs mt-1">
@@ -287,25 +352,15 @@ export default function ScholarshipsPage() {
                 <CardDescription className="pt-3 text-sm">{scholarship.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-3 text-sm">
-                 {index === 0 ? (
-                    <Image
-                      src="/images/inspiring-student.jpg"
-                      alt={`Image for ${scholarship.name} - an inspiring student`}
-                      data-ai-hint="student learning success"
-                      width={600}
-                      height={300}
-                      className="rounded-md object-cover aspect-[2/1] mb-4"
-                    />
-                  ) : (
-                    <Image
-                      src={`/images/scholarship-${scholarship.id}.jpg`}
-                      alt={scholarship.name}
-                      data-ai-hint="education opportunity"
-                      width={600}
-                      height={300}
-                      className="rounded-md object-cover aspect-[2/1] mb-4"
-                    />
-                  )}
+                  <Image
+                    src={scholarship.imageUrl || `https://placehold.co/600x300.png?text=${encodeURIComponent(scholarship.name)}`}
+                    alt={scholarship.name}
+                    data-ai-hint="education opportunity"
+                    width={600}
+                    height={300}
+                    className="rounded-md object-cover aspect-[2/1] mb-4"
+                    onError={(e) => { e.currentTarget.src = `https://placehold.co/600x300.png?text=Image+Error`; }}
+                  />
                 {scholarship.partner && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Landmark className="h-4 w-4 text-primary" />
@@ -347,5 +402,3 @@ export default function ScholarshipsPage() {
     </div>
   );
 }
-
-    
