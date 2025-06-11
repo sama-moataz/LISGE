@@ -79,8 +79,6 @@ export async function getScholarshipById(id: string): Promise<Scholarship | null
 export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
   try {
     const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
-    // Ensure all potentially undefined fields that are optional are handled,
-    // Firestore might not like `undefined` values for top-level fields.
     const dataToSave = {
       ...scholarshipData,
       iconName: scholarshipData.iconName || null,
@@ -108,14 +106,12 @@ export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | '
 export async function updateScholarship(id: string, scholarshipData: Partial<Omit<Scholarship, 'id' | 'createdAt'>>): Promise<void> {
   try {
     const scholarshipDocRef = doc(db, SCHOLARSHIPS_COLLECTION, id);
-     // Prepare data for update, ensuring optional fields are handled correctly
     const dataToUpdate: { [key: string]: any } = {};
-    for (const key in scholarshipData) {
-        if (Object.prototype.hasOwnProperty.call(scholarshipData, key)) {
-            const value = (scholarshipData as any)[key];
-            dataToUpdate[key] = value === undefined ? null : value;
-        }
-    }
+    // Ensure all fields in scholarshipData are handled, converting undefined to null
+    (Object.keys(scholarshipData) as Array<keyof typeof scholarshipData>).forEach(key => {
+        const value = scholarshipData[key];
+        dataToUpdate[key] = value === undefined ? null : value;
+    });
     dataToUpdate.updatedAt = serverTimestamp();
 
     await updateDoc(scholarshipDocRef, dataToUpdate);
@@ -135,11 +131,8 @@ export async function deleteScholarship(id: string): Promise<void> {
   }
 }
 
-// Seed function (Optional: for development to populate initial data)
-// IMPORTANT: Make sure to only run this once or guard it appropriately.
 export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<void> {
   const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
-  // Optional: Check if data already exists to prevent duplicate seeding
   const existingScholarshipsSnapshot = await getDocs(query(scholarshipsRef, where("name", "in", scholarshipsToSeed.map(s => s.name))));
   const existingNames = new Set(existingScholarshipsSnapshot.docs.map(doc => doc.data().name));
 
@@ -148,7 +141,7 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
 
   scholarshipsToSeed.forEach(scholarship => {
     if (!existingNames.has(scholarship.name)) {
-      const newDocRef = doc(scholarshipsRef); // Auto-generate ID
+      const newDocRef = doc(scholarshipsRef); 
       const dataToSave = {
         ...scholarship,
         iconName: scholarship.iconName || null,
