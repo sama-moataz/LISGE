@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 // Import the Server Action
-import { handleAddScholarshipAction } from './actions';
+import { handleAddScholarshipAction } from '../actions';
 
 const curatedIconNames = [
   'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle', 
@@ -120,7 +120,6 @@ const scholarshipSchema = z.object({
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
 
-// Inline Server Action removed
 
 export default function NewScholarshipPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -174,13 +173,14 @@ export default function NewScholarshipPage() {
         targetLevel: data.targetLevel === '_none_' ? null : (data.targetLevel || null),
         fundingCountry: data.fundingCountry === '_none_' ? null : (data.fundingCountry || null),
         imageUrl: data.imageUrl === '' ? null : data.imageUrl,
-        // Ensure all optional fields that are not required by Omit<> but might be empty strings are null
         category: data.category || null,
         partner: data.partner || null,
         coverage: data.coverage || null,
         deadline: data.deadline || null,
     };
     
+    console.log('[Server Action - handleAddScholarship] GOOGLE_APPLICATION_CREDENTIALS (at start of Server Action):', process.env.GOOGLE_APPLICATION_CREDENTIALS || "NOT SET in Server Action environment");
+
     // If your Server Action needs an ID token for auth (recommended)
     // const idToken = await user?.getIdToken();
     // const result = await handleAddScholarshipAction({ ...processedDataForAction, idToken }); 
