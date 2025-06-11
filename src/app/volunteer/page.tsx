@@ -76,6 +76,23 @@ const volunteerOpportunitiesData: VolunteerOpportunity[] = [
     coverage: "Cross-cultural volunteer placement, food/accommodation often included in program fee.",
     deadline: "Ongoing (check AIESEC portal for specific projects)"
   },
+  {
+    id: 'baheya-foundation',
+    name: 'Volunteer at Baheya Foundation',
+    organization: 'Baheya Foundation for Early Detection & Treatment of Breast Cancer',
+    description: 'Support the Baheya Foundation in their mission for early detection and treatment of breast cancer. Opportunities may include patient support, administrative tasks, or event assistance.',
+    eligibility: 'Varies by role (Check Baheya website for specific requirements)',
+    websiteUrl: 'https://baheya.org/en/volunteer',
+    icon: HeartHandshake,
+    category: "Healthcare Support",
+    location: 'Egypt',
+    duration: "Varies",
+    cost: "Typically no cost for volunteering (verify any specific program details)",
+    sdgFocus: "SDG #3: Good Health and Well-being",
+    partner: "Baheya Foundation",
+    coverage: "Gain experience in the healthcare sector, contribute to a vital community cause.",
+    deadline: "Ongoing/Varies (check website)"
+  },
 ];
 
 const locationOptions: { value: LocationFilter; label: string }[] = [
@@ -155,7 +172,7 @@ export default function VolunteerPage() {
                 <Image 
                   src={`/images/volunteer-${opportunity.id}.jpg`}
                   alt={opportunity.name}
-                   data-ai-hint={opportunity.location === 'Egypt' ? "egypt community" : "global impact"}
+                  data-ai-hint={opportunity.id === 'baheya-foundation' ? "egypt healthcare" : (opportunity.location === 'Egypt' ? "egypt community" : "global impact")}
                   width={600}
                   height={300}
                   className="rounded-md object-cover aspect-[2/1] mb-4"
@@ -224,5 +241,4 @@ export default function VolunteerPage() {
     </div>
   );
 }
-
     
