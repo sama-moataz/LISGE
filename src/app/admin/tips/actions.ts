@@ -18,9 +18,11 @@ export async function handleAddStudyTipAction(data: Omit<StudyTip, 'id' | 'creat
   try {
     const processedData: Omit<StudyTip, 'id' | 'createdAt' | 'updatedAt' | 'icon'> = {
         ...data,
-        iconName: data.iconName === '_none_' ? undefined : data.iconName,
+        iconName: data.iconName && data.iconName !== '_none_' ? data.iconName : undefined,
         imageUrl: data.imageUrl || undefined,
         category: data.category || undefined,
+        // Ensure content is string, if it comes from a Rich Text Editor, it might be structured
+        content: typeof data.content === 'string' ? data.content : JSON.stringify(data.content),
     };
     const tipId = await addStudyTipAdmin(processedData);
     return { success: true, tipId, title: data.title };
@@ -30,16 +32,16 @@ export async function handleAddStudyTipAction(data: Omit<StudyTip, 'id' | 'creat
   }
 }
 
-export async function handleUpdateStudyTipAction(id: string, data: Partial<Omit<StudyTip, 'id' | 'createdAt' | 'icon'>>) {
+export async function handleUpdateStudyTipAction(id: string, data: Partial<Omit<StudyTip, 'id' | 'createdAt' | 'updatedAt' | 'icon'>>) {
   // await verifyAdmin(); // Uncomment and implement proper admin check
 
   try {
     const processedData: Partial<Omit<StudyTip, 'id' | 'createdAt' | 'updatedAt' | 'icon'>> = {
         ...data,
-        iconName: data.iconName === '_none_' ? undefined : data.iconName,
-        // Ensure imageUrl is handled correctly: if empty string, set to null/undefined
+        iconName: data.iconName === '_none_' ? undefined : (data.iconName || undefined),
         imageUrl: data.imageUrl === '' ? undefined : (data.imageUrl || undefined), 
         category: data.category || undefined,
+        content: typeof data.content === 'string' ? data.content : JSON.stringify(data.content),
     };
     await updateStudyTipAdmin(id, processedData);
     return { success: true, id, title: data.title };
