@@ -1,1 +1,70 @@
-node_modules
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Next.js build artifacts
+/.next/
+/out/
+
+# Production / Builds
+build
+dist
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Environment variables
+.env.local
+.env.*.local
+# Do NOT commit your Firebase Admin SDK key to Git!
+lisge-hbsqy-firebase-adminsdk-fbsvc-48962f7e22.json
+# General pattern for other service account keys if you add more
+*-firebase-adminsdk-*.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug.log
+
+# IDE / Editor specific
+# Keep project-specific useful settings, ignore user-specific ones.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Optional Firebase emulators data
+.firebase/emulators/
+database-debug.log
+firestore-debug.log
+pubsub-debug.log
+storage-debug.log
+ui-debug.log
+
+# Optional: if you use Vercel CLI for local development
+.vercel
+
+# Optional: if you use Patch Package
+/patches/
