@@ -14,9 +14,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Save, ShieldAlert, ArrowLeft } from 'lucide-react';
+import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
-import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 // Import the Server Action
 import { handleAddScholarshipAction } from '../actions';
 
@@ -479,3 +479,5 @@ export default function NewScholarshipPage() {
     </div>
   );
 }
+
+    
