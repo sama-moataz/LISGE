@@ -4,6 +4,12 @@
   "/auth/login/page": "app/auth/login/page.js",
   "/auth/signup/page": "app/auth/signup/page.js",
   "/dashboard/page": "app/dashboard/page.js",
+  "/exchange-programs/page": "app/exchange-programs/page.js",
   "/page": "app/page.js",
-  "/scholarships/page": "app/scholarships/page.js"
+  "/pre-college/page": "app/pre-college/page.js",
+  "/programs/page": "app/programs/page.js",
+  "/resources/page": "app/resources/page.js",
+  "/scholarships/page": "app/scholarships/page.js",
+  "/tips/page": "app/tips/page.js",
+  "/volunteer/page": "app/volunteer/page.js"
 }

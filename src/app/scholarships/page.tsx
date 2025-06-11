@@ -10,10 +10,10 @@ import { Award, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, 
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { getScholarships, seedInitialScholarships } from '@/lib/firestoreService'; // Import service
-import IconByName from '@/components/IconByName'; // Import IconByName
+// Removed: import { getScholarships, seedInitialScholarships } from '@/lib/firestoreService'; 
+import IconByName from '@/components/IconByName'; 
 
-// Initial static data (can be used for seeding or as a fallback if Firestore is empty)
+// Initial static data (will be used directly for display on this public page)
 const initialScholarshipsData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>[] = [
   {
     name: "National Top Ranked Thanaweya Amma Students' Scholarship",
@@ -56,7 +56,7 @@ const initialScholarshipsData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt
     description: 'Scholarships for Egyptian public school graduates to pursue programs in Egyptian private universities. Focus on agribusiness, engineering, economics, IT.',
     eligibility: 'Egyptian public school graduates. Economically disadvantaged. High-achieving.',
     websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo',
-    iconName: "Users", // Users icon (Lucide)
+    iconName: "Users", 
     category: "Higher Education",
     location: 'Egypt',
     ageRequirement: '18+',
@@ -137,7 +137,7 @@ const fundingOptions: { value: ScholarshipFundingFilter; label: string }[] = [
   { value: 'All', label: 'All Funding Levels' },
   { value: 'Fully Funded', label: 'Fully Funded' },
   { value: 'Partial Scholarship', label: 'Partial Scholarship' },
-  { value: 'No Funding', label: 'No Funding' }, // Should be 'Paid Program' or similar if it's about cost to user
+  { value: 'No Funding', label: 'No Funding' }, 
   { value: 'Varies', label: 'Varies' },
 ];
 
@@ -180,9 +180,7 @@ const fundingCountryOptions: { value: FundingCountryFilter; label: string }[] = 
 
 export default function ScholarshipsPage() {
   const [mounted, setMounted] = useState(false);
-  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Removed useState for scholarships, isLoading, error
 
   const [selectedAge, setSelectedAge] = useState<ScholarshipAgeFilter>('All');
   const [selectedFunding, setSelectedFunding] = useState<ScholarshipFundingFilter>('All');
@@ -192,37 +190,22 @@ export default function ScholarshipsPage() {
 
   useEffect(() => {
     setMounted(true);
-    const fetchAndMaybeSeedScholarships = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        let data = await getScholarships();
-        if (data.length === 0) {
-          // console.log("No scholarships found in Firestore, attempting to seed initial data...");
-          // await seedInitialScholarships(initialScholarshipsData);
-          // console.log("Seeding complete, fetching again.");
-          // data = await getScholarships();
-          // For now, if Firestore is empty, use static data to avoid accidental re-seeding in prod.
-          // In a real scenario, seeding would be a one-time admin action.
-          // To use static data as fallback if DB is empty:
-          // setScholarships(initialScholarshipsData.map((s, i) => ({...s, id: `static-${i}`} as Scholarship)));
-           console.log("No scholarships found in Firestore. Displaying empty or seeding if configured.");
-        }
-        setScholarships(data);
-      } catch (err: any) {
-        console.error("Error fetching scholarships:", err);
-        setError(err.message || "Failed to load scholarships. Displaying static data as fallback.");
-        // Fallback to static data on error - consider if this is desired UX
-        // setScholarships(initialScholarshipsData.map((s, i) => ({...s, id: `static-${i}`} as Scholarship)));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchAndMaybeSeedScholarships();
+    // Removed Firestore fetching logic
   }, []);
 
+  const scholarshipsToDisplay = useMemo(() =>
+    initialScholarshipsData.map((s, index) => ({
+      ...s,
+      id: `static-scholarship-${s.name.toLowerCase().replace(/\s+/g, '-')}-${index}`, // Create a somewhat unique ID
+      // Ensure all fields from Scholarship type are present or undefined
+      createdAt: undefined, 
+      updatedAt: undefined,
+    })) as Scholarship[], 
+  []);
+
+
   const filteredScholarships = useMemo(() => {
-    return scholarships.filter(scholarship => {
+    return scholarshipsToDisplay.filter(scholarship => {
       const ageMatch = selectedAge === 'All' || (scholarship.ageRequirement && scholarship.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (scholarship.fundingLevel && scholarship.fundingLevel === selectedFunding);
       const regionMatch = selectedRegion === 'All' || (scholarship.destinationRegion && scholarship.destinationRegion === selectedRegion) || (selectedRegion === 'Egypt/MENA' && scholarship.location === 'Egypt');
@@ -230,7 +213,7 @@ export default function ScholarshipsPage() {
       const fundingCountryMatch = selectedFundingCountry === 'All' || (scholarship.fundingCountry && scholarship.fundingCountry === selectedFundingCountry);
       return ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
-  }, [scholarships, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
+  }, [scholarshipsToDisplay, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
 
   const clearFilters = () => {
     setSelectedAge('All');
@@ -240,21 +223,7 @@ export default function ScholarshipsPage() {
     setSelectedFundingCountry('All');
   };
   
-  // Placeholder for seeding function trigger if needed for development
-  // const handleSeed = async () => {
-  //   try {
-  //     await seedInitialScholarships(initialScholarshipsData);
-  //     alert("Seeding successful! Refresh to see data.");
-  //     const data = await getScholarships(); // Re-fetch after seeding
-  //     setScholarships(data);
-  //   } catch (error) {
-  //     console.error("Seeding failed:", error);
-  //     alert("Seeding failed. Check console.");
-  //   }
-  // };
-
-
-  if (!mounted || isLoading) { // Keep !mounted check for initial SSR/hydration
+  if (!mounted) { 
     return (
         <div className="flex justify-center items-center min-h-[calc(100vh-300px)]">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -262,17 +231,6 @@ export default function ScholarshipsPage() {
         </div>
     );
   }
-  
-  if (error) {
-    return (
-        <div className="text-center py-10">
-            <p className="text-destructive text-lg">{error}</p>
-            <p className="text-muted-foreground mt-2">Please try refreshing the page. If the issue persists, contact support.</p>
-            {/* <Button onClick={handleSeed} className="mt-4">Try Seeding Data (Dev Only)</Button> */}
-        </div>
-    );
-  }
-
 
   return (
     <div className="space-y-8">
