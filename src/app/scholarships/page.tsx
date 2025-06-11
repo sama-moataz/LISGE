@@ -290,9 +290,9 @@ export default function ScholarshipsPage() {
               <CardContent className="flex-grow space-y-3 text-sm">
                  {index === 0 ? (
                     <Image
-                      src="/images/inspiring-student.jpg" // Example of a local image
+                      src="/images/inspiring-student.jpg"
                       alt={`Image for ${scholarship.name} - an inspiring student`}
-                      data-ai-hint="student learning success" // Updated hint for the new image
+                      data-ai-hint="student learning success"
                       width={600}
                       height={300}
                       className="rounded-md object-cover aspect-[2/1] mb-4"
