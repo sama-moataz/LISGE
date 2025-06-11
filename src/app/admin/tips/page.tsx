@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, PlusCircle, Edit, Trash2, ShieldAlert, Lightbulb } from 'lucide-react';
-import { getTips } from '@/lib/firestoreService'; 
+import { getStudyTips } from '@/lib/firestoreService'; 
 import type { StudyTip } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import IconByName from '@/components/IconByName';
@@ -41,7 +41,7 @@ export default function AdminStudyTipsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getTips();
+      const data = await getStudyTips();
       setStudyTips(data);
     } catch (err: any) {
       setError(err.message || "Failed to load study tips.");

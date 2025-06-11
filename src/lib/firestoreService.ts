@@ -4,7 +4,7 @@
 // Admin CUD operations have been moved to firestoreAdminService.ts
 
 import { db, auth } from '@/lib/firebase'; // Client SDK
-import type { Scholarship } from '@/types';
+import type { Scholarship, StudyTip, SummerProgram, ExchangeProgram, VolunteerOpportunity, PreCollegeCourse } from '@/types';
 import {
   collection,
   getDocs,
@@ -18,6 +18,12 @@ import {
 } from 'firebase/firestore';
 
 const SCHOLARSHIPS_COLLECTION = 'SCHOLARSHIPS';
+const STUDY_TIPS_COLLECTION = 'STUDY_TIPS';
+const SUMMER_PROGRAMS_COLLECTION = 'SUMMER_PROGRAMS';
+const EXCHANGE_PROGRAMS_COLLECTION = 'EXCHANGE_PROGRAMS';
+const VOLUNTEER_OPPORTUNITIES_COLLECTION = 'VOLUNTEER_OPPORTUNITIES';
+const PRE_COLLEGE_COURSES_COLLECTION = 'PRE_COLLEGE_COURSES';
+
 
 const mapDocToScholarship = (docSnapshot: any): Scholarship => {
   const data = docSnapshot.data();
@@ -27,7 +33,7 @@ const mapDocToScholarship = (docSnapshot: any): Scholarship => {
     description: data.description || '',
     eligibility: data.eligibility || '',
     websiteUrl: data.websiteUrl || '',
-    iconName: data.iconName || undefined, // Ensure this is mapped
+    iconName: data.iconName || undefined,
     category: data.category || undefined,
     location: data.location || 'Global',
     ageRequirement: data.ageRequirement || undefined,
@@ -38,23 +44,149 @@ const mapDocToScholarship = (docSnapshot: any): Scholarship => {
     partner: data.partner || undefined,
     coverage: data.coverage || undefined,
     deadline: data.deadline || undefined,
-    imageUrl: data.imageUrl || undefined, // Ensure this is mapped
+    imageUrl: data.imageUrl || undefined,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
-  } as Scholarship; // Cast as Scholarship, assuming data structure matches or defaults handle it
+    // icon and dataAiHint are typically for static data, ensure they don't cause issues if missing
+    icon: data.icon || undefined, 
+    dataAiHint: data.dataAiHint || undefined,
+  } as Scholarship; 
 };
 
-// READ operations for public pages (using client SDK)
+const mapDocToStudyTip = (docSnapshot: any): StudyTip => {
+  const data = docSnapshot.data();
+  return {
+    id: docSnapshot.id,
+    title: data.title || '',
+    content: data.content || '',
+    iconName: data.iconName || undefined,
+    category: data.category || undefined,
+    imageUrl: data.imageUrl || undefined,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
+    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
+    // icon and dataAiHint are typically for static data
+    icon: data.icon || undefined,
+    dataAiHint: data.dataAiHint || undefined,
+  } as StudyTip;
+};
+
+const mapDocToSummerProgram = (docSnapshot: any): SummerProgram => {
+  const data = docSnapshot.data();
+  return {
+    id: docSnapshot.id,
+    name: data.name || '',
+    description: data.description || '',
+    eligibility: data.eligibility || '',
+    websiteUrl: data.websiteUrl || '',
+    iconName: data.iconName || undefined,
+    category: data.category || undefined,
+    location: data.location || 'Online',
+    provider: data.provider || undefined,
+    ageRequirement: data.ageRequirement || undefined,
+    fundingLevel: data.fundingLevel || undefined,
+    focusArea: data.focusArea || undefined,
+    programDuration: data.programDuration || undefined,
+    partner: data.partner || undefined,
+    coverage: data.coverage || undefined,
+    deadline: data.deadline || undefined,
+    imageUrl: data.imageUrl || undefined,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
+    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
+    icon: data.icon || undefined,
+    dataAiHint: data.dataAiHint || undefined,
+  } as SummerProgram;
+};
+
+const mapDocToExchangeProgram = (docSnapshot: any): ExchangeProgram => {
+  const data = docSnapshot.data();
+  return {
+    id: docSnapshot.id,
+    name: data.name || '',
+    description: data.description || '',
+    eligibility: data.eligibility || '',
+    websiteUrl: data.websiteUrl || '',
+    iconName: data.iconName || undefined,
+    category: data.category || undefined,
+    location: data.location || 'International',
+    ageRequirement: data.ageRequirement || undefined,
+    fundingLevel: data.fundingLevel || undefined,
+    destinationRegion: data.destinationRegion || undefined,
+    targetLevel: data.targetLevel || undefined,
+    fundingCountry: data.fundingCountry || undefined,
+    partner: data.partner || undefined,
+    coverage: data.coverage || undefined,
+    deadline: data.deadline || undefined,
+    duration: data.duration || undefined,
+    imageUrl: data.imageUrl || undefined,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
+    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
+    icon: data.icon || undefined,
+    dataAiHint: data.dataAiHint || undefined,
+  } as ExchangeProgram;
+};
+
+const mapDocToVolunteerOpportunity = (docSnapshot: any): VolunteerOpportunity => {
+  const data = docSnapshot.data();
+  return {
+    id: docSnapshot.id,
+    name: data.name || '',
+    organization: data.organization || '',
+    description: data.description || '',
+    eligibility: data.eligibility || undefined,
+    websiteUrl: data.websiteUrl || '',
+    iconName: data.iconName || undefined,
+    category: data.category || undefined,
+    location: data.location || 'International',
+    duration: data.duration || undefined,
+    cost: data.cost || undefined,
+    sdgFocus: data.sdgFocus || undefined,
+    partner: data.partner || undefined,
+    coverage: data.coverage || undefined,
+    deadline: data.deadline || undefined,
+    imageUrl: data.imageUrl || undefined,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
+    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
+    icon: data.icon || undefined,
+    dataAiHint: data.dataAiHint || undefined,
+  } as VolunteerOpportunity;
+};
+
+const mapDocToPreCollegeCourse = (docSnapshot: any): PreCollegeCourse => {
+  const data = docSnapshot.data();
+  return {
+    id: docSnapshot.id,
+    name: data.name || '',
+    institution: data.institution || '',
+    description: data.description || '',
+    eligibility: data.eligibility || undefined,
+    websiteUrl: data.websiteUrl || '',
+    iconName: data.iconName || undefined,
+    category: data.category || undefined,
+    location: data.location || 'International',
+    duration: data.duration || undefined,
+    creditsTransferable: data.creditsTransferable === true, // Ensure boolean
+    cost: data.cost || undefined,
+    partner: data.partner || undefined,
+    coverage: data.coverage || undefined,
+    deadline: data.deadline || undefined,
+    imageUrl: data.imageUrl || undefined,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
+    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
+    icon: data.icon || undefined,
+    dataAiHint: data.dataAiHint || undefined,
+  } as PreCollegeCourse;
+};
+
+
+// Scholarship READ operations
 export async function getScholarships(): Promise<Scholarship[]> {
   try {
     const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
-    const q = query(scholarshipsRef, orderBy('createdAt', 'desc')); // Default sort by creation time
+    const q = query(scholarshipsRef, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(mapDocToScholarship);
   } catch (error) {
     console.error("[firestoreService] Error fetching scholarships (client SDK): ", error);
-    // It's better to throw the error so the calling component can handle it (e.g., show a toast)
-    // rather than returning an empty array which might be misinterpreted as "no scholarships found".
     throw new Error("Failed to fetch scholarships from the database.");
   }
 }
@@ -72,6 +204,142 @@ export async function getScholarshipById(id: string): Promise<Scholarship | null
     throw new Error(`Failed to fetch scholarship ${id}.`);
   }
 }
+
+// StudyTip READ operations
+export async function getStudyTips(): Promise<StudyTip[]> {
+  try {
+    const tipsRef = collection(db, STUDY_TIPS_COLLECTION);
+    const q = query(tipsRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(mapDocToStudyTip);
+  } catch (error) {
+    console.error("[firestoreService] Error fetching study tips (client SDK): ", error);
+    throw new Error("Failed to fetch study tips from the database.");
+  }
+}
+
+export async function getStudyTipById(id: string): Promise<StudyTip | null> {
+  try {
+    const tipDocRef = doc(db, STUDY_TIPS_COLLECTION, id);
+    const docSnap = await getDoc(tipDocRef);
+    if (docSnap.exists()) {
+      return mapDocToStudyTip(docSnap);
+    }
+    return null;
+  } catch (error) {
+    console.error(`[firestoreService] Error fetching study tip with ID ${id} (client SDK): `, error);
+    throw new Error(`Failed to fetch study tip ${id}.`);
+  }
+}
+
+// SummerProgram READ operations
+export async function getSummerPrograms(): Promise<SummerProgram[]> {
+  try {
+    const programsRef = collection(db, SUMMER_PROGRAMS_COLLECTION);
+    const q = query(programsRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(mapDocToSummerProgram);
+  } catch (error) {
+    console.error("[firestoreService] Error fetching summer programs (client SDK): ", error);
+    throw new Error("Failed to fetch summer programs from the database.");
+  }
+}
+
+export async function getSummerProgramById(id: string): Promise<SummerProgram | null> {
+  try {
+    const programDocRef = doc(db, SUMMER_PROGRAMS_COLLECTION, id);
+    const docSnap = await getDoc(programDocRef);
+    if (docSnap.exists()) {
+      return mapDocToSummerProgram(docSnap);
+    }
+    return null;
+  } catch (error) {
+    console.error(`[firestoreService] Error fetching summer program with ID ${id} (client SDK): `, error);
+    throw new Error(`Failed to fetch summer program ${id}.`);
+  }
+}
+
+// ExchangeProgram READ operations
+export async function getExchangePrograms(): Promise<ExchangeProgram[]> {
+  try {
+    const programsRef = collection(db, EXCHANGE_PROGRAMS_COLLECTION);
+    const q = query(programsRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(mapDocToExchangeProgram);
+  } catch (error) {
+    console.error("[firestoreService] Error fetching exchange programs (client SDK): ", error);
+    throw new Error("Failed to fetch exchange programs from the database.");
+  }
+}
+
+export async function getExchangeProgramById(id: string): Promise<ExchangeProgram | null> {
+  try {
+    const programDocRef = doc(db, EXCHANGE_PROGRAMS_COLLECTION, id);
+    const docSnap = await getDoc(programDocRef);
+    if (docSnap.exists()) {
+      return mapDocToExchangeProgram(docSnap);
+    }
+    return null;
+  } catch (error) {
+    console.error(`[firestoreService] Error fetching exchange program with ID ${id} (client SDK): `, error);
+    throw new Error(`Failed to fetch exchange program ${id}.`);
+  }
+}
+
+// VolunteerOpportunity READ operations
+export async function getVolunteerOpportunities(): Promise<VolunteerOpportunity[]> {
+  try {
+    const oppsRef = collection(db, VOLUNTEER_OPPORTUNITIES_COLLECTION);
+    const q = query(oppsRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(mapDocToVolunteerOpportunity);
+  } catch (error) {
+    console.error("[firestoreService] Error fetching volunteer opportunities (client SDK): ", error);
+    throw new Error("Failed to fetch volunteer opportunities from the database.");
+  }
+}
+
+export async function getVolunteerOpportunityById(id: string): Promise<VolunteerOpportunity | null> {
+  try {
+    const oppDocRef = doc(db, VOLUNTEER_OPPORTUNITIES_COLLECTION, id);
+    const docSnap = await getDoc(oppDocRef);
+    if (docSnap.exists()) {
+      return mapDocToVolunteerOpportunity(docSnap);
+    }
+    return null;
+  } catch (error) {
+    console.error(`[firestoreService] Error fetching volunteer opportunity with ID ${id} (client SDK): `, error);
+    throw new Error(`Failed to fetch volunteer opportunity ${id}.`);
+  }
+}
+
+// PreCollegeCourse READ operations
+export async function getPreCollegeCourses(): Promise<PreCollegeCourse[]> {
+  try {
+    const coursesRef = collection(db, PRE_COLLEGE_COURSES_COLLECTION);
+    const q = query(coursesRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(mapDocToPreCollegeCourse);
+  } catch (error) {
+    console.error("[firestoreService] Error fetching pre-college courses (client SDK): ", error);
+    throw new Error("Failed to fetch pre-college courses from the database.");
+  }
+}
+
+export async function getPreCollegeCourseById(id: string): Promise<PreCollegeCourse | null> {
+  try {
+    const courseDocRef = doc(db, PRE_COLLEGE_COURSES_COLLECTION, id);
+    const docSnap = await getDoc(courseDocRef);
+    if (docSnap.exists()) {
+      return mapDocToPreCollegeCourse(docSnap);
+    }
+    return null;
+  } catch (error) {
+    console.error(`[firestoreService] Error fetching pre-college course with ID ${id} (client SDK): `, error);
+    throw new Error(`Failed to fetch pre-college course ${id}.`);
+  }
+}
+
 
 // Seeding (can be kept here, but for robust server-side seeding, Admin SDK is better)
 // Note: This seed function is not currently used by the application logic.
@@ -137,3 +405,4 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
     console.log("[firestoreService] seedInitialScholarships: No new scholarships were provided for seeding.");
   }
 }
+
