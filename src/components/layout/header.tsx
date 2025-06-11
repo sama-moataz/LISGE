@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Menu, BookOpen, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Mail, Library, LogIn, LogOut, UserPlus, LayoutDashboard } from 'lucide-react';
+import { Menu, BookOpen, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Mail, Library, LogIn, LogOut, UserPlus, LayoutDashboard, Loader2 } from 'lucide-react'; // Added Loader2
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { usePathname, useRouter } from 'next/navigation';
@@ -37,7 +37,7 @@ const mainNavLinks = [
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, userProfile, loading } = useAuth(); // Removed isAdmin, use userProfile.role
+  const { user, userProfile, loading } = useAuth(); 
 
   const handleLogout = async () => {
     try {
