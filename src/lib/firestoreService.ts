@@ -27,7 +27,7 @@ const mapDocToScholarship = (docSnapshot: any): Scholarship => {
     description: data.description || '',
     eligibility: data.eligibility || '',
     websiteUrl: data.websiteUrl || '',
-    iconName: data.iconName || undefined,
+    iconName: data.iconName || undefined, // Ensure this is mapped
     category: data.category || undefined,
     location: data.location || 'Global',
     ageRequirement: data.ageRequirement || undefined,
@@ -38,22 +38,24 @@ const mapDocToScholarship = (docSnapshot: any): Scholarship => {
     partner: data.partner || undefined,
     coverage: data.coverage || undefined,
     deadline: data.deadline || undefined,
-    imageUrl: data.imageUrl || undefined,
+    imageUrl: data.imageUrl || undefined, // Ensure this is mapped
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
-  } as Scholarship;
+  } as Scholarship; // Cast as Scholarship, assuming data structure matches or defaults handle it
 };
 
 // READ operations for public pages (using client SDK)
 export async function getScholarships(): Promise<Scholarship[]> {
   try {
     const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
-    const q = query(scholarshipsRef, orderBy('createdAt', 'desc'));
+    const q = query(scholarshipsRef, orderBy('createdAt', 'desc')); // Default sort by creation time
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(mapDocToScholarship);
   } catch (error) {
     console.error("[firestoreService] Error fetching scholarships (client SDK): ", error);
-    throw new Error("Failed to fetch scholarships.");
+    // It's better to throw the error so the calling component can handle it (e.g., show a toast)
+    // rather than returning an empty array which might be misinterpreted as "no scholarships found".
+    throw new Error("Failed to fetch scholarships from the database.");
   }
 }
 
@@ -72,11 +74,9 @@ export async function getScholarshipById(id: string): Promise<Scholarship | null
 }
 
 // Seeding (can be kept here, but for robust server-side seeding, Admin SDK is better)
+// Note: This seed function is not currently used by the application logic.
+// It's here for potential manual seeding if needed.
 export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<void> {
-  // Removed inline 'use server'; directive to prevent build errors
-  // This function, if called from client, will run client-side.
-  // For server-side seeding, consider a dedicated script or a Server Action in its own file using Admin SDK.
-
   console.log("[firestoreService] seedInitialScholarships: Checking if seeding is needed.");
   const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
   
@@ -105,8 +105,8 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
       coverage: scholarship.coverage || null,
       deadline: scholarship.deadline || null,
       imageUrl: scholarship.imageUrl || null,
-      createdAt: serverTimestamp(), // client SDK serverTimestamp
-      updatedAt: serverTimestamp(), // client SDK serverTimestamp
+      createdAt: serverTimestamp(), 
+      updatedAt: serverTimestamp(), 
     };
     batch.set(newDocRef, dataToSave);
     seededCount++;
@@ -114,11 +114,6 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
 
   if (seededCount > 0) {
     try {
-      // CRITICAL: If this function is called from the client-side,
-      // it will operate under the client's Firebase auth context.
-      // Firestore rules for SCHOLARSHIPS must allow writes from authenticated users (admins)
-      // for this to succeed if called from client.
-      // If this is intended as a server-only operation, it should use Admin SDK and be in a separate file.
       const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_IN_SEEDING_FUNCTION';
       console.log(`[firestoreService] seedInitialScholarships: Committing batch. Auth UID (if client-side): ${currentAuthUserUid}`);
 
@@ -142,4 +137,3 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
     console.log("[firestoreService] seedInitialScholarships: No new scholarships were provided for seeding.");
   }
 }
-

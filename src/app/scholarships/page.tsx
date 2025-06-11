@@ -10,120 +10,9 @@ import { Award, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, 
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-// Removed: import { getScholarships, seedInitialScholarships } from '@/lib/firestoreService'; 
+import { getScholarships } from '@/lib/firestoreService'; 
 import IconByName from '@/components/IconByName'; 
-
-// Initial static data (will be used directly for display on this public page)
-const initialScholarshipsData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>[] = [
-  {
-    name: "National Top Ranked Thanaweya Amma Students' Scholarship",
-    description: 'Full scholarship for Egyptian citizens ranked top 10 nationally in Al-Thanaweya Al-Amma. Covers study fees, accommodation (if outside Cairo), transportation, etc.',
-    eligibility: "Egyptian citizen, top 10 national rank in Al-Thanaweya Al-Amma, pass GUC tests, maintain 3.00 GPA.",
-    websiteUrl: 'https://www.guc.edu.eg/',
-    iconName: "GraduationCap",
-    category: "Full Scholarship",
-    location: 'Egypt',
-    ageRequirement: '18+',
-    fundingLevel: 'Fully Funded',
-    destinationRegion: 'Egypt/MENA',
-    targetLevel: 'Undergraduate',
-    fundingCountry: 'Egypt',
-    partner: 'GUC (in cooperation with MoHESR)',
-    coverage: 'Full tuition, accommodation, transportation, admission test fees, lab insurance.',
-    deadline: "July 30 (Typical, check official site)",
-    imageUrl: "/images/scholarship-guc-thanaweya-amma.jpg"
-  },
-  {
-    name: "Ministry of Higher Education Innovators Support Fund Scholarship (GSS)",
-    description: 'Full scholarship for gifted Egyptian students in Sciences and Technology to study at Nile University.',
-    eligibility: "Egyptian national, Thanaweya Amma/STEM graduate, pass IQ tests, strong extracurriculars, maintain 3.0 CGPA.",
-    websiteUrl: 'https://nu.edu.eg/scholarships/',
-    iconName: "Award",
-    category: "STEM Scholarship",
-    location: 'Egypt',
-    ageRequirement: '18+',
-    fundingLevel: 'Fully Funded',
-    destinationRegion: 'Egypt/MENA',
-    targetLevel: 'Undergraduate',
-    fundingCountry: 'Egypt',
-    partner: 'Innovators Support Fund (at Nile University)',
-    coverage: 'Full tuition for specific STEM programs (Fall & Spring semesters).',
-    deadline: "August 22 (Typical, check official site)",
-    imageUrl: "/images/scholarship-mohesr-innovators-gss.jpg"
-  },
-  {
-    name: 'U.S.-Egypt HEI Local Scholarships (Private Universities)',
-    description: 'Scholarships for Egyptian public school graduates to pursue programs in Egyptian private universities. Focus on agribusiness, engineering, economics, IT.',
-    eligibility: 'Egyptian public school graduates. Economically disadvantaged. High-achieving.',
-    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo',
-    iconName: "Users", 
-    category: "Higher Education",
-    location: 'Egypt',
-    ageRequirement: '18+',
-    fundingLevel: 'Varies',
-    destinationRegion: 'Egypt/MENA',
-    targetLevel: 'Undergraduate',
-    fundingCountry: 'USA',
-    partner: 'U.S. Embassy/USAID',
-    coverage: 'Academic skill-building, English training, internships, entrepreneurship.',
-    deadline: "Varies (check official announcements)",
-    imageUrl: "/images/scholarship-hei-local.jpg"
-  },
-  {
-    name: 'Kennedy-Lugar Youth Exchange and Study (YES) Program',
-    description: 'Provides scholarships for high school students from countries with significant Muslim populations to spend up to one academic year in the United States.',
-    eligibility: 'High school students aged 15-17, Egyptian nationality, min 80% grades.',
-    websiteUrl: 'https://www.yesprograms.org/',
-    iconName: "Globe",
-    category: "Cultural Exchange",
-    location: 'International',
-    ageRequirement: '16-18',
-    fundingLevel: 'Fully Funded',
-    destinationRegion: 'USA',
-    targetLevel: 'Exchange',
-    fundingCountry: 'USA',
-    partner: 'U.S. Department of State',
-    coverage: 'Full scholarship to spend one academic year in the U.S., living with a host family.',
-    deadline: "May (Typical, for next academic year)",
-    imageUrl: "/images/scholarship-yes-program.jpg"
-  },
-  {
-    name: 'DAAD University Summer Courses (Germany)',
-    description: 'Language & Regional Studies courses in Germany. Enhances profile for future Master\'s scholarships.',
-    eligibility: 'Egyptian undergraduate students. Approx. deadline Dec.',
-    websiteUrl: 'https://www.daad.eg/en/find-funding/scholarship-database/',
-    iconName: "Globe",
-    category: "Language & Regional Studies",
-    location: 'International',
-    ageRequirement: '18+',
-    fundingLevel: 'Partial Scholarship',
-    destinationRegion: 'Europe',
-    targetLevel: 'Language',
-    fundingCountry: 'Germany',
-    partner: 'DAAD',
-    coverage: 'One-time scholarship of €1,134 plus allowances for language/regional studies course.',
-    deadline: "December (Approximate)",
-    imageUrl: "/images/scholarship-daad-summer.jpg"
-  },
-   {
-    name: 'Chevening Scholarships',
-    description: 'Fully funded one-year Master\'s degree at any UK university for individuals with demonstrable leadership potential.',
-    eligibility: "Demonstrable leadership potential, strong academic background, Egyptian citizen.",
-    websiteUrl: 'https://www.chevening.org/egypt/',
-    iconName: "Award",
-    category: "Postgraduate Leadership",
-    location: 'International',
-    ageRequirement: '18+',
-    fundingLevel: 'Fully Funded',
-    destinationRegion: 'UK',
-    targetLevel: 'Postgraduate',
-    fundingCountry: 'UK',
-    partner: 'UK Government (FCDO)',
-    coverage: 'Fully funded (tuition, stipend, travel, allowances).',
-    deadline: "Typically November (check website for next cycle)",
-    imageUrl: "/images/scholarship-chevening.jpg"
-  },
-];
+import { useToast } from "@/hooks/use-toast";
 
 
 const ageOptions: { value: ScholarshipAgeFilter; label: string }[] = [
@@ -180,7 +69,10 @@ const fundingCountryOptions: { value: FundingCountryFilter; label: string }[] = 
 
 export default function ScholarshipsPage() {
   const [mounted, setMounted] = useState(false);
-  // Removed useState for scholarships, isLoading, error
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const [selectedAge, setSelectedAge] = useState<ScholarshipAgeFilter>('All');
   const [selectedFunding, setSelectedFunding] = useState<ScholarshipFundingFilter>('All');
@@ -190,22 +82,25 @@ export default function ScholarshipsPage() {
 
   useEffect(() => {
     setMounted(true);
-    // Removed Firestore fetching logic
+    fetchScholarshipsData();
   }, []);
 
-  const scholarshipsToDisplay = useMemo(() =>
-    initialScholarshipsData.map((s, index) => ({
-      ...s,
-      id: `static-scholarship-${s.name.toLowerCase().replace(/\s+/g, '-')}-${index}`, // Create a somewhat unique ID
-      // Ensure all fields from Scholarship type are present or undefined
-      createdAt: undefined, 
-      updatedAt: undefined,
-    })) as Scholarship[], 
-  []);
-
+  const fetchScholarshipsData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await getScholarships();
+      setScholarships(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load scholarships.");
+      toast({ title: "Error Loading Scholarships", description: err.message || "Could not fetch scholarship data.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredScholarships = useMemo(() => {
-    return scholarshipsToDisplay.filter(scholarship => {
+    return scholarships.filter(scholarship => {
       const ageMatch = selectedAge === 'All' || (scholarship.ageRequirement && scholarship.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (scholarship.fundingLevel && scholarship.fundingLevel === selectedFunding);
       const regionMatch = selectedRegion === 'All' || (scholarship.destinationRegion && scholarship.destinationRegion === selectedRegion) || (selectedRegion === 'Egypt/MENA' && scholarship.location === 'Egypt');
@@ -213,7 +108,7 @@ export default function ScholarshipsPage() {
       const fundingCountryMatch = selectedFundingCountry === 'All' || (scholarship.fundingCountry && scholarship.fundingCountry === selectedFundingCountry);
       return ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
-  }, [scholarshipsToDisplay, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
+  }, [scholarships, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
 
   const clearFilters = () => {
     setSelectedAge('All');
@@ -223,12 +118,21 @@ export default function ScholarshipsPage() {
     setSelectedFundingCountry('All');
   };
   
-  if (!mounted) { 
+  if (!mounted || isLoading) { 
     return (
         <div className="flex justify-center items-center min-h-[calc(100vh-300px)]">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="ml-4 text-lg text-muted-foreground">Loading scholarships...</p>
         </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-destructive text-lg">Error: {error}</p>
+        <Button onClick={fetchScholarshipsData} className="mt-4">Try Again</Button>
+      </div>
     );
   }
 
