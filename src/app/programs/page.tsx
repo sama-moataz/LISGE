@@ -10,10 +10,11 @@ import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { getSummerPrograms } from '@/lib/firestoreService'; // Import the fetch function
-import IconByName from '@/components/IconByName'; // Import IconByName
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { getSummerPrograms } from '@/lib/firestoreService'; 
+import IconByName from '@/components/IconByName'; 
+import { useToast } from "@/hooks/use-toast"; 
 
+// Static data remains as a fallback or base
 const staticSummerProgramsData: SummerProgram[] = [
   {
     id: 'ccc',
@@ -176,37 +177,45 @@ export default function SummerProgramsPage() {
     setIsLoading(true);
     setError(null);
     try {
+      console.log("[ProgramsPage] fetchDynamicPrograms: Calling getSummerPrograms...");
       const dynamicData = await getSummerPrograms();
+      console.log("[ProgramsPage] fetchDynamicPrograms: Received dynamic data:", JSON.stringify(dynamicData, null, 2));
       setFirestorePrograms(dynamicData);
     } catch (err: any) {
+      console.error("[ProgramsPage] fetchDynamicPrograms: Error fetching programs:", err);
       setError(err.message || "Failed to load dynamic summer programs.");
       toast({ title: "Error Loading Programs", description: err.message || "Could not fetch program data.", variant: "destructive" });
       setFirestorePrograms([]);
     } finally {
       setIsLoading(false);
+      console.log("[ProgramsPage] fetchDynamicPrograms: Fetch complete. Loading set to false.");
     }
   };
-
+  
   useEffect(() => {
     setMounted(true);
+    console.log("[ProgramsPage] Component mounted. Fetching dynamic programs...");
     fetchDynamicPrograms();
   }, []);
 
   const combinedAndFilteredPrograms = useMemo(() => {
-    // De-duplicate: Firestore entries take precedence if IDs match static data (unlikely with current setup but good practice)
+    console.log("[ProgramsPage] useMemo: Calculating combinedAndFilteredPrograms. Static count:", staticSummerProgramsData.length, "Firestore count:", firestorePrograms.length);
+    
     const dynamicProgramIds = new Set(firestorePrograms.map(p => p.id));
     const uniqueStaticPrograms = staticSummerProgramsData.filter(p => !dynamicProgramIds.has(p.id));
     const allPrograms = [...uniqueStaticPrograms, ...firestorePrograms];
+    console.log("[ProgramsPage] useMemo: Total programs before filtering (static + dynamic):", allPrograms.length);
     
-    return allPrograms.filter(program => {
+    const filtered = allPrograms.filter(program => {
       const locationMatch = selectedLocation === 'All' || program.location === selectedLocation;
       const ageMatch = selectedAge === 'All' || (program.ageRequirement && program.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (program.fundingLevel && program.fundingLevel === selectedFunding);
       const focusAreaMatch = selectedFocusArea === 'All' || (program.focusArea && (Array.isArray(program.focusArea) ? program.focusArea.includes(selectedFocusArea) : program.focusArea === selectedFocusArea));
       const durationMatch = selectedDuration === 'All' || (program.programDuration && program.programDuration === selectedDuration);
-      
       return locationMatch && ageMatch && fundingMatch && focusAreaMatch && durationMatch;
     });
+    console.log("[ProgramsPage] useMemo: Total programs AFTER filtering:", filtered.length, "Filters:", {selectedLocation, selectedAge, selectedFunding, selectedFocusArea, selectedDuration });
+    return filtered;
   }, [firestorePrograms, selectedLocation, selectedAge, selectedFunding, selectedFocusArea, selectedDuration]);
 
   const clearFilters = () => {
@@ -302,9 +311,9 @@ export default function SummerProgramsPage() {
       {!isLoading && combinedAndFilteredPrograms.length > 0 && (
         <div className="grid md:grid-cols-2 gap-6">
           {combinedAndFilteredPrograms.map((program) => {
-            const ProgramIconComponent = program.iconName ? IconByName : (program.icon || Briefcase);
             const commonIconProps = { className: "h-8 w-8 text-accent" };
             let iconToRender;
+
             if (program.iconName) {
               iconToRender = <IconByName name={program.iconName} {...commonIconProps} fallbackIcon={Briefcase} />;
             } else if (program.icon) {
@@ -314,7 +323,16 @@ export default function SummerProgramsPage() {
               iconToRender = <Briefcase {...commonIconProps} />;
             }
 
-            const imageUrl = program.imageUrl || (staticSummerProgramsData.find(p => p.id === program.id && p.id) ? `/images/summer-${program.id}.jpg` : `https://placehold.co/600x300.png?text=${encodeURIComponent(program.name.substring(0,20))}`);
+            let displayImageUrl = program.imageUrl; // From Firestore (could be Data URI or URL)
+            if (!displayImageUrl) {
+                // Check if it's a known static program by ID to use local image
+                const staticProgram = staticSummerProgramsData.find(sp => sp.id === program.id);
+                if (staticProgram) {
+                    displayImageUrl = `/images/summer-${program.id}.jpg`;
+                } else {
+                    displayImageUrl = `https://placehold.co/600x300.png?text=${encodeURIComponent(program.name.substring(0,15))}`;
+                }
+            }
             const dataAiHint = program.dataAiHint || program.name.toLowerCase().split(' ').slice(0,2).join(' ');
 
 
@@ -336,13 +354,13 @@ export default function SummerProgramsPage() {
                 </CardHeader>
                 <CardContent className="flex-grow space-y-3 text-sm">
                   <Image 
-                    src={imageUrl}
+                    src={displayImageUrl}
                     alt={program.name}
                     data-ai-hint={dataAiHint}
                     width={600}
                     height={300}
                     className="rounded-md object-cover aspect-[2/1] mb-4"
-                    onError={(e) => { e.currentTarget.src = `https://placehold.co/600x300.png?text=${encodeURIComponent(program.name.substring(0,20))}+Error`; }}
+                    onError={(e) => { e.currentTarget.src = `https://placehold.co/600x300.png?text=Error`; }}
                   />
                    {program.partner && (
                     <div className="flex items-center gap-2 text-muted-foreground">

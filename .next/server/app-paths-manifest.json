@@ -1,17 +1,6 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/admin/exchange-programs/page": "app/admin/exchange-programs/page.js",
-  "/admin/programs/new/page": "app/admin/programs/new/page.js",
-  "/admin/programs/page": "app/admin/programs/page.js",
-  "/admin/scholarships/new/page": "app/admin/scholarships/new/page.js",
-  "/admin/scholarships/page": "app/admin/scholarships/page.js",
-  "/admin/tips/new/page": "app/admin/tips/new/page.js",
-  "/admin/tips/page": "app/admin/tips/page.js",
-  "/auth/login/page": "app/auth/login/page.js",
-  "/auth/signup/page": "app/auth/signup/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js",
-  "/programs/page": "app/programs/page.js",
-  "/scholarships/page": "app/scholarships/page.js",
-  "/tips/page": "app/tips/page.js"
+  "/page": "app/page.js"
 }
