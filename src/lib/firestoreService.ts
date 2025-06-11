@@ -17,6 +17,10 @@ import {
   where,
   writeBatch,
 } from 'firebase/firestore';
+// It's good practice to get auth instance if you need UID for logging, but remember
+// security rules use request.auth.uid directly from the incoming request context.
+import { auth } from '@/lib/firebase';
+
 
 const SCHOLARSHIPS_COLLECTION = 'SCHOLARSHIPS';
 
@@ -78,15 +82,13 @@ export async function getScholarshipById(id: string): Promise<Scholarship | null
 export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
   console.log("[firestoreService] addScholarship: Received data:", scholarshipData);
   
-  // Ensure all optional fields are explicitly null if not provided or empty, as Firestore expects plain objects.
   const dataToSave: Partial<Scholarship> & { createdAt: any, updatedAt: any } = {
     name: scholarshipData.name, 
     description: scholarshipData.description, 
     eligibility: scholarshipData.eligibility, 
     websiteUrl: scholarshipData.websiteUrl, 
-    location: scholarshipData.location, // This is a required field in the form
+    location: scholarshipData.location,
 
-    // Optional fields: ensure they are null if not provided or empty
     iconName: scholarshipData.iconName || null,
     category: scholarshipData.category || null,
     ageRequirement: scholarshipData.ageRequirement || null,
@@ -97,23 +99,21 @@ export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | '
     partner: scholarshipData.partner || null,
     coverage: scholarshipData.coverage || null,
     deadline: scholarshipData.deadline || null,
-    imageUrl: scholarshipData.imageUrl || null, // Already handled by Zod on client: .url().or(z.literal('')).optional().nullable()
+    imageUrl: scholarshipData.imageUrl || null,
 
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
   
-  // Remove 'id' if it somehow sneaked in, as addDoc generates it.
   delete (dataToSave as any).id; 
   
   try {
     const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
     console.log("[firestoreService] addScholarship: Attempting to save data to Firestore:", dataToSave);
-    const docRef = await addDoc(scholarshipsRef, dataToSave as any); // Cast to any to satisfy addDoc's specific DocumentData constraint
+    const docRef = await addDoc(scholarshipsRef, dataToSave as any);
     console.log("[firestoreService] addScholarship: Successfully added document with ID:", docRef.id);
     return docRef.id;
   } catch (error: any) { 
-    // Log detailed error information to the server console
     console.error("--------------------------------------------------------------------");
     console.error("[firestoreService] CRITICAL ERROR adding scholarship to Firestore!");
     console.error("[firestoreService] Original Firebase Error Object:", error);
@@ -123,9 +123,17 @@ export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | '
     console.error("[firestoreService] Data that was ATTEMPTED TO SAVE:", dataToSave);
     console.error("--------------------------------------------------------------------");
     
-    // Re-throw a more informative error for the client
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
-      throw new Error(`Firestore permission denied when adding scholarship: ${error.message}. Check Firestore rules and ensure the admin user's profile in 'USERS' has role: 'Admin'. Detailed Firebase error is in the server console.`);
+      // Attempt to get current user UID for logging, might be null if auth context isn't fully available server-side
+      const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE';
+      throw new Error(
+        `Firestore Permission Denied: ${error.message}. Action: Add Scholarship. ` +
+        `ROOT CAUSE: Your Firestore rules are blocking this operation. ` +
+        `TROUBLESHOOTING STEPS: ` +
+        `1. VERIFY your deployed Firestore rules allow 'create' on 'SCHOLARSHIPS' for users with role 'Admin'. ` +
+        `2. CONFIRM the admin user's document in the 'USERS' collection (UID potentially: ${currentAuthUserUid}) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
+        `3. CHECK YOUR SERVER CONSOLE (Next.js terminal) for the complete original Firebase error details logged above.`
+      );
     }
     throw new Error(`Failed to add scholarship. Server error: ${error.message || 'Please check server console for details.'}`);
   }
@@ -134,23 +142,18 @@ export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | '
 export async function updateScholarship(id: string, scholarshipData: Partial<Omit<Scholarship, 'id' | 'createdAt'>>): Promise<void> {
   console.log(`[firestoreService] updateScholarship: Received data for ID ${id}:`, scholarshipData);
   
-  // Prepare data for update, ensuring empty strings for optional fields become null
-  const dataToUpdate: { [key: string]: any } = {}; // Use a more generic type for dataToUpdate
+  const dataToUpdate: { [key: string]: any } = {};
   (Object.keys(scholarshipData) as Array<keyof typeof scholarshipData>).forEach(key => {
       const value = scholarshipData[key];
-      // Explicitly set to null if value is undefined, null, or an empty string for specific optional fields
       if (value === undefined || value === null) {
           dataToUpdate[key] = null;
       } else if (typeof value === 'string' && value.trim() === '' && 
-                 // List of fields where empty string should be treated as null
                  (key === 'imageUrl' || key === 'iconName' || key === 'category' || 
                   key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || 
                   key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || 
                   key === 'coverage' || key === 'deadline')) {
           dataToUpdate[key] = null;
       }
-      // For required fields (name, description, eligibility, websiteUrl, location), empty strings are not allowed by Zod.
-      // If they somehow pass, they'll be saved as is, but Zod should prevent this.
       else {
           dataToUpdate[key] = value;
       }
@@ -171,8 +174,15 @@ export async function updateScholarship(id: string, scholarshipData: Partial<Omi
     if (error.details) console.error("[firestoreService] Firebase Error Details (update):", error.details);
     console.error("[firestoreService] Data that was ATTEMPTED TO UPDATE (ID: " + id + "):", dataToUpdate);
     console.error("--------------------------------------------------------------------");
+    const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE';
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
-        throw new Error(`Firestore permission denied when updating scholarship ${id}: ${error.message}. Check Firestore rules and admin role. Detailed Firebase error is in the server console.`);
+        throw new Error(
+          `Firestore Permission Denied: ${error.message}. Action: Update Scholarship (ID: ${id}). ` +
+          `TROUBLESHOOTING STEPS: ` +
+          `1. VERIFY your deployed Firestore rules allow 'update' on 'SCHOLARSHIPS' for users with role 'Admin'. ` +
+          `2. CONFIRM the admin user's document in the 'USERS' collection (UID potentially: ${currentAuthUserUid}) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
+          `3. CHECK YOUR SERVER CONSOLE (Next.js terminal) for the complete original Firebase error details logged above.`
+        );
     }
     throw new Error(`Failed to update scholarship ${id}. Server error: ${error.message || 'Unknown Firestore error. Check server console for full details.'}`);
   }
@@ -184,17 +194,22 @@ export async function deleteScholarship(id: string): Promise<void> {
     await deleteDoc(scholarshipDocRef);
   } catch (error: any) {
     console.error(`Error deleting scholarship ${id}: `, error);
+    const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE';
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
-        throw new Error(`Firestore permission denied when deleting scholarship ${id}: ${error.message}. Check Firestore rules and admin role. Detailed Firebase error is in the server console.`);
+        throw new Error(
+          `Firestore Permission Denied: ${error.message}. Action: Delete Scholarship (ID: ${id}). ` +
+          `TROUBLESHOOTING STEPS: ` +
+          `1. VERIFY your deployed Firestore rules allow 'delete' on 'SCHOLARSHIPS' for users with role 'Admin'. ` +
+          `2. CONFIRM the admin user's document in the 'USERS' collection (UID potentially: ${currentAuthUserUid}) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
+          `3. CHECK YOUR SERVER CONSOLE (Next.js terminal) for the complete original Firebase error details logged above.`
+        );
     }
     throw new Error(`Failed to delete scholarship ${id}.`);
   }
 }
 
-// Helper function for seeding, ensures names are unique before adding.
 export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<void> {
   const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
-  // Check for existing scholarships by name to avoid duplicates during seeding
   const existingScholarshipsSnapshot = await getDocs(query(scholarshipsRef, where("name", "in", scholarshipsToSeed.map(s => s.name))));
   const existingNames = new Set(existingScholarshipsSnapshot.docs.map(doc => doc.data().name));
 
@@ -203,10 +218,9 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
 
   scholarshipsToSeed.forEach(scholarship => {
     if (!existingNames.has(scholarship.name)) {
-      const newDocRef = doc(scholarshipsRef); // Firestore will auto-generate an ID
+      const newDocRef = doc(scholarshipsRef); 
       const dataToSave = {
         ...scholarship,
-        // Ensure optional fields default to null if not provided in seed data
         iconName: scholarship.iconName || null,
         category: scholarship.category || null,
         ageRequirement: scholarship.ageRequirement || null,
@@ -233,8 +247,3 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
     console.log("No new scholarships to seed (based on name check). All provided scholarship names already exist.");
   }
 }
-
-
-// --- User Profile Functions (Example, if needed for admin management later) ---
-// export async function getUserProfile(userId: string): Promise<UserProfile | null> { ... }
-// export async function updateUserRole(userId: string, newRole: 'user' | 'Admin'): Promise<void> { ... }
