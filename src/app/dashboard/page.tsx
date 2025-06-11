@@ -161,11 +161,21 @@ export default function DashboardPage() {
                   <Button asChild variant="outline">
                      <Link href="/admin/scholarships">Manage Scholarships</Link>
                   </Button>
-                  <Button variant="outline" disabled>Manage Study Tips</Button>
-                  <Button variant="outline" disabled>Manage Summer Programs</Button>
-                  <Button variant="outline" disabled>Manage Exchange Programs</Button>
-                  <Button variant="outline" disabled>Manage Volunteer Opps</Button>
-                  <Button variant="outline" disabled>Manage Pre-College Courses</Button>
+                  <Button asChild variant="outline">
+                     <Link href="/admin/tips">Manage Study Tips</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                     <Link href="/admin/programs">Manage Summer Programs</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                     <Link href="/admin/exchange-programs">Manage Exchange Programs</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                     <Link href="/admin/volunteer">Manage Volunteer Opps</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                     <Link href="/admin/pre-college">Manage Pre-College Courses</Link>
+                  </Button>
                 </div>
               </div>
             ) : (
