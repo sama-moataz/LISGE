@@ -63,32 +63,29 @@ export default function LoginPage() {
   const handleLoginSuccess = async (userId: string, userEmail: string | null, isNewSocialOrPhoneUser?: boolean, userName?: string | null, userPhotoURL?: string | null, userPhoneNumber?: string | null) => {
     console.log(`[LoginSuccess] Handling for UID: ${userId}, Email: ${userEmail}, isNewSocialOrPhoneUser: ${isNewSocialOrPhoneUser}`);
     try {
-      const userDocRef = doc(db, "users", userId);
+      const userDocRef = doc(db, "USERS", userId); // Changed 'users' to 'USERS'
       const userDocSnap = await getDoc(userDocRef);
 
       if (!userDocSnap.exists() && isNewSocialOrPhoneUser) {
-        // Create user document for new social/phone sign-in
         const profileToCreate = {
           uid: userId,
           name: userName || (userEmail ? userEmail.split('@')[0] : (userPhoneNumber ? `User-${userId.substring(0,5)}` : "User")),
           email: userEmail || null,
-          role: 'user', // Default role for new social/phone users
+          role: 'user', 
           createdAt: serverTimestamp(),
           lastLoginAt: serverTimestamp(),
           photoURL: userPhotoURL || null,
           phoneNumber: userPhoneNumber || null,
         };
-        console.log("[LoginSuccess] New social/phone user. Creating profile:", profileToCreate);
+        console.log("[LoginSuccess] New social/phone user. Creating profile in USERS collection:", profileToCreate);
         await setDoc(userDocRef, profileToCreate);
         toast({ title: "Account Created & Logged In!", description: "Welcome to LISGE Hub." });
       } else if (userDocSnap.exists()) {
-        // Update lastLoginAt for existing users (all login types)
-        console.log("[LoginSuccess] Existing user. Updating lastLoginAt.");
+        console.log("[LoginSuccess] Existing user. Updating lastLoginAt in USERS collection.");
         await setDoc(userDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
         toast({ title: "Login Successful!", description: "Welcome back to LISGE Hub." });
       } else if (!userDocSnap.exists() && !isNewSocialOrPhoneUser) {
-        // This case is for email/password login where profile SHOULD exist from signup
-        console.warn(`[LoginSuccess] Profile not found for email/password user UID: ${userId}. This is unexpected for non-social/phone logins.`);
+        console.warn(`[LoginSuccess] Profile not found in USERS collection for email/password user UID: ${userId}. This is unexpected for non-social/phone logins.`);
         toast({ title: "Login Warning", description: "Profile not found, but login successful. Please contact support if issues persist.", variant: "default" });
       } else {
          console.log("[LoginSuccess] User profile already exists or this is not a new social/phone user being created now.");
@@ -99,8 +96,7 @@ export default function LoginPage() {
     } catch (dbError: any) {
       console.error("[LoginSuccess] Error during Firestore operation: ", dbError);
       toast({ title: "Login Error", description: `Could not finalize login with database: ${dbError.message}`, variant: "destructive" });
-      // Still try to redirect to dashboard if login itself was successful before db error
-      if(!isNewSocialOrPhoneUser && userDocSnap.exists()) router.push('/dashboard'); 
+      if(!isNewSocialOrPhoneUser && (userDocSnap && userDocSnap.exists())) router.push('/dashboard'); 
     }
   };
 
@@ -110,7 +106,7 @@ export default function LoginPage() {
     setLoading('email');
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await handleLoginSuccess(userCredential.user.uid, userCredential.user.email, false); // isNewSocialOrPhoneUser is false for email/pass
+      await handleLoginSuccess(userCredential.user.uid, userCredential.user.email, false);
     } catch (err: any) {
       setError(err.message || "Failed to login. Please check your credentials.");
       toast({ title: "Login Failed", description: err.message, variant: "destructive" });
@@ -125,7 +121,6 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(auth, googleAuthProvider);
       const user = result.user;
-      // For Google, we mark as potentially new social user. handleLoginSuccess will check Firestore.
       await handleLoginSuccess(user.uid, user.email, true, user.displayName, user.photoURL, user.phoneNumber);
     } catch (err: any) {
       setError(err.message || "Failed to login with Google.");
@@ -171,7 +166,6 @@ export default function LoginPage() {
       if (window.confirmationResult) {
         const userCredential = await window.confirmationResult.confirm(otp);
         const user = userCredential.user;
-         // For Phone, we mark as potentially new social user. handleLoginSuccess will check Firestore.
         await handleLoginSuccess(user.uid, user.email, true, user.displayName, user.photoURL, user.phoneNumber);
       } else {
         throw new Error("OTP confirmation result not found. Please try sending OTP again.");

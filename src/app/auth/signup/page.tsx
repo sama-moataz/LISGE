@@ -43,22 +43,20 @@ export default function SignupPage() {
       const firebaseUser = userCredential.user;
       console.log(`[Signup] User created in Auth with UID: ${firebaseUser.uid}`);
 
-      // Update Firebase Auth profile (optional, but good for display name)
       await updateAuthProfile(firebaseUser, { displayName: name });
       console.log(`[Signup] Firebase Auth profile updated with name: ${name}`);
 
-      // Create user document in Firestore
-      const userDocRef = doc(db, "users", firebaseUser.uid);
+      const userDocRef = doc(db, "USERS", firebaseUser.uid); // Changed 'users' to 'USERS'
       const userProfileData = {
         uid: firebaseUser.uid,
         name: name,
         email: firebaseUser.email,
-        role: 'user', // Default role
+        role: 'user', 
         createdAt: serverTimestamp(),
-        lastLoginAt: serverTimestamp(), // Also set lastLoginAt on signup
+        lastLoginAt: serverTimestamp(), 
         photoURL: firebaseUser.photoURL || null,
       };
-      console.log("[Signup] Creating user profile in Firestore:", userProfileData);
+      console.log("[Signup] Creating user profile in Firestore (USERS collection):", userProfileData);
       await setDoc(userDocRef, userProfileData);
       console.log("[Signup] User profile successfully created in Firestore.");
 
