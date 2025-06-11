@@ -1,5 +1,6 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
+  "/admin/exchange-programs/page": "app/admin/exchange-programs/page.js",
   "/admin/scholarships/new/page": "app/admin/scholarships/new/page.js",
   "/admin/scholarships/page": "app/admin/scholarships/page.js",
   "/admin/tips/page": "app/admin/tips/page.js",
