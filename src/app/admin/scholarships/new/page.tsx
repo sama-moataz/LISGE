@@ -116,7 +116,17 @@ export default function NewScholarshipPage() {
       description: '',
       eligibility: '',
       websiteUrl: '',
+      iconName: '',
+      category: '',
       location: 'International',
+      ageRequirement: '',
+      fundingLevel: '',
+      destinationRegion: '',
+      targetLevel: '',
+      fundingCountry: '',
+      partner: '',
+      coverage: '',
+      deadline: '',
       imageUrl: '',
     },
   });
@@ -134,9 +144,17 @@ export default function NewScholarshipPage() {
 
   const onSubmit: SubmitHandler<ScholarshipFormData> = async (data) => {
     setIsSubmitting(true);
+    
+    const processedData: ScholarshipFormData = { ...data };
+    (Object.keys(processedData) as Array<keyof ScholarshipFormData>).forEach(key => {
+      if (processedData[key] === "_none_") {
+        (processedData[key] as any) = null;
+      }
+    });
+
     try {
-      const scholarshipId = await addScholarship(data);
-      toast({ title: "Success", description: `Scholarship "${data.name}" added successfully with ID: ${scholarshipId}.` });
+      const scholarshipId = await addScholarship(processedData);
+      toast({ title: "Success", description: `Scholarship "${processedData.name}" added successfully with ID: ${scholarshipId}.` });
       router.push('/admin/scholarships');
     } catch (err: any) {
       toast({ title: "Error Adding Scholarship", description: err.message || "Failed to add scholarship.", variant: "destructive" });
@@ -240,12 +258,12 @@ export default function NewScholarshipPage() {
                   name="iconName"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value ?? undefined}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined} defaultValue={field.value ?? undefined}>
                       <SelectTrigger id="iconName">
                         <SelectValue placeholder="Select an icon (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="_none_">None</SelectItem>
                         {iconNames.map(icon => <SelectItem key={icon} value={icon}>{icon}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -272,7 +290,7 @@ export default function NewScholarshipPage() {
                   name="location"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                       <SelectTrigger id="location">
                         <SelectValue placeholder="Select location" />
                       </SelectTrigger>
@@ -290,12 +308,12 @@ export default function NewScholarshipPage() {
                   name="ageRequirement"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value ?? undefined}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined} defaultValue={field.value ?? undefined}>
                       <SelectTrigger id="ageRequirement">
                         <SelectValue placeholder="Select age/grade" />
                       </SelectTrigger>
                       <SelectContent>
-                         <SelectItem value="">N/A or Not Specified</SelectItem>
+                         <SelectItem value="_none_">N/A or Not Specified</SelectItem>
                         {ageOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -312,12 +330,12 @@ export default function NewScholarshipPage() {
                   name="fundingLevel"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value ?? undefined}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined} defaultValue={field.value ?? undefined}>
                       <SelectTrigger id="fundingLevel">
                         <SelectValue placeholder="Select funding level" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">N/A or Not Specified</SelectItem>
+                        <SelectItem value="_none_">N/A or Not Specified</SelectItem>
                         {fundingOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -331,12 +349,12 @@ export default function NewScholarshipPage() {
                   name="destinationRegion"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value ?? undefined}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined} defaultValue={field.value ?? undefined}>
                       <SelectTrigger id="destinationRegion">
                         <SelectValue placeholder="Select destination region" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">N/A or Not Specified</SelectItem>
+                        <SelectItem value="_none_">N/A or Not Specified</SelectItem>
                         {regionOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -353,12 +371,12 @@ export default function NewScholarshipPage() {
                   name="targetLevel"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value ?? undefined}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined} defaultValue={field.value ?? undefined}>
                       <SelectTrigger id="targetLevel">
                         <SelectValue placeholder="Select target level" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">N/A or Not Specified</SelectItem>
+                        <SelectItem value="_none_">N/A or Not Specified</SelectItem>
                         {levelOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -372,12 +390,12 @@ export default function NewScholarshipPage() {
                   name="fundingCountry"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value ?? undefined}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined} defaultValue={field.value ?? undefined}>
                       <SelectTrigger id="fundingCountry">
                         <SelectValue placeholder="Select funding country" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">N/A or Not Specified</SelectItem>
+                        <SelectItem value="_none_">N/A or Not Specified</SelectItem>
                         {fundingCountryOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -427,3 +445,4 @@ export default function NewScholarshipPage() {
     </div>
   );
 }
+
