@@ -6,13 +6,53 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Award, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign, Globe, Loader2, ExternalLink } from 'lucide-react';
+import { Award, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign, Globe, Loader2, ExternalLink, BookOpen, Building } from 'lucide-react'; // Added BookOpen, Building
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { getScholarships } from '@/lib/firestoreService'; 
 import IconByName from '@/components/IconByName'; 
 import { useToast } from "@/hooks/use-toast";
+
+// Static Scholarship Data - these will be displayed alongside Firestore data
+const staticScholarshipsData: Scholarship[] = [
+  {
+    id: 'static-sawiris',
+    name: 'Sawiris Foundation Scholarship (Static Example)',
+    description: 'A prestigious scholarship by the Sawiris Foundation for Egyptian students for undergraduate and postgraduate studies in various fields, promoting excellence and social development.',
+    eligibility: 'Egyptian nationals, demonstrating academic excellence, leadership potential, and financial need. Specific criteria vary by program (Undergrad/Postgrad).',
+    websiteUrl: 'https://www.sawirisfoundation.org/sfsp/',
+    icon: Award, // Direct Lucide icon component
+    category: "Higher Education",
+    location: 'International', // Can be studied internationally
+    destinationRegion: 'Global',
+    targetLevel: 'Undergraduate',
+    fundingLevel: 'Fully Funded',
+    partner: "Sawiris Foundation",
+    coverage: "Tuition, living expenses, travel, health insurance.",
+    deadline: "Varies (check official website)",
+    imageUrl: '/images/scholarship-static-sawiris.jpg', // Placeholder path
+    dataAiHint: "egyptian scholarship award",
+  },
+  {
+    id: 'static-ched',
+    name: 'CHED Scholarship (Static Example - For Egyptian Public Universities)',
+    description: 'The Egyptian government, through the Ministry of Higher Education, offers various scholarships and grants for students enrolled in Egyptian public universities, often based on merit or specific fields of study.',
+    eligibility: 'Egyptian students enrolled in public universities. Criteria vary widely based on the specific grant or scholarship program.',
+    websiteUrl: 'https://mohesr.gov.eg/ar-eg/Pages/default.aspx', // General Ministry link
+    icon: Building, // Direct Lucide icon component
+    category: "Public University",
+    location: 'Egypt',
+    destinationRegion: 'Egypt/MENA',
+    targetLevel: 'Undergraduate',
+    fundingLevel: 'Varies',
+    partner: "Ministry of Higher Education, Egypt",
+    coverage: "Varies; can range from tuition waivers to stipends.",
+    deadline: "Varies by university and program",
+    imageUrl: '/images/scholarship-static-ched.jpg', // Placeholder path
+    dataAiHint: "egypt university",
+  },
+];
 
 
 const ageOptions: { value: ScholarshipAgeFilter; label: string }[] = [
@@ -69,7 +109,7 @@ const fundingCountryOptions: { value: FundingCountryFilter; label: string }[] = 
 
 export default function ScholarshipsPage() {
   const [mounted, setMounted] = useState(false);
-  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [allScholarships, setAllScholarships] = useState<Scholarship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -80,27 +120,30 @@ export default function ScholarshipsPage() {
   const [selectedLevel, setSelectedLevel] = useState<ScholarshipLevelFilter>('All');
   const [selectedFundingCountry, setSelectedFundingCountry] = useState<FundingCountryFilter>('All');
 
-  useEffect(() => {
-    setMounted(true);
-    fetchScholarshipsData();
-  }, []);
-
-  const fetchScholarshipsData = async () => {
+  const fetchAndCombineScholarships = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getScholarships();
-      setScholarships(data);
+      const firestoreScholarships = await getScholarships(); // Fetches Firestore data (sorted by createdAt desc)
+      // Combine static data first, then Firestore data
+      setAllScholarships([...staticScholarshipsData, ...firestoreScholarships]);
     } catch (err: any) {
       setError(err.message || "Failed to load scholarships.");
       toast({ title: "Error Loading Scholarships", description: err.message || "Could not fetch scholarship data.", variant: "destructive" });
+      setAllScholarships([...staticScholarshipsData]); // Fallback to static data on error
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    setMounted(true);
+    fetchAndCombineScholarships();
+  }, []);
+
+
   const filteredScholarships = useMemo(() => {
-    return scholarships.filter(scholarship => {
+    return allScholarships.filter(scholarship => {
       const ageMatch = selectedAge === 'All' || (scholarship.ageRequirement && scholarship.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (scholarship.fundingLevel && scholarship.fundingLevel === selectedFunding);
       const regionMatch = selectedRegion === 'All' || (scholarship.destinationRegion && scholarship.destinationRegion === selectedRegion) || (selectedRegion === 'Egypt/MENA' && scholarship.location === 'Egypt');
@@ -108,7 +151,7 @@ export default function ScholarshipsPage() {
       const fundingCountryMatch = selectedFundingCountry === 'All' || (scholarship.fundingCountry && scholarship.fundingCountry === selectedFundingCountry);
       return ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
-  }, [scholarships, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
+  }, [allScholarships, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
 
   const clearFilters = () => {
     setSelectedAge('All');
@@ -127,11 +170,12 @@ export default function ScholarshipsPage() {
     );
   }
 
-  if (error) {
+  if (error && allScholarships.length === staticScholarshipsData.length) { // Show error only if Firestore fetch failed
     return (
       <div className="text-center py-10">
-        <p className="text-destructive text-lg">Error: {error}</p>
-        <Button onClick={fetchScholarshipsData} className="mt-4">Try Again</Button>
+        <p className="text-destructive text-lg">Error fetching dynamic scholarships: {error}</p>
+        <p className="text-muted-foreground mb-2">Displaying default scholarships. Some listings may be unavailable.</p>
+        <Button onClick={fetchAndCombineScholarships} className="mt-4">Try Again</Button>
       </div>
     );
   }
@@ -202,7 +246,13 @@ export default function ScholarshipsPage() {
             <Card key={scholarship.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <IconByName name={scholarship.iconName} className="h-8 w-8 text-accent" fallbackIcon={Award} />
+                  {scholarship.icon ? (
+                     <scholarship.icon className="h-8 w-8 text-accent" />
+                  ) : scholarship.iconName ? (
+                    <IconByName name={scholarship.iconName} className="h-8 w-8 text-accent" fallbackIcon={Award} />
+                  ) : (
+                    <Award className="h-8 w-8 text-accent" />
+                  )}
                   <CardTitle className="text-xl font-headline leading-tight">{scholarship.name}</CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs mt-1">
@@ -217,7 +267,7 @@ export default function ScholarshipsPage() {
                   <Image
                     src={scholarship.imageUrl || `https://placehold.co/600x300.png?text=${encodeURIComponent(scholarship.name)}`}
                     alt={scholarship.name}
-                    data-ai-hint="education opportunity"
+                    data-ai-hint={scholarship.dataAiHint || "education opportunity"}
                     width={600}
                     height={300}
                     className="rounded-md object-cover aspect-[2/1] mb-4"

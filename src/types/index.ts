@@ -12,12 +12,13 @@ export type LevelFilter = 'All' | 'High School' | 'Undergraduate' | 'Postgraduat
 export type FundingCountryFilter = 'All' | 'Egypt' | 'USA' | 'Germany' | 'UK' | 'Canada' | 'China' | 'South Korea' | 'Other';
 
 export interface Scholarship {
-  id: string; // Firestore document ID
+  id: string; // Firestore document ID or unique static ID
   name: string;
   description: string;
   eligibility: string;
   websiteUrl: string;
-  iconName?: string; // Name of the lucide-react icon
+  icon?: LucideIcon; // For static data, direct component
+  iconName?: string; // For Firestore data, name of the lucide-react icon
   category?: string;
   location: 'Egypt' | 'International' | 'Global' | 'Online';
   ageRequirement?: AgeFilter | string;
@@ -28,9 +29,10 @@ export interface Scholarship {
   partner?: string;
   coverage?: string;
   deadline?: string;
-  imageUrl?: string; // URL for the scholarship image
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  imageUrl?: string; // URL for the scholarship image (can be path for static, DataURI/URL for Firestore)
+  dataAiHint?: string; // Hint for placeholder images, especially for static data
+  createdAt?: Timestamp; // Optional for static, present for Firestore
+  updatedAt?: Timestamp; // Optional for static, present for Firestore
 }
 
 export interface ExchangeProgram {
@@ -39,7 +41,7 @@ export interface ExchangeProgram {
   description: string;
   eligibility: string;
   websiteUrl: string;
-  icon?: LucideIcon; // Keep as LucideIcon for now, will update if/when managed by admin
+  icon?: LucideIcon; 
   category?: string;
   location: 'Egypt' | 'International' | 'Global' | 'Online';
   ageRequirement?: AgeFilter | string;
@@ -131,3 +133,10 @@ export interface UserProfile {
   photoURL?: string | null;
   phoneNumber?: string | null;
 }
+
+// Re-exporting specific filter types that were potentially overwritten
+export type ScholarshipAgeFilter = AgeFilter;
+export type ScholarshipFundingFilter = FundingFilter;
+export type ScholarshipRegionFilter = RegionFilter;
+export type ScholarshipLevelFilter = LevelFilter;
+
