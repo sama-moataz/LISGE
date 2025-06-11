@@ -36,7 +36,7 @@ const preCollegeCoursesData: PreCollegeCourse[] = [
     description: 'Practical, hands-on camps for high school students (16-18) to explore talents in fields like Civil Engineering (e.g., "Build Out of the Box" camp). Provides early exposure to university disciplines.',
     eligibility: 'High school students (16-18).',
     websiteUrl: 'https://www.guc.edu.eg/',
-    icon: School2, // Changed from MapPin for consistency
+    icon: School2, 
     category: "STEM / Engineering",
     location: 'Egypt',
     duration: "Varies (e.g., 3-day camps)",
@@ -55,7 +55,7 @@ const preCollegeCoursesData: PreCollegeCourse[] = [
     websiteUrl: 'https://summer.jhu.edu/programs-courses/pre-college-programs/',
     icon: Globe,
     category: "STEM / Health Sciences / Psychology",
-    location: 'International', // Primarily US, some online options
+    location: 'International', 
     duration: "2-week sessions (June-August)",
     creditsTransferable: true,
     cost: "$1,950 USD per 1-credit program + $85 application fee. Financial aid available.",
@@ -103,7 +103,7 @@ export default function PreCollegePage() {
     } else {
       return preCollegeCoursesData.filter(course => 
         course.location === selectedLocation || 
-        (selectedLocation === 'Online' && course.location === 'International' && course.description.toLowerCase().includes('online')) || // Basic check for online if primary location is Int'l
+        (selectedLocation === 'Online' && course.location === 'International' && course.description.toLowerCase().includes('online')) || 
         (selectedLocation === 'Online' && course.location === 'Online')
       );
     }
@@ -162,7 +162,7 @@ export default function PreCollegePage() {
               </CardHeader>
               <CardContent className="flex-grow space-y-3 text-sm">
                  <Image 
-                  src={`https://placehold.co/600x300.png?text=${encodeURIComponent(course.name)}`}
+                  src={`/images/precollege-${course.id}.jpg`}
                   alt={course.name}
                   data-ai-hint={course.location === 'Egypt' ? "egypt university" : "global study"}
                   width={600}
@@ -233,3 +233,5 @@ export default function PreCollegePage() {
     </div>
   );
 }
+
+    

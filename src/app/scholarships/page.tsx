@@ -225,7 +225,6 @@ export default function ScholarshipsPage() {
               <AccordionTrigger className="p-4 md:p-6 hover:no-underline">
                 <div className="flex justify-between w-full items-center">
                   <CardTitle className="text-xl flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filter Scholarships</CardTitle>
-                  {/* Optional: Add a count of active filters here if desired */}
                 </div>
               </AccordionTrigger>
               <AccordionContent className="p-4 md:p-6 pt-0">
@@ -299,7 +298,7 @@ export default function ScholarshipsPage() {
                     />
                   ) : (
                     <Image
-                      src={`https://placehold.co/600x300.png?text=${encodeURIComponent(scholarship.name)}`}
+                      src={`/images/scholarship-${scholarship.id}.jpg`}
                       alt={scholarship.name}
                       data-ai-hint="education opportunity"
                       width={600}
@@ -348,3 +347,5 @@ export default function ScholarshipsPage() {
     </div>
   );
 }
+
+    

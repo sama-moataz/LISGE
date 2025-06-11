@@ -255,7 +255,7 @@ export default function ExchangeProgramsPage() {
               </CardHeader>
               <CardContent className="flex-grow space-y-3 text-sm">
                  <Image 
-                  src={`https://placehold.co/600x300.png?text=${encodeURIComponent(program.name)}`}
+                  src={`/images/exchange-${program.id}.jpg`}
                   alt={program.name}
                   data-ai-hint="students global"
                   width={600}

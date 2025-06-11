@@ -268,7 +268,7 @@ export default function SummerProgramsPage() {
               </CardHeader>
               <CardContent className="flex-grow space-y-3 text-sm">
                 <Image 
-                  src={`https://placehold.co/600x300.png?text=${encodeURIComponent(program.name)}`}
+                  src={`/images/summer-${program.id}.jpg`}
                   alt={program.name}
                   data-ai-hint="students summer"
                   width={600}

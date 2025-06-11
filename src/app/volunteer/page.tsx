@@ -82,7 +82,6 @@ const locationOptions: { value: LocationFilter; label: string }[] = [
   { value: 'All', label: 'All Locations' },
   { value: 'Egypt', label: 'Egypt' },
   { value: 'International', label: 'International' },
-  // { value: 'Online', label: 'Online' }, // Not common for volunteer, can be added if needed
 ];
 
 
@@ -154,7 +153,7 @@ export default function VolunteerPage() {
               </CardHeader>
               <CardContent className="flex-grow space-y-3 text-sm">
                 <Image 
-                  src={`https://placehold.co/600x300.png?text=${encodeURIComponent(opportunity.name)}`}
+                  src={`/images/volunteer-${opportunity.id}.jpg`}
                   alt={opportunity.name}
                    data-ai-hint={opportunity.location === 'Egypt' ? "egypt community" : "global impact"}
                   width={600}
@@ -226,3 +225,4 @@ export default function VolunteerPage() {
   );
 }
 
+    
