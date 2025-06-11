@@ -6,19 +6,23 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Globe2, ExternalLink, Filter, RefreshCw, Landmark, CalendarDays, Info, MapPin, Users, GraduationCap, DollarSign, Briefcase } from 'lucide-react';
+import { Globe2, ExternalLink, Filter, RefreshCw, Landmark, CalendarDays, Info, MapPin, Users, GraduationCap, DollarSign, Briefcase, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { getExchangePrograms } from '@/lib/firestoreService';
+import IconByName from '@/components/IconByName';
+import { useToast } from "@/hooks/use-toast";
 
-const exchangeProgramsData: ExchangeProgram[] = [
+// Static data remains as a fallback or base
+const staticExchangeProgramsData: ExchangeProgram[] = [
   {
     id: 'yes-program',
     name: 'Kennedy-Lugar Youth Exchange and Study (YES) Program',
     description: 'Provides scholarships for high school students from countries with significant Muslim populations to spend up to one academic year in the United States.',
     eligibility: 'High school students aged 15-17, Egyptian nationality, min 80% grades.',
     websiteUrl: 'https://www.yesprograms.org/',
-    icon: Users,
+    icon: Users, // Static icon
     category: "Cultural Exchange",
     location: 'International',
     ageRequirement: '16-18',
@@ -29,7 +33,8 @@ const exchangeProgramsData: ExchangeProgram[] = [
     partner: 'U.S. Department of State',
     coverage: 'Full scholarship to spend one academic year in the U.S., living with a host family.',
     deadline: "May (Typical, for next academic year)",
-    duration: "1 Academic Year"
+    duration: "1 Academic Year",
+    dataAiHint: "usa exchange student"
   },
   {
     id: 'sics-program',
@@ -37,18 +42,19 @@ const exchangeProgramsData: ExchangeProgram[] = [
     description: 'Provides short-term exchange opportunities for students from select countries, including Egypt, to pursue studies or conduct research at Canadian post-secondary institutions.',
     eligibility: "Students from select countries (incl. Egypt) enrolled in a post-secondary institution.",
     websiteUrl: 'https://www.educanada.ca/scholarships-bourses/can/institutions/study-in-canada-sep-etudes-au-canada-pct.aspx?lang=eng',
-    icon: GraduationCap,
+    icon: GraduationCap, // Static icon
     category: "Academic Exchange",
     location: 'International',
     ageRequirement: '18+',
-    fundingLevel: 'Fully Funded', 
+    fundingLevel: 'Fully Funded',
     destinationRegion: 'Canada',
-    targetLevel: 'Research', 
+    targetLevel: 'Research',
     fundingCountry: 'Canada',
     partner: 'Global Affairs Canada',
     coverage: 'Fully funded research opportunities (4-6 months). Travel, living allowance, health insurance, visa fees.',
     deadline: "Varies by Canadian institution (typically early Spring)",
-    duration: "4-6 Months"
+    duration: "4-6 Months",
+    dataAiHint: "canada research student"
   },
   {
     id: 'techgirls-program',
@@ -56,18 +62,19 @@ const exchangeProgramsData: ExchangeProgram[] = [
     description: 'An international summer exchange program designed to empower and inspire young women to pursue careers in science and technology.',
     eligibility: "Girls aged 15-17, citizen of participating country (incl. Egypt), strong English skills, commitment to community project.",
     websiteUrl: 'https://techgirlsglobal.org/',
-    icon: Briefcase, 
-    category: "STEM Exchange", 
+    icon: Briefcase, // Static icon
+    category: "STEM Exchange",
     location: 'International',
     ageRequirement: '16-18',
     fundingLevel: 'Fully Funded',
     destinationRegion: 'USA',
-    targetLevel: 'High School', 
+    targetLevel: 'High School',
     fundingCountry: 'USA',
     partner: 'U.S. Department of State',
     coverage: 'Three-week summer exchange in the U.S. focused on STEM, all program costs covered.',
     deadline: "December (Typical, check official site)",
-    duration: "3 Weeks"
+    duration: "3 Weeks",
+    dataAiHint: "tech girls summer"
   },
 ];
 
@@ -75,6 +82,7 @@ const locationOptions: { value: LocationFilter; label: string }[] = [
   { value: 'All', label: 'All Locations' },
   { value: 'Egypt', label: 'Egypt' },
   { value: 'International', label: 'International' },
+  { value: 'Global', label: 'Global (Location Applies to Program Operator)' },
   { value: 'Online', label: 'Online' },
 ];
 
@@ -133,6 +141,11 @@ const fundingCountryOptions: { value: FundingCountryFilter; label: string }[] = 
 
 export default function ExchangeProgramsPage() {
   const [mounted, setMounted] = useState(false);
+  const [firestorePrograms, setFirestorePrograms] = useState<ExchangeProgram[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
   const [selectedLocation, setSelectedLocation] = useState<LocationFilter>('All');
   const [selectedAge, setSelectedAge] = useState<AgeFilter>('All');
   const [selectedFunding, setSelectedFunding] = useState<FundingFilter>('All');
@@ -140,12 +153,39 @@ export default function ExchangeProgramsPage() {
   const [selectedLevel, setSelectedLevel] = useState<LevelFilter>('All');
   const [selectedFundingCountry, setSelectedFundingCountry] = useState<FundingCountryFilter>('All');
 
+  const fetchDynamicPrograms = async () => {
+    setIsLoading(true);
+    setError(null);
+    console.log("[ExchangeProgramsPage] fetchDynamicPrograms: Starting fetch...");
+    try {
+      const dynamicData = await getExchangePrograms();
+      console.log("[ExchangeProgramsPage] fetchDynamicPrograms: Received dynamic data:", dynamicData.length, "items");
+      setFirestorePrograms(dynamicData);
+    } catch (err: any) {
+      console.error("[ExchangeProgramsPage] fetchDynamicPrograms: Error fetching programs:", err);
+      setError(err.message || "Failed to load dynamic exchange programs.");
+      toast({ title: "Error Loading Programs", description: err.message || "Could not fetch program data from the database.", variant: "destructive" });
+      setFirestorePrograms([]);
+    } finally {
+      setIsLoading(false);
+      console.log("[ExchangeProgramsPage] fetchDynamicPrograms: Fetch complete. Loading set to false.");
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
+    fetchDynamicPrograms();
   }, []);
 
-  const filteredPrograms = useMemo(() => {
-    return exchangeProgramsData.filter(program => {
+  const combinedAndFilteredPrograms = useMemo(() => {
+    console.log("[ExchangeProgramsPage] useMemo: Calculating combinedAndFilteredPrograms. Static count:", staticExchangeProgramsData.length, "Firestore count:", firestorePrograms.length);
+    
+    const dynamicProgramIds = new Set(firestorePrograms.map(p => p.id));
+    const uniqueStaticPrograms = staticExchangeProgramsData.filter(p => !dynamicProgramIds.has(p.id));
+    const allPrograms = [...uniqueStaticPrograms, ...firestorePrograms];
+    console.log("[ExchangeProgramsPage] useMemo: Total programs before filtering (static + unique dynamic):", allPrograms.length);
+    
+    const filtered = allPrograms.filter(program => {
       const locationMatch = selectedLocation === 'All' || program.location === selectedLocation;
       const ageMatch = selectedAge === 'All' || (program.ageRequirement && program.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (program.fundingLevel && program.fundingLevel === selectedFunding);
@@ -154,7 +194,9 @@ export default function ExchangeProgramsPage() {
       const fundingCountryMatch = selectedFundingCountry === 'All' || (program.fundingCountry && program.fundingCountry === selectedFundingCountry);
       return locationMatch && ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
-  }, [selectedLocation, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
+    console.log("[ExchangeProgramsPage] useMemo: Total programs AFTER filtering:", filtered.length, "Filters:", {selectedLocation, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry });
+    return filtered;
+  }, [firestorePrograms, selectedLocation, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
   
   const clearFilters = () => {
     setSelectedLocation('All');
@@ -235,20 +277,60 @@ export default function ExchangeProgramsPage() {
         </Card>
       </div>
       
-      {filteredPrograms.length > 0 ? (
+      {isLoading && (
+        <div className="flex justify-center items-center py-10">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="ml-3 text-muted-foreground">Loading exchange programs...</p>
+        </div>
+      )}
+
+      {!isLoading && error && (
+        <div className="text-center py-6">
+          <p className="text-destructive">{error}</p>
+          <Button onClick={fetchDynamicPrograms} className="mt-2">Try Again</Button>
+        </div>
+      )}
+
+      {!isLoading && combinedAndFilteredPrograms.length === 0 && !error && (
+         <p className="text-center text-muted-foreground text-lg py-8">No exchange programs found matching your criteria. Try broadening your search.</p>
+      )}
+      
+      {!isLoading && combinedAndFilteredPrograms.length > 0 && (
         <div className="grid md:grid-cols-2 gap-6">
-          {filteredPrograms.map((program) => {
-            let imageUrl;
-            if (program.id === 'techgirls-program') {
-              imageUrl = "/images/summer-techgirls.jpg"; // Use specific image for techgirls
+          {combinedAndFilteredPrograms.map((program) => {
+            const commonIconProps = { className: "h-8 w-8 text-accent" };
+            let iconToRender;
+
+            if (program.iconName) {
+              iconToRender = <IconByName name={program.iconName} {...commonIconProps} fallbackIcon={Globe2} />;
+            } else if (program.icon) {
+              const StaticIcon = program.icon; // Static icon component from static data
+              iconToRender = <StaticIcon {...commonIconProps} />;
             } else {
-              imageUrl = `/images/exchange-${program.id}.jpg`;
+              iconToRender = <Globe2 {...commonIconProps} />; // Default fallback
             }
+
+            let displayImageUrl = program.imageUrl; // From Firestore (could be Data URI or URL)
+            const isStaticProgram = staticExchangeProgramsData.some(sp => sp.id === program.id);
+
+            if (!displayImageUrl && isStaticProgram) {
+                 // Construct path for static images if no imageUrl is present for a known static program
+                if (program.id === 'techgirls-program') { // Special case for techgirls in this list
+                    displayImageUrl = "/images/summer-techgirls.jpg"; 
+                } else {
+                    displayImageUrl = `/images/exchange-${program.id}.jpg`;
+                }
+            } else if (!displayImageUrl) { // General fallback for any program without an image
+                displayImageUrl = `https://placehold.co/600x300.png?text=${encodeURIComponent(program.name.substring(0,15))}`;
+            }
+            
+            const dataAiHint = program.dataAiHint || program.name.toLowerCase().split(' ').slice(0,2).join(' ');
+
             return (
             <Card key={program.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  {program.icon ? <program.icon className="h-8 w-8 text-accent" /> : <Globe2 className="h-8 w-8 text-accent" />}
+                  {iconToRender}
                   <CardTitle className="text-xl font-headline leading-tight">{program.name}</CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs mt-1">
@@ -262,9 +344,9 @@ export default function ExchangeProgramsPage() {
               </CardHeader>
               <CardContent className="flex-grow space-y-3 text-sm">
                  <Image 
-                  src={imageUrl}
+                  src={displayImageUrl}
                   alt={program.name}
-                  data-ai-hint={program.id === 'techgirls-program' ? "tech girls summer" : "students global"}
+                  data-ai-hint={dataAiHint}
                   width={600}
                   height={300}
                   className="rounded-md object-cover aspect-[2/1] mb-4"
@@ -306,9 +388,7 @@ export default function ExchangeProgramsPage() {
           );
         })}
         </div>
-      ) : (
-        <p className="text-center text-muted-foreground text-lg py-8">No exchange programs found matching your criteria. Try broadening your search or clearing some filters.</p>
-      )}
+      ) }
        <div className="text-center mt-8 p-4 bg-secondary/50 rounded-lg">
         <p className="text-muted-foreground">
           This is a selection of programs. Many more exist! Always verify details, dates, and application procedures on the official program websites.
@@ -317,3 +397,6 @@ export default function ExchangeProgramsPage() {
     </div>
   );
 }
+
+
+    

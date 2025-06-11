@@ -10,6 +10,17 @@
       "layer": {
         "app/admin/exchange-programs/page": "action-browser"
       }
+    },
+    "40055593905608ccbcf961a1b695f1318b2f9e1f31": {
+      "workers": {
+        "app/admin/exchange-programs/new/page": {
+          "moduleId": "[project]/.next-internal/server/app/admin/exchange-programs/new/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/exchange-programs/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/admin/exchange-programs/new/page": "action-browser"
+      }
     }
   },
   "edge": {},
