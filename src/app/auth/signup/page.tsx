@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { UserPlus, Loader2 } from 'lucide-react';
+import { UserPlus, Loader2, Mail, KeyRound, User } from 'lucide-react'; // Added Mail, KeyRound, User
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
@@ -38,6 +38,7 @@ export default function SignupPage() {
       return;
     }
     setLoading(true);
+    console.log(`[Signup Page] Attempting signup with: ${email}`);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
@@ -46,7 +47,7 @@ export default function SignupPage() {
       await updateAuthProfile(firebaseUser, { displayName: name });
       console.log(`[Signup] Firebase Auth profile updated with name: ${name}`);
 
-      const userDocRef = doc(db, "USERS", firebaseUser.uid); // Changed 'users' to 'USERS'
+      const userDocRef = doc(db, "USERS", firebaseUser.uid); 
       const userProfileData = {
         uid: firebaseUser.uid,
         name: name,
@@ -66,13 +67,21 @@ export default function SignupPage() {
       });
       router.push('/dashboard'); 
     } catch (err: any) {
-      setError(err.message || "Failed to create account. Please try again.");
-      console.error("[Signup] Error:", err);
+      let friendlyMessage = "Failed to create account. Please try again.";
+      if (err.code === 'auth/email-already-in-use') {
+        friendlyMessage = "This email address is already registered. Please try logging in or use a different email.";
+      } else if (err.code === 'auth/weak-password') {
+        friendlyMessage = "The password is too weak. Please choose a stronger password.";
+      } else if (err.code === 'auth/invalid-email') {
+        friendlyMessage = "The email address is not valid. Please enter a valid email.";
+      }
+      setError(friendlyMessage);
       toast({
         title: "Signup Failed",
-        description: err.message || "An unexpected error occurred.",
+        description: friendlyMessage,
         variant: "destructive",
       });
+      console.error("[Signup] Error:", err.code, err.message);
     } finally {
       setLoading(false);
     }
@@ -90,7 +99,7 @@ export default function SignupPage() {
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="flex items-center gap-1"><User size={14}/>Full Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -102,7 +111,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="flex items-center gap-1"><Mail size={14}/>Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -114,7 +123,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="flex items-center gap-1"><KeyRound size={14}/>Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -126,7 +135,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="flex items-center gap-1"><KeyRound size={14}/>Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -137,7 +146,7 @@ export default function SignupPage() {
                 disabled={loading}
               />
             </div>
-            {error && <p className="text-sm text-destructive py-1">{error}</p>}
+            {error && <p className="text-sm text-destructive py-1 text-center">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="animate-spin mr-2" /> : null}
               {loading ? 'Creating account...' : 'Sign Up'}
