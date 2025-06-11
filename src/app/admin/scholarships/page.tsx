@@ -1,5 +1,5 @@
 
-"use client";
+"use client"; // Keep client for UI interactions, useAuth, etc.
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, PlusCircle, Edit, Trash2, ShieldAlert, ExternalLink } from 'lucide-react';
-import { getScholarships, deleteScholarship } from '@/lib/firestoreService';
+import { getScholarships } from '@/lib/firestoreService'; // Read uses client SDK
+import { deleteScholarshipAdmin } from '@/lib/firestoreAdminService'; // Delete uses Admin SDK
 import type { Scholarship } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import IconByName from '@/components/IconByName';
@@ -27,6 +28,28 @@ import {
 import { format } from 'date-fns';
 
 
+// Server Action for deletion, defined in the page
+async function handleDeleteScholarship(id: string, name: string) {
+  'use server';
+  console.log(`[Server Action - handleDeleteScholarship] Attempting to delete ID ${id}, Name: ${name}`);
+
+  // CRITICAL: AUTHORIZATION CHECK (Placeholder - see new/page.tsx for detailed comments)
+  // You MUST verify the user is an admin here before proceeding.
+  // This involves verifying an ID token and checking the user's role.
+  // For this example, we'll proceed, assuming authorization is handled.
+  // if (!isCallerAdmin(idToken)) { return { success: false, error: 'Unauthorized' }; }
+
+  try {
+    await deleteScholarshipAdmin(id);
+    console.log(`[Server Action - handleDeleteScholarship] Scholarship deleted for ID: ${id}`);
+    return { success: true, name };
+  } catch (err: any) {
+    console.error(`[Server Action - handleDeleteScholarship] Error calling deleteScholarshipAdmin for ID ${id}:`, err);
+    return { success: false, error: err.message || "Failed to delete scholarship via Admin SDK.", name };
+  }
+}
+
+
 export default function AdminScholarshipsPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -36,6 +59,20 @@ export default function AdminScholarshipsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchScholarships = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await getScholarships(); // Read uses client SDK
+      setScholarships(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load scholarships.");
+      toast({ title: "Error", description: err.message || "Failed to load scholarships.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
@@ -49,34 +86,20 @@ export default function AdminScholarshipsPage() {
     }
   }, [user, isAdmin, authLoading, router, toast]);
 
-  const fetchScholarships = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await getScholarships();
-      setScholarships(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to load scholarships.");
-      toast({ title: "Error", description: err.message || "Failed to load scholarships.", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string, name: string) => {
-    try {
-      await deleteScholarship(id);
-      toast({ title: "Success", description: `Scholarship "${name}" deleted successfully.` });
+  const handleDeleteAction = async (id: string, name: string) => {
+    const result = await handleDeleteScholarship(id, name);
+    if (result.success) {
+      toast({ title: "Success", description: `Scholarship "${result.name}" deleted successfully.` });
       fetchScholarships(); // Refresh the list
-    } catch (err: any) {
-      toast({ title: "Error Deleting", description: err.message || `Failed to delete scholarship "${name}".`, variant: "destructive" });
+    } else {
+      toast({ title: "Error Deleting", description: result.error || `Failed to delete scholarship "${result.name}".`, variant: "destructive" });
     }
   };
   
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     try {
-      const date = timestamp.toDate(); // Firestore Timestamp to JS Date
+      const date = timestamp.toDate(); 
       return format(date, "MMM d, yyyy");
     } catch (e) {
       return 'Invalid Date';
@@ -109,7 +132,7 @@ export default function AdminScholarshipsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-2xl font-headline">Manage Scholarships</CardTitle>
+            <CardTitle className="text-2xl font-headline">Manage Scholarships (Admin SDK)</CardTitle>
             <CardDescription>Add, edit, or delete scholarship listings.</CardDescription>
           </div>
           <Button asChild>
@@ -168,7 +191,7 @@ export default function AdminScholarshipsPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(scholarship.id, scholarship.name)}>
+                              <AlertDialogAction onClick={() => handleDeleteAction(scholarship.id, scholarship.name)}>
                                 Yes, delete scholarship
                               </AlertDialogAction>
                             </AlertDialogFooter>

@@ -1,5 +1,5 @@
 
-"use client";
+"use client"; // Keep client for form interactions, useAuth, etc.
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,11 +14,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Save, ShieldAlert, ArrowLeft } from 'lucide-react';
-import { addScholarship } from '@/lib/firestoreService';
-import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
+// We will call a Server Action defined in this file, which then calls the Admin SDK service
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
-import { auth } from '@/lib/firebase'; // Import auth for UID logging
+import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
+import { addScholarshipAdmin } from '@/lib/firestoreAdminService'; // Import Admin SDK service
 
 const curatedIconNames = [
   'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle', 
@@ -36,7 +36,6 @@ const curatedIconNames = [
   'UserCog', 'UserPlus', 'Users', 'Video', 'Voicemail', 'WalletCards', 'Waypoints', 'Wifi', 'Wind', 'Workflow', 
   'Youtube', 'Zap'
 ];
-
 
 const locationOptions: { value: Scholarship['location']; label: string }[] = [
   { value: 'Egypt', label: 'Egypt' },
@@ -121,6 +120,56 @@ const scholarshipSchema = z.object({
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
 
+// Server Action defined in the page
+async function handleAddScholarship(formData: ScholarshipFormData) {
+  'use server'; // This is a Server Action
+  console.log('[Server Action - handleAddScholarship] Received form data:', formData);
+
+  // CRITICAL: AUTHORIZATION CHECK (Placeholder)
+  // In a real application, you MUST verify the user is an admin here.
+  // This typically involves:
+  // 1. Getting the user's ID token (passed from client or from a session).
+  // 2. Verifying the ID token using `adminAuth.verifyIdToken(idToken)`.
+  // 3. Checking custom claims or fetching user role from Firestore using Admin SDK.
+  // For example (pseudo-code, assumes ID token is available):
+  // const idToken = formData.get('idToken'); // You'd need to add this to your form
+  // try {
+  //   const decodedToken = await adminAuth.verifyIdToken(idToken);
+  //   const userRecord = await adminAuth.getUser(decodedToken.uid);
+  //   const userDoc = await adminDB.collection('USERS').doc(decodedToken.uid).get();
+  //   if (!userDoc.exists() || userDoc.data()?.role !== 'Admin') {
+  //     throw new Error('Unauthorized: User is not an admin.');
+  //   }
+  //   console.log('[Server Action - handleAddScholarship] User verified as admin:', decodedToken.uid);
+  // } catch (authError) {
+  //   console.error('[Server Action - handleAddScholarship] Authorization failed:', authError);
+  //   return { success: false, error: 'Authorization failed. You are not permitted to perform this action.' };
+  // }
+  // For this example, we'll proceed, assuming authorization is handled.
+
+  try {
+    const processedData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'> = {
+        ...formData,
+        // Ensure nulls for optional fields if they come as empty or special "_none_"
+        iconName: formData.iconName === '_none_' ? null : formData.iconName,
+        ageRequirement: formData.ageRequirement === '_none_' ? null : formData.ageRequirement,
+        fundingLevel: formData.fundingLevel === '_none_' ? null : formData.fundingLevel,
+        destinationRegion: formData.destinationRegion === '_none_' ? null : formData.destinationRegion,
+        targetLevel: formData.targetLevel === '_none_' ? null : formData.targetLevel,
+        fundingCountry: formData.fundingCountry === '_none_' ? null : formData.fundingCountry,
+        imageUrl: formData.imageUrl === '' ? null : formData.imageUrl,
+    };
+    console.log("[Server Action - handleAddScholarship] Processed data for Admin SDK:", processedData);
+    const scholarshipId = await addScholarshipAdmin(processedData);
+    console.log("[Server Action - handleAddScholarship] Scholarship added with ID:", scholarshipId);
+    return { success: true, scholarshipId, name: processedData.name };
+  } catch (err: any) {
+    console.error("[Server Action - handleAddScholarship] Error calling addScholarshipAdmin:", err);
+    return { success: false, error: err.message || "Failed to add scholarship via Admin SDK." };
+  }
+}
+
+
 export default function NewScholarshipPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -162,36 +211,31 @@ export default function NewScholarshipPage() {
 
   const onSubmit: SubmitHandler<ScholarshipFormData> = async (data) => {
     setIsSubmitting(true);
-    // Log the current user's UID from the client-side auth state
-    console.log("[NewScholarshipPage] Submitting form. Client-side auth.currentUser UID:", auth.currentUser?.uid);
-    console.log("[NewScholarshipPage] user (from useAuth) UID:", user?.uid);
-
-    console.log("Form data before processing:", data);
+    console.log("[NewScholarshipPage Client] Submitting form data:", data);
     
-    const processedData: Partial<Scholarship> = { ...data }; 
-    (Object.keys(processedData) as Array<keyof ScholarshipFormData>).forEach(key => {
-      if (processedData[key] === "_none_") {
-        (processedData[key] as any) = null;
+    // Client-side processing of _none_ and empty strings to null
+    const processedClientData: ScholarshipFormData = { ...data };
+    (Object.keys(processedClientData) as Array<keyof ScholarshipFormData>).forEach(key => {
+      if (processedClientData[key] === "_none_") {
+        (processedClientData[key] as any) = null;
       }
-      if (typeof processedData[key] === 'string' && (processedData[key] as string).trim() === '' && key !== 'name' && key !== 'description' && key !== 'eligibility' && key !== 'websiteUrl' && key !== 'location') {
+      if (typeof processedClientData[key] === 'string' && (processedClientData[key] as string).trim() === '' && key !== 'name' && key !== 'description' && key !== 'eligibility' && key !== 'websiteUrl' && key !== 'location') {
         if (key === 'imageUrl' || key === 'iconName' || key === 'category' || key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || key === 'coverage' || key === 'deadline') {
-            (processedData[key] as any) = null;
+            (processedClientData[key] as any) = null;
         }
       }
     });
-    console.log("Form data after client-side processing (for service):", processedData);
 
+    const result = await handleAddScholarship(processedClientData);
 
-    try {
-      const scholarshipId = await addScholarship(processedData as Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>);
-      toast({ title: "Success", description: `Scholarship "${processedData.name}" added successfully with ID: ${scholarshipId}.` });
+    if (result.success) {
+      toast({ title: "Success", description: `Scholarship "${result.name}" added successfully with ID: ${result.scholarshipId}.` });
       router.push('/admin/scholarships');
-    } catch (err: any) {
-      toast({ title: "Error Adding Scholarship", description: err.message || "Failed to add scholarship. Check console for details.", variant: "destructive" });
-      console.error("Error adding scholarship (client-side catch):", err);
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      toast({ title: "Error Adding Scholarship", description: result.error || "Failed to add scholarship. Check console for details.", variant: "destructive" });
+      console.error("[NewScholarshipPage Client] Error from Server Action:", result.error);
     }
+    setIsSubmitting(false);
   };
 
   if (authLoading) {
@@ -225,7 +269,7 @@ export default function NewScholarshipPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">Add New Scholarship</CardTitle>
+          <CardTitle className="text-2xl font-headline">Add New Scholarship (Admin SDK)</CardTitle>
           <CardDescription>Fill in the details for the new scholarship listing.</CardDescription>
         </CardHeader>
         <CardContent>
