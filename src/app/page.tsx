@@ -19,7 +19,7 @@ export default function Home() {
         {/* Background image div removed from here */}
         <div className="relative z-10 container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold font-headline mb-6 text-primary-foreground bg-primary/80 backdrop-blur-sm py-2 px-4 rounded-md inline-block">
-            LISGE: Local and International <br className="sm:hidden" /> Scholars' Guide to Excellence
+            LISGE
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8 text-foreground/90 bg-background/70 dark:bg-black/50 backdrop-blur-sm py-3 px-4 rounded-md">
             Welcome to LISGE! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, transformative summer programs, exchange programs, volunteer opportunities, pre-college courses, and test preparation. Explore your potential and embark on your journey to global success.
