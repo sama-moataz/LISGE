@@ -3,6 +3,7 @@
 
 import { addStudyTipAdmin, deleteStudyTipAdmin, updateStudyTipAdmin } from '@/lib/firestoreAdminService';
 import type { StudyTip } from '@/types';
+import { adminDB } from '@/lib/firebaseAdmin'; // Import adminDB to check its status
 
 // Basic admin check placeholder. In a real app, implement robust RBAC.
 async function verifyAdmin() {
@@ -14,6 +15,12 @@ async function verifyAdmin() {
 
 export async function handleAddStudyTipAction(data: Omit<StudyTip, 'id' | 'createdAt' | 'updatedAt' | 'icon'>) {
   // await verifyAdmin(); // Uncomment and implement proper admin check
+  console.log("[Server Action - handleAddStudyTipAction] Received data:", JSON.stringify(data, null, 2));
+  console.log("[Server Action - handleAddStudyTipAction] Checking adminDB status:", adminDB ? "adminDB is initialized" : "adminDB is NOT initialized (CRITICAL)");
+
+  if (!adminDB) {
+    return { success: false, error: "Admin SDK not initialized on the server. Cannot add study tip.", title: data.title };
+  }
 
   try {
     const processedData: Omit<StudyTip, 'id' | 'createdAt' | 'updatedAt' | 'icon'> = {
@@ -21,7 +28,6 @@ export async function handleAddStudyTipAction(data: Omit<StudyTip, 'id' | 'creat
         iconName: data.iconName && data.iconName !== '_none_' ? data.iconName : undefined,
         imageUrl: data.imageUrl || undefined,
         category: data.category || undefined,
-        // Ensure content is string, if it comes from a Rich Text Editor, it might be structured
         content: typeof data.content === 'string' ? data.content : JSON.stringify(data.content),
     };
     const tipId = await addStudyTipAdmin(processedData);
@@ -34,6 +40,12 @@ export async function handleAddStudyTipAction(data: Omit<StudyTip, 'id' | 'creat
 
 export async function handleUpdateStudyTipAction(id: string, data: Partial<Omit<StudyTip, 'id' | 'createdAt' | 'updatedAt' | 'icon'>>) {
   // await verifyAdmin(); // Uncomment and implement proper admin check
+  console.log(`[Server Action - handleUpdateStudyTipAction] Updating tip ${id} with data:`, JSON.stringify(data, null, 2));
+  console.log("[Server Action - handleUpdateStudyTipAction] Checking adminDB status:", adminDB ? "adminDB is initialized" : "adminDB is NOT initialized (CRITICAL)");
+
+  if (!adminDB) {
+    return { success: false, error: "Admin SDK not initialized on the server. Cannot update study tip.", title: data.title };
+  }
 
   try {
     const processedData: Partial<Omit<StudyTip, 'id' | 'createdAt' | 'updatedAt' | 'icon'>> = {
@@ -53,7 +65,13 @@ export async function handleUpdateStudyTipAction(id: string, data: Partial<Omit<
 
 export async function handleDeleteStudyTipAction(id: string, title: string) {
   // await verifyAdmin(); // Uncomment and implement proper admin check
+  console.log(`[Server Action - handleDeleteStudyTipAction] Deleting tip ${id}`);
+  console.log("[Server Action - handleDeleteStudyTipAction] Checking adminDB status:", adminDB ? "adminDB is initialized" : "adminDB is NOT initialized (CRITICAL)");
 
+  if (!adminDB) {
+    return { success: false, error: "Admin SDK not initialized on the server. Cannot delete study tip.", title };
+  }
+  
   try {
     await deleteStudyTipAdmin(id);
     return { success: true, title };
