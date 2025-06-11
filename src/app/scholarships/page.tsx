@@ -6,41 +6,41 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Award, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign, Globe, Loader2, ExternalLink, BookOpen, Building } from 'lucide-react'; // Added BookOpen, Building
+import { Award, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign, Globe, Loader2, ExternalLink, BookOpen, Building, Plane } from 'lucide-react'; // Added Plane
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { getScholarships } from '@/lib/firestoreService'; 
-import IconByName from '@/components/IconByName'; 
+import { getScholarships } from '@/lib/firestoreService';
+import IconByName from '@/components/IconByName';
 import { useToast } from "@/hooks/use-toast";
 
-// Static Scholarship Data - these will be displayed alongside Firestore data
+// Updated and more comprehensive static scholarship data
 const staticScholarshipsData: Scholarship[] = [
   {
     id: 'static-sawiris',
-    name: 'Sawiris Foundation Scholarship (Static Example)',
+    name: 'Sawiris Foundation Scholarship',
     description: 'A prestigious scholarship by the Sawiris Foundation for Egyptian students for undergraduate and postgraduate studies in various fields, promoting excellence and social development.',
     eligibility: 'Egyptian nationals, demonstrating academic excellence, leadership potential, and financial need. Specific criteria vary by program (Undergrad/Postgrad).',
     websiteUrl: 'https://www.sawirisfoundation.org/sfsp/',
-    icon: Award, // Direct Lucide icon component
+    icon: Award,
     category: "Higher Education",
-    location: 'International', // Can be studied internationally
+    location: 'International',
     destinationRegion: 'Global',
-    targetLevel: 'Undergraduate',
+    targetLevel: 'Undergraduate', // Can also be Postgraduate
     fundingLevel: 'Fully Funded',
     partner: "Sawiris Foundation",
     coverage: "Tuition, living expenses, travel, health insurance.",
     deadline: "Varies (check official website)",
-    imageUrl: '/images/scholarship-static-sawiris.jpg', // Placeholder path
+    imageUrl: '/images/scholarship-static-sawiris.jpg',
     dataAiHint: "egyptian scholarship award",
   },
   {
     id: 'static-ched',
-    name: 'CHED Scholarship (Static Example - For Egyptian Public Universities)',
+    name: 'CHED Scholarship (Egyptian Public Universities)',
     description: 'The Egyptian government, through the Ministry of Higher Education, offers various scholarships and grants for students enrolled in Egyptian public universities, often based on merit or specific fields of study.',
     eligibility: 'Egyptian students enrolled in public universities. Criteria vary widely based on the specific grant or scholarship program.',
-    websiteUrl: 'https://mohesr.gov.eg/ar-eg/Pages/default.aspx', // General Ministry link
-    icon: Building, // Direct Lucide icon component
+    websiteUrl: 'https://mohesr.gov.eg/ar-eg/Pages/default.aspx',
+    icon: Building,
     category: "Public University",
     location: 'Egypt',
     destinationRegion: 'Egypt/MENA',
@@ -49,9 +49,63 @@ const staticScholarshipsData: Scholarship[] = [
     partner: "Ministry of Higher Education, Egypt",
     coverage: "Varies; can range from tuition waivers to stipends.",
     deadline: "Varies by university and program",
-    imageUrl: '/images/scholarship-static-ched.jpg', // Placeholder path
-    dataAiHint: "egypt university",
+    imageUrl: '/images/scholarship-static-ched.jpg',
+    dataAiHint: "egypt university building",
   },
+  {
+    id: 'static-qalaa',
+    name: 'Qalaa Holdings Scholarship Foundation',
+    description: 'Offers full postgraduate scholarships for talented young Egyptians to pursue master’s degrees at top universities abroad in all fields of study.',
+    eligibility: 'Egyptian nationals under 35, accepted at a top university abroad, demonstrate financial need, and plan to return to Egypt.',
+    websiteUrl: 'https://qalaascholarships.org/',
+    icon: Landmark,
+    category: "Postgraduate Studies",
+    location: 'International',
+    destinationRegion: 'Global',
+    targetLevel: 'Postgraduate',
+    fundingLevel: 'Fully Funded',
+    partner: "Qalaa Holdings",
+    coverage: "Full tuition, living expenses, travel, and health insurance.",
+    deadline: "Typically April (Check website)",
+    imageUrl: '/images/scholarship-static-qalaa.jpg',
+    dataAiHint: "global education scholarship",
+  },
+  {
+    id: 'static-educationusa-ccc',
+    name: 'EducationUSA Competitive College Club (CCC)',
+    description: 'A program by EducationUSA to assist high-achieving Egyptian students in applying to U.S. colleges. While not a direct scholarship, it is a key pathway to securing U.S. university funding.',
+    eligibility: 'High-achieving Egyptian high school students (typically grades 10-11).',
+    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo', // Link to local center
+    icon: Plane,
+    category: "College Prep / US Pathway",
+    location: 'Egypt', // Program is in Egypt
+    destinationRegion: 'USA', // For study in the USA
+    targetLevel: 'High School', // For high school students applying to undergrad
+    fundingLevel: 'Varies', // Helps access scholarships
+    partner: "EducationUSA (U.S. Department of State)",
+    coverage: "Guidance, workshops, test prep resources for U.S. college applications and scholarship seeking.",
+    deadline: "Varies by local center (check EducationUSA Egypt)",
+    imageUrl: '/images/scholarship-static-educationusa.jpg',
+    dataAiHint: "usa education study",
+  },
+  {
+    id: 'static-daad',
+    name: 'DAAD Scholarships (Germany)',
+    description: 'The German Academic Exchange Service (DAAD) provides a wide range of scholarships for Egyptian students for study and research in Germany, from summer courses to PhDs.',
+    eligibility: 'Varies greatly by specific DAAD program (undergraduate, graduate, PhD, researchers). Check DAAD Egypt website.',
+    websiteUrl: 'https://www.daad.eg/en/find-funding/scholarship-database/',
+    icon: Globe,
+    category: "Study in Germany",
+    location: 'International',
+    destinationRegion: 'Europe', // Specifically Germany
+    targetLevel: 'Varies', // Undergrad, Postgrad, PhD
+    fundingLevel: 'Varies', // Many are fully funded
+    partner: "DAAD (German Academic Exchange Service)",
+    coverage: "Typically covers tuition (if any), living allowance, travel, health insurance. Varies by program.",
+    deadline: "Varies significantly by program (check DAAD website)",
+    imageUrl: '/images/scholarship-static-daad.jpg',
+    dataAiHint: "germany scholarship study",
+  }
 ];
 
 
@@ -66,7 +120,7 @@ const fundingOptions: { value: ScholarshipFundingFilter; label: string }[] = [
   { value: 'All', label: 'All Funding Levels' },
   { value: 'Fully Funded', label: 'Fully Funded' },
   { value: 'Partial Scholarship', label: 'Partial Scholarship' },
-  { value: 'No Funding', label: 'No Funding' }, 
+  { value: 'No Funding', label: 'No Funding' },
   { value: 'Varies', label: 'Varies' },
 ];
 
@@ -109,7 +163,7 @@ const fundingCountryOptions: { value: FundingCountryFilter; label: string }[] = 
 
 export default function ScholarshipsPage() {
   const [mounted, setMounted] = useState(false);
-  const [allScholarships, setAllScholarships] = useState<Scholarship[]>([]);
+  const [firestoreScholarships, setFirestoreScholarships] = useState<Scholarship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -120,17 +174,16 @@ export default function ScholarshipsPage() {
   const [selectedLevel, setSelectedLevel] = useState<ScholarshipLevelFilter>('All');
   const [selectedFundingCountry, setSelectedFundingCountry] = useState<FundingCountryFilter>('All');
 
-  const fetchAndCombineScholarships = async () => {
+  const fetchDynamicScholarships = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const firestoreScholarships = await getScholarships(); // Fetches Firestore data (sorted by createdAt desc)
-      // Combine static data first, then Firestore data
-      setAllScholarships([...staticScholarshipsData, ...firestoreScholarships]);
+      const dynamicData = await getScholarships(); // Fetches Firestore data
+      setFirestoreScholarships(dynamicData);
     } catch (err: any) {
-      setError(err.message || "Failed to load scholarships.");
-      toast({ title: "Error Loading Scholarships", description: err.message || "Could not fetch scholarship data.", variant: "destructive" });
-      setAllScholarships([...staticScholarshipsData]); // Fallback to static data on error
+      setError(err.message || "Failed to load dynamic scholarships.");
+      toast({ title: "Error Loading Dynamic Scholarships", description: err.message || "Could not fetch dynamic scholarship data.", variant: "destructive" });
+      setFirestoreScholarships([]); // Clear dynamic data on error
     } finally {
       setIsLoading(false);
     }
@@ -138,11 +191,13 @@ export default function ScholarshipsPage() {
 
   useEffect(() => {
     setMounted(true);
-    fetchAndCombineScholarships();
+    fetchDynamicScholarships();
   }, []);
 
 
-  const filteredScholarships = useMemo(() => {
+  const combinedAndFilteredScholarships = useMemo(() => {
+    // Combine static data first, then Firestore data
+    const allScholarships = [...staticScholarshipsData, ...firestoreScholarships];
     return allScholarships.filter(scholarship => {
       const ageMatch = selectedAge === 'All' || (scholarship.ageRequirement && scholarship.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (scholarship.fundingLevel && scholarship.fundingLevel === selectedFunding);
@@ -151,7 +206,7 @@ export default function ScholarshipsPage() {
       const fundingCountryMatch = selectedFundingCountry === 'All' || (scholarship.fundingCountry && scholarship.fundingCountry === selectedFundingCountry);
       return ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
-  }, [allScholarships, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
+  }, [firestoreScholarships, selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
 
   const clearFilters = () => {
     setSelectedAge('All');
@@ -160,8 +215,8 @@ export default function ScholarshipsPage() {
     setSelectedLevel('All');
     setSelectedFundingCountry('All');
   };
-  
-  if (!mounted || isLoading) { 
+
+  if (!mounted || isLoading) {
     return (
         <div className="flex justify-center items-center min-h-[calc(100vh-300px)]">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -170,12 +225,12 @@ export default function ScholarshipsPage() {
     );
   }
 
-  if (error && allScholarships.length === staticScholarshipsData.length) { // Show error only if Firestore fetch failed
+  if (error && firestoreScholarships.length === 0) { // Show error only if Firestore fetch failed and there are no dynamic items
     return (
       <div className="text-center py-10">
         <p className="text-destructive text-lg">Error fetching dynamic scholarships: {error}</p>
         <p className="text-muted-foreground mb-2">Displaying default scholarships. Some listings may be unavailable.</p>
-        <Button onClick={fetchAndCombineScholarships} className="mt-4">Try Again</Button>
+        <Button onClick={fetchDynamicScholarships} className="mt-4">Try Again</Button>
       </div>
     );
   }
@@ -240,17 +295,17 @@ export default function ScholarshipsPage() {
         </Card>
       </div>
 
-      {filteredScholarships.length > 0 ? (
+      {combinedAndFilteredScholarships.length > 0 ? (
         <div className="grid md:grid-cols-2 gap-6">
-          {filteredScholarships.map((scholarship) => (
+          {combinedAndFilteredScholarships.map((scholarship) => (
             <Card key={scholarship.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  {scholarship.icon ? (
+                  {scholarship.icon ? ( // For static scholarships with direct icon components
                      <scholarship.icon className="h-8 w-8 text-accent" />
-                  ) : scholarship.iconName ? (
+                  ) : scholarship.iconName ? ( // For Firestore scholarships with iconName string
                     <IconByName name={scholarship.iconName} className="h-8 w-8 text-accent" fallbackIcon={Award} />
-                  ) : (
+                  ) : ( // Fallback if neither is provided
                     <Award className="h-8 w-8 text-accent" />
                   )}
                   <CardTitle className="text-xl font-headline leading-tight">{scholarship.name}</CardTitle>
