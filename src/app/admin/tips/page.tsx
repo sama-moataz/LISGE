@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { handleDeleteStudyTipAction } from './actions'; 
 
 
@@ -44,8 +44,9 @@ export default function AdminStudyTipsPage() {
       const data = await getStudyTips();
       setStudyTips(data);
     } catch (err: any) {
+      console.error("Detailed error fetching study tips:", err); // More detailed log
       setError(err.message || "Failed to load study tips.");
-      toast({ title: "Error", description: err.message || "Failed to load study tips.", variant: "destructive" });
+      toast({ title: "Error Fetching Tips", description: err.message || "Failed to load study tips from the database.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -77,12 +78,14 @@ export default function AdminStudyTipsPage() {
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     try {
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      if (date instanceof Date && !isNaN(date.valueOf())) {
+      // Firestore Timestamps might be objects with toDate, or already JS Dates if transformed in service
+      const date = timestamp.toDate ? timestamp.toDate() : (timestamp instanceof Date ? timestamp : new Date(timestamp));
+      if (date instanceof Date && isValid(date)) {
         return format(date, "MMM d, yyyy");
       }
       return 'Invalid Date';
     } catch (e) {
+      console.error("Error formatting date:", e, "Timestamp was:", timestamp);
       return 'Invalid Date';
     }
   };
