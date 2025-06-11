@@ -112,7 +112,10 @@ const scholarshipSchema = z.object({
   partner: z.string().optional().nullable(),
   coverage: z.string().optional().nullable(),
   deadline: z.string().optional().nullable(),
-  imageUrl: z.string().url({ message: "Please enter a valid image URL." }).optional().nullable(),
+  imageUrl: z.string().url({ message: "Please enter a valid image URL." })
+    .or(z.literal('')) // Allow empty string to pass Zod validation
+    .optional()
+    .nullable(), // Actual type can be string | null | undefined
 });
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
@@ -130,18 +133,18 @@ export default function NewScholarshipPage() {
       description: '',
       eligibility: '',
       websiteUrl: '',
-      iconName: '',
-      category: '',
+      iconName: null, // Default to null for optional fields
+      category: null,
       location: 'International',
-      ageRequirement: '',
-      fundingLevel: '',
-      destinationRegion: '',
-      targetLevel: '',
-      fundingCountry: '',
-      partner: '',
-      coverage: '',
-      deadline: '',
-      imageUrl: '',
+      ageRequirement: null,
+      fundingLevel: null,
+      destinationRegion: null,
+      targetLevel: null,
+      fundingCountry: null,
+      partner: null,
+      coverage: null,
+      deadline: null,
+      imageUrl: null, // Default to null
     },
   });
 
@@ -158,21 +161,30 @@ export default function NewScholarshipPage() {
 
   const onSubmit: SubmitHandler<ScholarshipFormData> = async (data) => {
     setIsSubmitting(true);
+    console.log("Form data before processing:", data);
     
-    const processedData: ScholarshipFormData = { ...data };
+    const processedData: Partial<Scholarship> = { ...data }; // Use Partial<Scholarship> for flexibility
     (Object.keys(processedData) as Array<keyof ScholarshipFormData>).forEach(key => {
       if (processedData[key] === "_none_") {
         (processedData[key] as any) = null;
       }
+      // Ensure empty strings for optional fields become null before sending to service
+      if (typeof processedData[key] === 'string' && (processedData[key] as string).trim() === '' && key !== 'name' && key !== 'description' && key !== 'eligibility' && key !== 'websiteUrl' && key !== 'location') {
+        if (key === 'imageUrl' || key === 'iconName' || key === 'category' || key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || key === 'coverage' || key === 'deadline') {
+            (processedData[key] as any) = null;
+        }
+      }
     });
+    console.log("Form data after client-side processing (for service):", processedData);
+
 
     try {
-      const scholarshipId = await addScholarship(processedData);
+      const scholarshipId = await addScholarship(processedData as Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>);
       toast({ title: "Success", description: `Scholarship "${processedData.name}" added successfully with ID: ${scholarshipId}.` });
       router.push('/admin/scholarships');
     } catch (err: any) {
-      toast({ title: "Error Adding Scholarship", description: err.message || "Failed to add scholarship.", variant: "destructive" });
-      console.error("Error adding scholarship:", err);
+      toast({ title: "Error Adding Scholarship", description: err.message || "Failed to add scholarship. Check console for details.", variant: "destructive" });
+      console.error("Error adding scholarship (client-side catch):", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -459,6 +471,3 @@ export default function NewScholarshipPage() {
     </div>
   );
 }
-
-
-    
