@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Save, ShieldAlert, ArrowLeft } from 'lucide-react';
+// Intentionally removed: import { addScholarship } from '@/lib/firestoreService';
 import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
