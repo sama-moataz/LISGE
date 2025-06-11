@@ -2,6 +2,9 @@
 // src/lib/firebaseAdmin.ts
 import admin from 'firebase-admin';
 
+// THIS IS THE NEW LOGGING LINE:
+console.log("[firebaseAdmin.ts] SERVER START: Current value of process.env.GOOGLE_APPLICATION_CREDENTIALS:", process.env.GOOGLE_APPLICATION_CREDENTIALS || "NOT SET");
+
 const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 let adminDBInstance: admin.firestore.Firestore | undefined;
 let adminAuthInstance: admin.auth.Auth | undefined;
@@ -22,7 +25,7 @@ if (!admin.apps.length) {
       console.error('Firebase Admin SDK: Ensure your environment is set up for default credentials or set GOOGLE_APPLICATION_CREDENTIALS.');
     }
   } else {
-    console.log('Firebase Admin SDK: GOOGLE_APPLICATION_CREDENTIALS is SET. Path:', serviceAccountPath);
+    console.log('Firebase Admin SDK: GOOGLE_APPLICATION_CREDENTIALS is SET. Path from env var:', serviceAccountPath);
     try {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccountPath),
