@@ -14,11 +14,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Save, ShieldAlert, ArrowLeft } from 'lucide-react';
-// We will call a Server Action defined in this file, which then calls the Admin SDK service
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
-import { addScholarshipAdmin } from '@/lib/firestoreAdminService'; // Import Admin SDK service
+import { addScholarshipAdmin } from '@/lib/firestoreAdminService';
 
 const curatedIconNames = [
   'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle', 
@@ -120,37 +119,31 @@ const scholarshipSchema = z.object({
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
 
-// Server Action defined in the page
 async function handleAddScholarship(formData: ScholarshipFormData) {
-  'use server'; // This is a Server Action
-  console.log('[Server Action - handleAddScholarship] Received form data:', formData);
-
+  'use server';
+  console.log('[Server Action - handleAddScholarship] INVOKED.');
+  console.log('[Server Action - handleAddScholarship] GOOGLE_APPLICATION_CREDENTIALS (at start of Server Action):', process.env.GOOGLE_APPLICATION_CREDENTIALS || "NOT SET in Server Action environment");
+  
   // CRITICAL: AUTHORIZATION CHECK (Placeholder)
   // In a real application, you MUST verify the user is an admin here.
   // This typically involves:
   // 1. Getting the user's ID token (passed from client or from a session).
-  // 2. Verifying the ID token using `adminAuth.verifyIdToken(idToken)`.
+  // 2. Verifying the ID token using `adminAuth.verifyIdToken(idToken)` from `firebaseAdmin.ts`.
   // 3. Checking custom claims or fetching user role from Firestore using Admin SDK.
-  // For example (pseudo-code, assumes ID token is available):
-  // const idToken = formData.get('idToken'); // You'd need to add this to your form
-  // try {
-  //   const decodedToken = await adminAuth.verifyIdToken(idToken);
-  //   const userRecord = await adminAuth.getUser(decodedToken.uid);
-  //   const userDoc = await adminDB.collection('USERS').doc(decodedToken.uid).get();
-  //   if (!userDoc.exists() || userDoc.data()?.role !== 'Admin') {
-  //     throw new Error('Unauthorized: User is not an admin.');
-  //   }
-  //   console.log('[Server Action - handleAddScholarship] User verified as admin:', decodedToken.uid);
-  // } catch (authError) {
-  //   console.error('[Server Action - handleAddScholarship] Authorization failed:', authError);
-  //   return { success: false, error: 'Authorization failed. You are not permitted to perform this action.' };
-  // }
+  // Example:
+  // const { adminAuth } = await import('@/lib/firebaseAdmin'); // Dynamically import if needed
+  // if (!adminAuth) throw new Error("Admin Auth not initialized");
+  // const idToken = formData.idToken; // Assume client sends it
+  // const decodedToken = await adminAuth.verifyIdToken(idToken);
+  // const userRecord = await adminAuth.getUser(decodedToken.uid);
+  // if (userRecord.customClaims?.role !== 'Admin') throw new Error('Unauthorized');
   // For this example, we'll proceed, assuming authorization is handled.
+  console.log('[Server Action - handleAddScholarship] Placeholder for Admin Authorization Check.');
+
 
   try {
     const processedData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'> = {
         ...formData,
-        // Ensure nulls for optional fields if they come as empty or special "_none_"
         iconName: formData.iconName === '_none_' ? null : formData.iconName,
         ageRequirement: formData.ageRequirement === '_none_' ? null : formData.ageRequirement,
         fundingLevel: formData.fundingLevel === '_none_' ? null : formData.fundingLevel,
@@ -159,13 +152,23 @@ async function handleAddScholarship(formData: ScholarshipFormData) {
         fundingCountry: formData.fundingCountry === '_none_' ? null : formData.fundingCountry,
         imageUrl: formData.imageUrl === '' ? null : formData.imageUrl,
     };
-    console.log("[Server Action - handleAddScholarship] Processed data for Admin SDK:", processedData);
-    const scholarshipId = await addScholarshipAdmin(processedData);
-    console.log("[Server Action - handleAddScholarship] Scholarship added with ID:", scholarshipId);
+    console.log("[Server Action - handleAddScholarship] Processed data for Admin SDK service:", JSON.stringify(processedData, null, 2));
+    const scholarshipId = await addScholarshipAdmin(processedData); // Calls the Admin SDK service
+    console.log("[Server Action - handleAddScholarship] Scholarship added successfully with ID:", scholarshipId);
     return { success: true, scholarshipId, name: processedData.name };
   } catch (err: any) {
-    console.error("[Server Action - handleAddScholarship] Error calling addScholarshipAdmin:", err);
-    return { success: false, error: err.message || "Failed to add scholarship via Admin SDK." };
+    console.error("[Server Action - handleAddScholarship] CAUGHT ERROR while calling addScholarshipAdmin or during processing:", err);
+    console.error("[Server Action - handleAddScholarship] Error Name:", err.name);
+    console.error("[Server Action - handleAddScholarship] Error Message:", err.message);
+    console.error("[Server Action - handleAddScholarship] Error Stack:", err.stack);
+    // Ensure the error message sent to client is a simple string
+    let clientErrorMessage = "Failed to add scholarship. An unexpected server error occurred.";
+    if (err.message) {
+        clientErrorMessage = err.message.includes("SERVER_CONFIG_ERROR:") 
+                             ? err.message // Propagate specific config error
+                             : `Failed to add scholarship: ${err.message}`;
+    }
+    return { success: false, error: clientErrorMessage };
   }
 }
 
@@ -211,9 +214,8 @@ export default function NewScholarshipPage() {
 
   const onSubmit: SubmitHandler<ScholarshipFormData> = async (data) => {
     setIsSubmitting(true);
-    console.log("[NewScholarshipPage Client] Submitting form data:", data);
+    console.log("[NewScholarshipPage Client] Submitting form data to Server Action:", data);
     
-    // Client-side processing of _none_ and empty strings to null
     const processedClientData: ScholarshipFormData = { ...data };
     (Object.keys(processedClientData) as Array<keyof ScholarshipFormData>).forEach(key => {
       if (processedClientData[key] === "_none_") {
@@ -226,14 +228,18 @@ export default function NewScholarshipPage() {
       }
     });
 
-    const result = await handleAddScholarship(processedClientData);
+    // Add ID token for server-side auth verification if needed
+    // const idToken = await user?.getIdToken();
+    // const dataWithToken = { ...processedClientData, idToken };
+
+    const result = await handleAddScholarship(processedClientData); // Pass processedClientData
 
     if (result.success) {
       toast({ title: "Success", description: `Scholarship "${result.name}" added successfully with ID: ${result.scholarshipId}.` });
       router.push('/admin/scholarships');
     } else {
-      toast({ title: "Error Adding Scholarship", description: result.error || "Failed to add scholarship. Check console for details.", variant: "destructive" });
-      console.error("[NewScholarshipPage Client] Error from Server Action:", result.error);
+      toast({ title: "Error Adding Scholarship", description: result.error || "Failed to add scholarship. Check server console for details.", variant: "destructive" });
+      console.error("[NewScholarshipPage Client] Error from Server Action 'handleAddScholarship':", result.error);
     }
     setIsSubmitting(false);
   };

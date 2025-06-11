@@ -1,15 +1,23 @@
 
 // src/lib/firestoreAdminService.ts
-// Note: This file uses the Firebase Admin SDK and should only be called from server-side environments (e.g., Server Actions, API routes).
-
 import { adminDB } from '@/lib/firebaseAdmin';
 import type { Scholarship } from '@/types';
-import { Timestamp } from 'firebase-admin/firestore'; // Use Admin SDK Timestamp
+import { Timestamp } from 'firebase-admin/firestore';
 
 const SCHOLARSHIPS_COLLECTION = 'SCHOLARSHIPS';
 
+function ensureAdminDBInitialized() {
+  if (typeof adminDB === 'undefined' || !adminDB || typeof adminDB.collection !== 'function') {
+    const errorMessage = "SERVER_CONFIG_ERROR: Firebase Admin SDK (adminDB) is not properly initialized. This is a critical server configuration issue. Possible causes: GOOGLE_APPLICATION_CREDENTIALS environment variable is not set, path is incorrect, service account file is malformed/missing, or Node.js process lacks read permissions. Detailed Admin SDK initialization logs should be in the server console (check firebaseAdmin.ts logs).";
+    console.error("[firestoreAdminService] CRITICAL CHECK FAILED:", errorMessage);
+    throw new Error(errorMessage);
+  }
+   console.log("[firestoreAdminService] AdminDB initialized check passed.");
+}
+
 export async function addScholarshipAdmin(scholarshipData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-  console.log("[firestoreAdminService] addScholarshipAdmin: Received data:", scholarshipData);
+  console.log("[firestoreAdminService] addScholarshipAdmin: Attempting to add data:", JSON.stringify(scholarshipData, null, 2));
+  ensureAdminDBInitialized(); // Explicit check
   
   const dataToSave: Partial<Scholarship> & { createdAt: any, updatedAt: any } = {
     name: scholarshipData.name || '',
@@ -28,23 +36,24 @@ export async function addScholarshipAdmin(scholarshipData: Omit<Scholarship, 'id
     coverage: scholarshipData.coverage || null,
     deadline: scholarshipData.deadline || null,
     imageUrl: scholarshipData.imageUrl || null,
-    createdAt: Timestamp.now(), // Use admin.firestore.FieldValue.serverTimestamp() or Timestamp.now()
+    createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   };
   
   try {
-    const scholarshipsRef = adminDB.collection(SCHOLARSHIPS_COLLECTION);
-    const docRef = await scholarshipsRef.add(dataToSave as any); // Type assertion as Admin SDK types might differ slightly
+    const scholarshipsRef = adminDB!.collection(SCHOLARSHIPS_COLLECTION); // Added non-null assertion as ensureAdminDBInitialized would have thrown
+    const docRef = await scholarshipsRef.add(dataToSave as any);
     console.log("[firestoreAdminService] addScholarshipAdmin: Successfully added document with ID:", docRef.id);
     return docRef.id;
   } catch (error: any) { 
-    console.error("[firestoreAdminService] CRITICAL ERROR adding scholarship with Admin SDK:", error);
-    throw new Error(`Failed to add scholarship using Admin SDK. Server error: ${error.message || 'Please check server console for details.'}`);
+    console.error("[firestoreAdminService] addScholarshipAdmin: CRITICAL ERROR during Admin SDK Firestore 'add' operation:", error);
+    throw new Error(`Admin SDK Firestore Error: ${error.message || 'Failed to add scholarship using Admin SDK. Check server console for details.'}`);
   }
 }
 
 export async function updateScholarshipAdmin(id: string, scholarshipData: Partial<Omit<Scholarship, 'id' | 'createdAt'>>): Promise<void> {
-  console.log(`[firestoreAdminService] updateScholarshipAdmin: Received data for ID ${id}:`, scholarshipData);
+  console.log(`[firestoreAdminService] updateScholarshipAdmin: Attempting to update ID ${id} with data:`, JSON.stringify(scholarshipData, null, 2));
+  ensureAdminDBInitialized();
   
   const dataToUpdate: { [key: string]: any } = {};
   (Object.keys(scholarshipData) as Array<keyof typeof scholarshipData>).forEach(key => {
@@ -65,28 +74,24 @@ export async function updateScholarshipAdmin(id: string, scholarshipData: Partia
   dataToUpdate.updatedAt = Timestamp.now();
 
   try {
-    const scholarshipDocRef = adminDB.collection(SCHOLARSHIPS_COLLECTION).doc(id);
+    const scholarshipDocRef = adminDB!.collection(SCHOLARSHIPS_COLLECTION).doc(id);
     await scholarshipDocRef.update(dataToUpdate);
     console.log(`[firestoreAdminService] updateScholarshipAdmin: Successfully updated document with ID: ${id}`);
   } catch (error: any) {
-    console.error(`[firestoreAdminService] ERROR updating scholarship ${id} with Admin SDK:`, error);
-    throw new Error(`Failed to update scholarship ${id} using Admin SDK. Server error: ${error.message || 'Unknown Firestore error.'}`);
+    console.error(`[firestoreAdminService] updateScholarshipAdmin: ERROR updating scholarship ${id} with Admin SDK:`, error);
+    throw new Error(`Admin SDK Firestore Error: ${error.message || `Failed to update scholarship ${id}. Check server console.`}`);
   }
 }
 
 export async function deleteScholarshipAdmin(id: string): Promise<void> {
   console.log(`[firestoreAdminService] deleteScholarshipAdmin: Attempting to delete ID: ${id}`);
+  ensureAdminDBInitialized();
   try {
-    const scholarshipDocRef = adminDB.collection(SCHOLARSHIPS_COLLECTION).doc(id);
+    const scholarshipDocRef = adminDB!.collection(SCHOLARSHIPS_COLLECTION).doc(id);
     await scholarshipDocRef.delete();
     console.log(`[firestoreAdminService] deleteScholarshipAdmin: Successfully deleted document with ID: ${id}`);
   } catch (error: any) {
-    console.error(`[firestoreAdminService] Error deleting scholarship ${id} with Admin SDK:`, error);
-    throw new Error(`Failed to delete scholarship ${id} using Admin SDK.`);
+    console.error(`[firestoreAdminService] deleteScholarshipAdmin: Error deleting scholarship ${id} with Admin SDK:`, error);
+    throw new Error(`Admin SDK Firestore Error: ${error.message || `Failed to delete scholarship ${id}. Check server console.`}`);
   }
 }
-
-// Note: getScholarships and getScholarshipById for public reads can remain in a client-SDK based service file (e.g., firestoreClientService.ts)
-// if they are intended for public access where security rules handle read permissions.
-// If all Firestore interactions are to be centralized through Admin SDK (e.g., for an internal tool or if public pages also use Server Components with admin data access),
-// then read functions could also be implemented here using adminDB.
