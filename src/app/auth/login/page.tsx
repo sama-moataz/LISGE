@@ -9,7 +9,7 @@ import {
   signInWithPhoneNumber,
   type ConfirmationResult
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'; // Added getDoc
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'; 
 import { auth, db, googleAuthProvider, RecaptchaVerifier } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,37 +60,47 @@ export default function LoginPage() {
     };
   }, [toast]);
 
-  const handleLoginSuccess = async (userId: string, userEmail: string | null, isNewUserCreation?: boolean, userName?: string | null, userPhotoURL?: string | null, userPhoneNumber?: string | null) => {
+  const handleLoginSuccess = async (userId: string, userEmail: string | null, isNewSocialOrPhoneUser?: boolean, userName?: string | null, userPhotoURL?: string | null, userPhoneNumber?: string | null) => {
+    console.log(`[LoginSuccess] Handling for UID: ${userId}, Email: ${userEmail}, isNewSocialOrPhoneUser: ${isNewSocialOrPhoneUser}`);
     try {
       const userDocRef = doc(db, "users", userId);
       const userDocSnap = await getDoc(userDocRef);
 
-      if (!userDocSnap.exists() && isNewUserCreation) {
-        // Create user document if it's a new user sign-up/first-time social login
-        await setDoc(userDocRef, {
+      if (!userDocSnap.exists() && isNewSocialOrPhoneUser) {
+        // Create user document for new social/phone sign-in
+        const profileToCreate = {
           uid: userId,
-          name: userName || (userEmail ? userEmail.split('@')[0] : "User"),
-          email: userEmail,
-          role: 'user', // Default role
+          name: userName || (userEmail ? userEmail.split('@')[0] : (userPhoneNumber ? `User-${userId.substring(0,5)}` : "User")),
+          email: userEmail || null,
+          role: 'user', // Default role for new social/phone users
           createdAt: serverTimestamp(),
           lastLoginAt: serverTimestamp(),
           photoURL: userPhotoURL || null,
           phoneNumber: userPhoneNumber || null,
-        });
+        };
+        console.log("[LoginSuccess] New social/phone user. Creating profile:", profileToCreate);
+        await setDoc(userDocRef, profileToCreate);
         toast({ title: "Account Created & Logged In!", description: "Welcome to LISGE Hub." });
-      } else {
-        // Update lastLoginAt for existing users
+      } else if (userDocSnap.exists()) {
+        // Update lastLoginAt for existing users (all login types)
+        console.log("[LoginSuccess] Existing user. Updating lastLoginAt.");
         await setDoc(userDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
         toast({ title: "Login Successful!", description: "Welcome back to LISGE Hub." });
+      } else if (!userDocSnap.exists() && !isNewSocialOrPhoneUser) {
+        // This case is for email/password login where profile SHOULD exist from signup
+        console.warn(`[LoginSuccess] Profile not found for email/password user UID: ${userId}. This is unexpected for non-social/phone logins.`);
+        toast({ title: "Login Warning", description: "Profile not found, but login successful. Please contact support if issues persist.", variant: "default" });
+      } else {
+         console.log("[LoginSuccess] User profile already exists or this is not a new social/phone user being created now.");
       }
 
       const redirectUrl = searchParams.get('redirect') || '/dashboard';
       router.push(redirectUrl);
     } catch (dbError: any) {
-      console.error("Error during login success handling: ", dbError);
-      toast({ title: "Login Error", description: `Could not finalize login: ${dbError.message}`, variant: "destructive" });
+      console.error("[LoginSuccess] Error during Firestore operation: ", dbError);
+      toast({ title: "Login Error", description: `Could not finalize login with database: ${dbError.message}`, variant: "destructive" });
       // Still try to redirect to dashboard if login itself was successful before db error
-      if(!isNewUserCreation) router.push('/dashboard'); 
+      if(!isNewSocialOrPhoneUser && userDocSnap.exists()) router.push('/dashboard'); 
     }
   };
 
@@ -100,7 +110,7 @@ export default function LoginPage() {
     setLoading('email');
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await handleLoginSuccess(userCredential.user.uid, userCredential.user.email);
+      await handleLoginSuccess(userCredential.user.uid, userCredential.user.email, false); // isNewSocialOrPhoneUser is false for email/pass
     } catch (err: any) {
       setError(err.message || "Failed to login. Please check your credentials.");
       toast({ title: "Login Failed", description: err.message, variant: "destructive" });
@@ -115,7 +125,8 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(auth, googleAuthProvider);
       const user = result.user;
-      await handleLoginSuccess(user.uid, user.email, true, user.displayName, user.photoURL);
+      // For Google, we mark as potentially new social user. handleLoginSuccess will check Firestore.
+      await handleLoginSuccess(user.uid, user.email, true, user.displayName, user.photoURL, user.phoneNumber);
     } catch (err: any) {
       setError(err.message || "Failed to login with Google.");
       toast({ title: "Google Login Failed", description: err.message, variant: "destructive" });
@@ -130,7 +141,6 @@ export default function LoginPage() {
     setLoading('phone');
     try {
       const appVerifier = window.recaptchaVerifier!;
-      // Ensure reCAPTCHA is rendered and ready (Firebase handles this internally for invisible)
       const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       window.confirmationResult = confirmationResult; 
       setOtpSent(true);
@@ -139,12 +149,14 @@ export default function LoginPage() {
       setError(err.message || "Failed to send OTP. Ensure phone number is correct and reCAPTCHA is working.");
       toast({ title: "Phone Login Failed", description: err.message, variant: "destructive" });
       console.error("Phone auth error:", err);
-      // Reset reCAPTCHA if it exists and failed
       if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.render().then(function(widgetId) {
-          // @ts-ignore
-          if (typeof grecaptcha !== 'undefined') grecaptcha.reset(widgetId);
-        }).catch(console.error);
+        // @ts-ignore
+        if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
+            window.recaptchaVerifier.render().then(function(widgetId) {
+                // @ts-ignore
+                grecaptcha.reset(widgetId);
+            }).catch(console.error);
+        }
       }
     } finally {
       setLoading(false);
@@ -159,7 +171,8 @@ export default function LoginPage() {
       if (window.confirmationResult) {
         const userCredential = await window.confirmationResult.confirm(otp);
         const user = userCredential.user;
-        await handleLoginSuccess(user.uid, user.email, true, user.phoneNumber, user.photoURL, user.phoneNumber);
+         // For Phone, we mark as potentially new social user. handleLoginSuccess will check Firestore.
+        await handleLoginSuccess(user.uid, user.email, true, user.displayName, user.photoURL, user.phoneNumber);
       } else {
         throw new Error("OTP confirmation result not found. Please try sending OTP again.");
       }

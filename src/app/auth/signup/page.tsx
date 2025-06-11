@@ -29,30 +29,38 @@ export default function SignupPage() {
     setError(null);
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      toast({ title: "Signup Failed", description: "Passwords do not match.", variant: "destructive" });
       return;
     }
     if (password.length < 6) {
       setError("Password should be at least 6 characters.");
+      toast({ title: "Signup Failed", description: "Password should be at least 6 characters.", variant: "destructive" });
       return;
     }
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
+      console.log(`[Signup] User created in Auth with UID: ${firebaseUser.uid}`);
 
       // Update Firebase Auth profile (optional, but good for display name)
       await updateAuthProfile(firebaseUser, { displayName: name });
+      console.log(`[Signup] Firebase Auth profile updated with name: ${name}`);
 
       // Create user document in Firestore
       const userDocRef = doc(db, "users", firebaseUser.uid);
-      await setDoc(userDocRef, {
+      const userProfileData = {
         uid: firebaseUser.uid,
         name: name,
         email: firebaseUser.email,
         role: 'user', // Default role
         createdAt: serverTimestamp(),
-        photoURL: firebaseUser.photoURL, // Or a default one
-      });
+        lastLoginAt: serverTimestamp(), // Also set lastLoginAt on signup
+        photoURL: firebaseUser.photoURL || null,
+      };
+      console.log("[Signup] Creating user profile in Firestore:", userProfileData);
+      await setDoc(userDocRef, userProfileData);
+      console.log("[Signup] User profile successfully created in Firestore.");
 
       toast({
         title: "Account Created!",
@@ -61,7 +69,7 @@ export default function SignupPage() {
       router.push('/dashboard'); 
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.");
-      console.error("Signup error:", err);
+      console.error("[Signup] Error:", err);
       toast({
         title: "Signup Failed",
         description: err.message || "An unexpected error occurred.",

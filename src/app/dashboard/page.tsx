@@ -2,35 +2,50 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Corrected import
-import Link from 'next/link'; // Added import for Link
+import { useRouter } from 'next/navigation'; 
+import Link from 'next/link'; 
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Loader2, ShieldCheck, UserCircle, LogOut } from 'lucide-react';
+import { Loader2, ShieldCheck, LogOut } from 'lucide-react'; // UserCircle removed as it's not used directly
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { format } from 'date-fns'; // For formatting timestamps
-import type { Timestamp } from 'firebase/firestore'; // Import Timestamp type
+import { format, isValid } from 'date-fns'; 
+import type { Timestamp } from 'firebase/firestore'; 
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function DashboardPage() {
   const { user, userProfile, isAdmin, loading, error: authError } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!loading && !user) {
+      console.log("[Dashboard] No user found and not loading, redirecting to login.");
       router.push('/auth/login?redirect=/dashboard');
     }
-  }, [user, loading, router]);
+    if (!loading && authError) {
+        console.error("[Dashboard] AuthContext error:", authError);
+        toast({
+            title: "Authentication Error",
+            description: authError || "There was an issue with your session. Please log in again.",
+            variant: "destructive",
+        });
+        // Optionally redirect to login if authError is critical
+        // router.push('/auth/login?redirect=/dashboard'); 
+    }
+  }, [user, loading, router, authError, toast]);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      toast({ title: "Logged Out", description: "You have been successfully logged out." });
       router.push('/'); 
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Handle logout error (e.g., show a toast notification)
+    } catch (error: any) {
+      console.error("[Dashboard] Logout error:", error);
+      toast({ title: "Logout Error", description: error.message || "Failed to log out.", variant: "destructive" });
     }
   };
 
@@ -43,12 +58,12 @@ export default function DashboardPage() {
     );
   }
 
-  if (authError) {
+  if (authError && !userProfile) { // Show error more prominently if profile also failed to load
      return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)] text-center">
          <Card className="w-full max-w-md shadow-lg">
             <CardHeader>
-                <CardTitle className="text-2xl font-headline text-destructive">Authentication Error</CardTitle>
+                <CardTitle className="text-2xl font-headline text-destructive">Access Error</CardTitle>
             </CardHeader>
             <CardContent>
                 <p className="text-muted-foreground mb-4">{authError}</p>
@@ -69,10 +84,13 @@ export default function DashboardPage() {
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-lg text-muted-foreground">Verifying session, redirecting if necessary...</p>
+        <p className="text-sm text-muted-foreground mt-2">(Ensure you are logged in and profile data is available)</p>
       </div>
     );
   }
   
+  console.log("[Dashboard] Rendering with userProfile:", userProfile, "isAdmin:", isAdmin);
+
   const getAvatarFallback = (name: string | null | undefined, email: string | null | undefined, uid?: string) => {
     if (name) return name.substring(0, 2).toUpperCase();
     if (email) return email.substring(0, 2).toUpperCase();
@@ -83,19 +101,24 @@ export default function DashboardPage() {
   const formatTimestamp = (timestamp: any): string => {
     if (!timestamp) return 'N/A';
     try {
-      // Firestore Timestamps have a toDate() method
+      let dateToFormat: Date;
       if (timestamp && typeof timestamp.toDate === 'function') {
-        return format((timestamp as Timestamp).toDate(), "MMMM d, yyyy 'at' h:mm a");
+        dateToFormat = (timestamp as Timestamp).toDate();
+      } else if (timestamp instanceof Date) {
+        dateToFormat = timestamp;
+      } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+        dateToFormat = new Date(timestamp);
+      } else {
+        return 'Invalid Date Object';
       }
-      // If it's already a Date object or a parseable string/number
-      const date = new Date(timestamp);
-      if (!isNaN(date.getTime())) {
-        return format(date, "MMMM d, yyyy 'at' h:mm a");
+      
+      if (isValid(dateToFormat)) {
+        return format(dateToFormat, "MMMM d, yyyy 'at' h:mm a");
       }
       return 'Invalid Date';
     } catch (e) {
-      console.warn("Failed to format timestamp:", timestamp, e);
-      return 'Invalid Date';
+      console.warn("[Dashboard] Failed to format timestamp:", timestamp, e);
+      return 'Formatting Error';
     }
   };
 
