@@ -139,8 +139,20 @@ export default function StudyTipsPage() {
       {allTips.length > 0 && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {allTips.map((tip) => {
-            const TipIcon = tip.iconName ? IconByName : (tip.icon || Lightbulb);
-            const iconProps = tip.iconName ? { name: tip.iconName } : {};
+            const TipIconComponent = tip.iconName ? IconByName : (tip.icon || Lightbulb);
+            const commonIconProps = { className: "h-8 w-8 text-accent" };
+            
+            // Conditionally build props for the icon component
+            let iconToRender;
+            if (tip.iconName) {
+              iconToRender = <IconByName name={tip.iconName} {...commonIconProps} fallbackIcon={Lightbulb} />;
+            } else if (tip.icon) {
+              const StaticIcon = tip.icon;
+              iconToRender = <StaticIcon {...commonIconProps} />;
+            } else {
+              iconToRender = <Lightbulb {...commonIconProps} />;
+            }
+            
             const imageUrl = tip.imageUrl || `https://placehold.co/600x300.png?text=${encodeURIComponent(tip.title.substring(0,20))}`;
             const dataAiHint = tip.dataAiHint || tip.title.toLowerCase().split(' ').slice(0,2).join(' ');
 
@@ -149,13 +161,13 @@ export default function StudyTipsPage() {
               <Card key={tip.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-2">
-                    <TipIcon {...iconProps} className="h-8 w-8 text-accent" fallbackIcon={Lightbulb} />
+                    {iconToRender}
                     <CardTitle className="text-xl font-headline leading-tight">{tip.title}</CardTitle>
                   </div>
                   {tip.category && <p className="text-xs text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full inline-block">{tip.category}</p>}
                 </CardHeader>
                 <CardContent className="flex-grow space-y-3">
-                  {tip.imageUrl !== null && ( // Render image only if imageUrl is explicitly not null (allows empty string to be skipped for placeholders)
+                  {tip.imageUrl !== null && ( 
                      <Image
                         src={imageUrl}
                         alt={tip.title}
@@ -189,3 +201,4 @@ export default function StudyTipsPage() {
 //     description: 'Discover smart strategies and insights to enhance your learning, manage your time effectively, and achieve academic excellence.',
 //   };
 // }
+
