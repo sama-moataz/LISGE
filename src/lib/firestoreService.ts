@@ -79,11 +79,25 @@ export async function getScholarshipById(id: string): Promise<Scholarship | null
 export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
   try {
     const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
-    const docRef = await addDoc(scholarshipsRef, {
+    // Ensure all potentially undefined fields that are optional are handled,
+    // Firestore might not like `undefined` values for top-level fields.
+    const dataToSave = {
       ...scholarshipData,
+      iconName: scholarshipData.iconName || null,
+      category: scholarshipData.category || null,
+      ageRequirement: scholarshipData.ageRequirement || null,
+      fundingLevel: scholarshipData.fundingLevel || null,
+      destinationRegion: scholarshipData.destinationRegion || null,
+      targetLevel: scholarshipData.targetLevel || null,
+      fundingCountry: scholarshipData.fundingCountry || null,
+      partner: scholarshipData.partner || null,
+      coverage: scholarshipData.coverage || null,
+      deadline: scholarshipData.deadline || null,
+      imageUrl: scholarshipData.imageUrl || null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
+    };
+    const docRef = await addDoc(scholarshipsRef, dataToSave);
     return docRef.id;
   } catch (error) {
     console.error("Error adding scholarship: ", error);
@@ -94,10 +108,17 @@ export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | '
 export async function updateScholarship(id: string, scholarshipData: Partial<Omit<Scholarship, 'id' | 'createdAt'>>): Promise<void> {
   try {
     const scholarshipDocRef = doc(db, SCHOLARSHIPS_COLLECTION, id);
-    await updateDoc(scholarshipDocRef, {
-      ...scholarshipData,
-      updatedAt: serverTimestamp(),
-    });
+     // Prepare data for update, ensuring optional fields are handled correctly
+    const dataToUpdate: { [key: string]: any } = {};
+    for (const key in scholarshipData) {
+        if (Object.prototype.hasOwnProperty.call(scholarshipData, key)) {
+            const value = (scholarshipData as any)[key];
+            dataToUpdate[key] = value === undefined ? null : value;
+        }
+    }
+    dataToUpdate.updatedAt = serverTimestamp();
+
+    await updateDoc(scholarshipDocRef, dataToUpdate);
   } catch (error) {
     console.error(`Error updating scholarship ${id}: `, error);
     throw new Error(`Failed to update scholarship ${id}.`);
@@ -128,11 +149,23 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
   scholarshipsToSeed.forEach(scholarship => {
     if (!existingNames.has(scholarship.name)) {
       const newDocRef = doc(scholarshipsRef); // Auto-generate ID
-      batch.set(newDocRef, {
+      const dataToSave = {
         ...scholarship,
+        iconName: scholarship.iconName || null,
+        category: scholarship.category || null,
+        ageRequirement: scholarship.ageRequirement || null,
+        fundingLevel: scholarship.fundingLevel || null,
+        destinationRegion: scholarship.destinationRegion || null,
+        targetLevel: scholarship.targetLevel || null,
+        fundingCountry: scholarship.fundingCountry || null,
+        partner: scholarship.partner || null,
+        coverage: scholarship.coverage || null,
+        deadline: scholarship.deadline || null,
+        imageUrl: scholarship.imageUrl || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      };
+      batch.set(newDocRef, dataToSave);
       seededCount++;
     }
   });
