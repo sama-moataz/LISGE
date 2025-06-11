@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { handleDeleteSummerProgramAction } from './actions'; 
 
 export default function AdminSummerProgramsPage() {
@@ -76,12 +76,13 @@ export default function AdminSummerProgramsPage() {
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     try {
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-       if (date instanceof Date && !isNaN(date.valueOf())) {
+      const date = timestamp.toDate ? timestamp.toDate() : (timestamp instanceof Date ? timestamp : new Date(timestamp));
+      if (date instanceof Date && isValid(date)) {
         return format(date, "MMM d, yyyy");
       }
       return 'Invalid Date';
     } catch (e) {
+      console.error("Error formatting date:", e, "Timestamp was:", timestamp);
       return 'Invalid Date';
     }
   };

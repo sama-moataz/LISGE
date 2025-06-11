@@ -43,6 +43,17 @@
       "layer": {
         "app/admin/scholarships/new/page": "action-browser"
       }
+    },
+    "607f9419a3350514cf4f42d09e6e1a9e1b926d8737": {
+      "workers": {
+        "app/admin/programs/page": {
+          "moduleId": "[project]/.next-internal/server/app/admin/programs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/programs/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/admin/programs/page": "action-browser"
+      }
     }
   },
   "edge": {},
