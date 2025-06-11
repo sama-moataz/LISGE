@@ -16,17 +16,7 @@ export default function Home() {
     <div className="space-y-12">
       {/* Hero Section */}
       <section className="relative text-center py-16 md:py-24 rounded-lg overflow-hidden shadow-lg bg-gradient-to-br from-primary/10 to-accent/10">
-        <div className="absolute inset-0">
-           <Image
-            src="https://placehold.co/1200x400.png"
-            alt="Global experiences for students"
-            data-ai-hint="global education students"
-            fill
-            style={{ objectFit: 'cover' }}
-            className="opacity-20"
-            priority
-          />
-        </div>
+        {/* Background image div removed from here */}
         <div className="relative z-10 container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold font-headline mb-6 text-primary-foreground bg-primary/80 backdrop-blur-sm py-2 px-4 rounded-md inline-block">
             LISGE: Local and International <br className="sm:hidden" /> Scholars' Guide to Excellence
@@ -159,5 +149,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
