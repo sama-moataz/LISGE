@@ -73,11 +73,11 @@ export async function getScholarshipById(id: string): Promise<Scholarship | null
 
 // Seeding (can be kept here, but for robust server-side seeding, Admin SDK is better)
 export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<void> {
-  'use server'; // Make this a server action if it's to be triggered from client by admin
-  // For one-off scripts, Admin SDK is preferred.
-  // If triggered by an admin from client, this Server Action will need robust auth checks.
+  // Removed inline 'use server'; directive to prevent build errors
+  // This function, if called from client, will run client-side.
+  // For server-side seeding, consider a dedicated script or a Server Action in its own file using Admin SDK.
 
-  console.log("[firestoreService] seedInitialScholarships (Server Action): Checking if seeding is needed.");
+  console.log("[firestoreService] seedInitialScholarships: Checking if seeding is needed.");
   const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
   
   const existingQuerySnapshot = await getDocs(query(scholarshipsRef, orderBy('createdAt', 'desc')));
@@ -114,25 +114,26 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
 
   if (seededCount > 0) {
     try {
-      // CRITICAL: Authorization for seeding
-      // If this Server Action is called from client, it MUST verify admin status.
-      // Example:
-      // const user = auth.currentUser; // This might be null or stale in Server Actions
-      // if (!user || !(await checkUserIsAdmin(user.uid))) { throw new Error("Unauthorized"); }
-      // For this example, we assume auth is handled if it's a protected Server Action.
-      console.log(`[firestoreService] seedInitialScholarships (Server Action): Auth UID before commit: ${auth.currentUser?.uid || 'auth.currentUser is NULL/STALE'}`);
+      // CRITICAL: If this function is called from the client-side,
+      // it will operate under the client's Firebase auth context.
+      // Firestore rules for SCHOLARSHIPS must allow writes from authenticated users (admins)
+      // for this to succeed if called from client.
+      // If this is intended as a server-only operation, it should use Admin SDK and be in a separate file.
+      const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_IN_SEEDING_FUNCTION';
+      console.log(`[firestoreService] seedInitialScholarships: Committing batch. Auth UID (if client-side): ${currentAuthUserUid}`);
 
       await batch.commit();
       console.log(`[firestoreService] seedInitialScholarships: Successfully seeded ${seededCount} new scholarships.`);
     } catch (error: any) {
       console.error("[firestoreService] seedInitialScholarships: Error committing seed batch:", error);
-      const currentAuthUserUidInCatch = auth.currentUser?.uid || 'UNKNOWN_UID_IN_SERVER_ACTION_CATCH_BLOCK_SEEDING';
+      const currentAuthUserUidInCatch = auth.currentUser?.uid || 'UNKNOWN_UID_IN_SEEDING_CATCH_BLOCK';
        if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
          const detailedErrorMessage =
-           `ACTION REQUIRED: Firestore Permission Denied when Server Action 'seedInitialScholarships' tried to write. ` +
+           `ACTION REQUIRED: Firestore Permission Denied when 'seedInitialScholarships' tried to write. ` +
            `Firebase Original Message: "${error.message}". ` +
-           `UID available in Server Action's auth context (if any): '${currentAuthUserUidInCatch}'. ` +
-           `Ensure the Server Action is properly authenticated and authorized if called from client, or use Admin SDK for scripts.`;
+           `UID available in function's auth context (if any): '${currentAuthUserUidInCatch}'. ` +
+           `Ensure Firestore rules allow this operation for the acting user, or use Admin SDK for server-side scripts.`;
+         console.error(detailedErrorMessage);
          throw new Error(detailedErrorMessage);
        }
       throw new Error(`Failed to seed scholarships. Server error: ${error.message || 'Please check server console for details.'}`);
@@ -141,3 +142,4 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
     console.log("[firestoreService] seedInitialScholarships: No new scholarships were provided for seeding.");
   }
 }
+
