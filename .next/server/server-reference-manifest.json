@@ -65,6 +65,17 @@
       "layer": {
         "app/admin/exchange-programs/page": "action-browser"
       }
+    },
+    "40e9770e222d786aba31934a2e9fe93c9885474dbf": {
+      "workers": {
+        "app/admin/programs/new/page": {
+          "moduleId": "[project]/.next-internal/server/app/admin/programs/new/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/programs/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/admin/programs/new/page": "action-browser"
+      }
     }
   },
   "edge": {},

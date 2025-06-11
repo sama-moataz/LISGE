@@ -6,12 +6,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays, BookOpen, DollarSign, Info } from 'lucide-react';
+import { Plane, Users, MapPin, Code2, ExternalLink, Filter, Briefcase, RefreshCw, Globe, Landmark, CalendarDays, BookOpen, DollarSign, Info, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { getSummerPrograms } from '@/lib/firestoreService'; // Import the fetch function
+import IconByName from '@/components/IconByName'; // Import IconByName
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
-const summerProgramsData: SummerProgram[] = [
+const staticSummerProgramsData: SummerProgram[] = [
   {
     id: 'ccc',
     name: 'EducationUSA Competitive College Club (CCC)',
@@ -28,7 +31,8 @@ const summerProgramsData: SummerProgram[] = [
     programDuration: 'Varies', 
     partner: 'EducationUSA',
     coverage: "Guidance, workshops, and resources for U.S. college applications.",
-    deadline: "Varies (check with local EducationUSA center)"
+    deadline: "Varies (check with local EducationUSA center)",
+    dataAiHint: "college application support"
   },
   {
     id: 'gwc',
@@ -46,7 +50,8 @@ const summerProgramsData: SummerProgram[] = [
     programDuration: '2-4 Weeks',
     partner: 'Girls Who Code',
     coverage: "Virtual coding instruction and tech job exposure.",
-    deadline: "Applications typically open early in the year"
+    deadline: "Applications typically open early in the year",
+    dataAiHint: "girls coding online"
   },
   {
     id: 'techgirls',
@@ -64,7 +69,8 @@ const summerProgramsData: SummerProgram[] = [
     programDuration: '2-4 Weeks', 
     partner: 'U.S. Department of State',
     coverage: "Full coverage for three-week summer exchange in the U.S. focused on STEM.",
-    deadline: "December (Typical, check official site)"
+    deadline: "December (Typical, check official site)",
+    dataAiHint: "tech girls summer"
   },
   {
     id: 'daad-summer-courses',
@@ -82,7 +88,8 @@ const summerProgramsData: SummerProgram[] = [
     programDuration: 'Varies', 
     partner: 'DAAD',
     coverage: "One-time scholarship of €1,134 plus allowances for course fees, travel, and living expenses.",
-    deadline: "December (Approximate)"
+    deadline: "December (Approximate)",
+    dataAiHint: "germany study language"
   },
   {
     id: 'yaleygs',
@@ -100,7 +107,8 @@ const summerProgramsData: SummerProgram[] = [
     programDuration: '2-4 Weeks',
     partner: 'Yale University',
     coverage: "Academic sessions, lectures, workshops. Fee covers tuition, housing, meals for on-campus. Aid available.",
-    deadline: 'Early January (check website)'
+    deadline: 'Early January (check website)',
+    dataAiHint: "yale leadership program"
   },
 ];
 
@@ -153,19 +161,44 @@ const locationOptions: { value: LocationFilter; label: string }[] = [
 
 export default function SummerProgramsPage() {
   const [mounted, setMounted] = useState(false);
+  const [firestorePrograms, setFirestorePrograms] = useState<SummerProgram[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
   const [selectedLocation, setSelectedLocation] = useState<LocationFilter>('All');
   const [selectedAge, setSelectedAge] = useState<ProgramAgeFilter>('All');
   const [selectedFunding, setSelectedFunding] = useState<ProgramFundingFilter>('All');
   const [selectedFocusArea, setSelectedFocusArea] = useState<ProgramFocusAreaFilter>('All');
   const [selectedDuration, setSelectedDuration] = useState<ProgramDurationFilter>('All');
 
+  const fetchDynamicPrograms = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const dynamicData = await getSummerPrograms();
+      setFirestorePrograms(dynamicData);
+    } catch (err: any) {
+      setError(err.message || "Failed to load dynamic summer programs.");
+      toast({ title: "Error Loading Programs", description: err.message || "Could not fetch program data.", variant: "destructive" });
+      setFirestorePrograms([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
+    fetchDynamicPrograms();
   }, []);
 
-  const filteredPrograms = useMemo(() => {
-    return summerProgramsData.filter(program => {
+  const combinedAndFilteredPrograms = useMemo(() => {
+    // De-duplicate: Firestore entries take precedence if IDs match static data (unlikely with current setup but good practice)
+    const dynamicProgramIds = new Set(firestorePrograms.map(p => p.id));
+    const uniqueStaticPrograms = staticSummerProgramsData.filter(p => !dynamicProgramIds.has(p.id));
+    const allPrograms = [...uniqueStaticPrograms, ...firestorePrograms];
+    
+    return allPrograms.filter(program => {
       const locationMatch = selectedLocation === 'All' || program.location === selectedLocation;
       const ageMatch = selectedAge === 'All' || (program.ageRequirement && program.ageRequirement === selectedAge);
       const fundingMatch = selectedFunding === 'All' || (program.fundingLevel && program.fundingLevel === selectedFunding);
@@ -174,7 +207,7 @@ export default function SummerProgramsPage() {
       
       return locationMatch && ageMatch && fundingMatch && focusAreaMatch && durationMatch;
     });
-  }, [selectedLocation, selectedAge, selectedFunding, selectedFocusArea, selectedDuration]);
+  }, [firestorePrograms, selectedLocation, selectedAge, selectedFunding, selectedFocusArea, selectedDuration]);
 
   const clearFilters = () => {
     setSelectedLocation('All');
@@ -248,71 +281,104 @@ export default function SummerProgramsPage() {
         </Card>
       </div>
 
-      {filteredPrograms.length > 0 ? (
-        <div className="grid md:grid-cols-2 gap-6">
-          {filteredPrograms.map((program) => (
-            <Card key={program.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
-              <CardHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  {program.icon ? <program.icon className="h-8 w-8 text-accent" /> : <Briefcase className="h-8 w-8 text-accent" />}
-                  <CardTitle className="text-xl font-headline leading-tight">{program.name}</CardTitle>
-                </div>
-                 <div className="flex flex-wrap gap-2 text-xs mt-1">
-                    {program.focusArea && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><BookOpen size={12}/>{Array.isArray(program.focusArea) ? program.focusArea.join(', ') : program.focusArea}</span>}
-                    {program.location && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{program.location}</span>}
-                    {program.programDuration && program.programDuration !== 'All' && <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><CalendarDays size={12}/>{program.programDuration}</span>}
-                    {program.fundingLevel && program.fundingLevel !== 'All' && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{program.fundingLevel}</span>}
-                    {program.ageRequirement && program.ageRequirement !== 'All' && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full">Age: {program.ageRequirement}</span>}
-                </div>
-                <CardDescription className="pt-3 text-sm">{program.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow space-y-3 text-sm">
-                <Image 
-                  src={`/images/summer-${program.id}.jpg`}
-                  alt={program.name}
-                  data-ai-hint="students summer"
-                  width={600}
-                  height={300}
-                  className="rounded-md object-cover aspect-[2/1] mb-4"
-                />
-                 {program.partner && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Landmark className="h-4 w-4 text-primary" />
-                    <p><strong>Partner:</strong> {program.partner}</p>
-                  </div>
-                )}
-                {program.coverage && (
-                  <div className="flex items-start gap-2 text-muted-foreground">
-                    <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <p><strong>Coverage:</strong> {program.coverage.length > 100 ? program.coverage.substring(0,100) + '...' : program.coverage}</p>
-                  </div>
-                )}
-                <div>
-                  <h4 className="font-semibold mb-0.5">Eligibility:</h4>
-                  <p className="text-muted-foreground">{program.eligibility}</p>
-                </div>
-                {program.deadline && (
-                  <div className="flex items-center gap-2 text-muted-foreground pt-1">
-                    <CalendarDays className="h-4 w-4 text-primary" />
-                    <p><strong>Deadline:</strong> {program.deadline}</p>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button asChild className="w-full group">
-                  <Link href={program.websiteUrl} target="_blank" rel="noopener noreferrer">
-                    Visit Official Website <ExternalLink className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+      {isLoading && (
+        <div className="flex justify-center items-center py-10">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="ml-3 text-muted-foreground">Loading programs...</p>
         </div>
-      ) : (
+      )}
+
+      {!isLoading && error && (
+        <div className="text-center py-6">
+          <p className="text-destructive">{error}</p>
+          <Button onClick={fetchDynamicPrograms} className="mt-2">Try Again</Button>
+        </div>
+      )}
+
+      {!isLoading && combinedAndFilteredPrograms.length === 0 && !error && (
          <p className="text-center text-muted-foreground text-lg py-8">No summer programs found matching your criteria. Try broadening your search or clearing some filters.</p>
+      )}
+
+      {!isLoading && combinedAndFilteredPrograms.length > 0 && (
+        <div className="grid md:grid-cols-2 gap-6">
+          {combinedAndFilteredPrograms.map((program) => {
+            const ProgramIconComponent = program.iconName ? IconByName : (program.icon || Briefcase);
+            const commonIconProps = { className: "h-8 w-8 text-accent" };
+            let iconToRender;
+            if (program.iconName) {
+              iconToRender = <IconByName name={program.iconName} {...commonIconProps} fallbackIcon={Briefcase} />;
+            } else if (program.icon) {
+              const StaticIcon = program.icon;
+              iconToRender = <StaticIcon {...commonIconProps} />;
+            } else {
+              iconToRender = <Briefcase {...commonIconProps} />;
+            }
+
+            const imageUrl = program.imageUrl || (staticSummerProgramsData.find(p => p.id === program.id && p.id) ? `/images/summer-${program.id}.jpg` : `https://placehold.co/600x300.png?text=${encodeURIComponent(program.name.substring(0,20))}`);
+            const dataAiHint = program.dataAiHint || program.name.toLowerCase().split(' ').slice(0,2).join(' ');
+
+
+            return (
+              <Card key={program.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-2">
+                    {iconToRender}
+                    <CardTitle className="text-xl font-headline leading-tight">{program.name}</CardTitle>
+                  </div>
+                   <div className="flex flex-wrap gap-2 text-xs mt-1">
+                      {program.focusArea && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><BookOpen size={12}/>{Array.isArray(program.focusArea) ? program.focusArea.join(', ') : program.focusArea}</span>}
+                      {program.location && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{program.location}</span>}
+                      {program.programDuration && program.programDuration !== 'All' && <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><CalendarDays size={12}/>{program.programDuration}</span>}
+                      {program.fundingLevel && program.fundingLevel !== 'All' && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{program.fundingLevel}</span>}
+                      {program.ageRequirement && program.ageRequirement !== 'All' && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full">Age: {program.ageRequirement}</span>}
+                  </div>
+                  <CardDescription className="pt-3 text-sm">{program.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-3 text-sm">
+                  <Image 
+                    src={imageUrl}
+                    alt={program.name}
+                    data-ai-hint={dataAiHint}
+                    width={600}
+                    height={300}
+                    className="rounded-md object-cover aspect-[2/1] mb-4"
+                    onError={(e) => { e.currentTarget.src = `https://placehold.co/600x300.png?text=${encodeURIComponent(program.name.substring(0,20))}+Error`; }}
+                  />
+                   {program.partner && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Landmark className="h-4 w-4 text-primary" />
+                      <p><strong>Partner:</strong> {program.partner}</p>
+                    </div>
+                  )}
+                  {program.coverage && (
+                    <div className="flex items-start gap-2 text-muted-foreground">
+                      <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <p><strong>Coverage:</strong> {program.coverage.length > 100 ? program.coverage.substring(0,100) + '...' : program.coverage}</p>
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-semibold mb-0.5">Eligibility:</h4>
+                    <p className="text-muted-foreground">{program.eligibility}</p>
+                  </div>
+                  {program.deadline && (
+                    <div className="flex items-center gap-2 text-muted-foreground pt-1">
+                      <CalendarDays className="h-4 w-4 text-primary" />
+                      <p><strong>Deadline:</strong> {program.deadline}</p>
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter>
+                  <Button asChild className="w-full group">
+                    <Link href={program.websiteUrl} target="_blank" rel="noopener noreferrer">
+                      Visit Official Website <ExternalLink className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
+        </div>
       )}
     </div>
   );
 }
-
-    
