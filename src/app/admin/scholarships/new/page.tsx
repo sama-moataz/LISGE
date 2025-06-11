@@ -18,6 +18,7 @@ import { addScholarship } from '@/lib/firestoreService';
 import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
+import { auth } from '@/lib/firebase'; // Import auth for UID logging
 
 const curatedIconNames = [
   'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle', 
@@ -113,9 +114,9 @@ const scholarshipSchema = z.object({
   coverage: z.string().optional().nullable(),
   deadline: z.string().optional().nullable(),
   imageUrl: z.string().url({ message: "Please enter a valid image URL." })
-    .or(z.literal('')) // Allow empty string to pass Zod validation
+    .or(z.literal('')) 
     .optional()
-    .nullable(), // Actual type can be string | null | undefined
+    .nullable(), 
 });
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
@@ -133,7 +134,7 @@ export default function NewScholarshipPage() {
       description: '',
       eligibility: '',
       websiteUrl: '',
-      iconName: null, // Default to null for optional fields
+      iconName: null, 
       category: null,
       location: 'International',
       ageRequirement: null,
@@ -144,7 +145,7 @@ export default function NewScholarshipPage() {
       partner: null,
       coverage: null,
       deadline: null,
-      imageUrl: null, // Default to null
+      imageUrl: null,
     },
   });
 
@@ -161,14 +162,17 @@ export default function NewScholarshipPage() {
 
   const onSubmit: SubmitHandler<ScholarshipFormData> = async (data) => {
     setIsSubmitting(true);
+    // Log the current user's UID from the client-side auth state
+    console.log("[NewScholarshipPage] Submitting form. Client-side auth.currentUser UID:", auth.currentUser?.uid);
+    console.log("[NewScholarshipPage] user (from useAuth) UID:", user?.uid);
+
     console.log("Form data before processing:", data);
     
-    const processedData: Partial<Scholarship> = { ...data }; // Use Partial<Scholarship> for flexibility
+    const processedData: Partial<Scholarship> = { ...data }; 
     (Object.keys(processedData) as Array<keyof ScholarshipFormData>).forEach(key => {
       if (processedData[key] === "_none_") {
         (processedData[key] as any) = null;
       }
-      // Ensure empty strings for optional fields become null before sending to service
       if (typeof processedData[key] === 'string' && (processedData[key] as string).trim() === '' && key !== 'name' && key !== 'description' && key !== 'eligibility' && key !== 'websiteUrl' && key !== 'location') {
         if (key === 'imageUrl' || key === 'iconName' || key === 'category' || key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || key === 'coverage' || key === 'deadline') {
             (processedData[key] as any) = null;

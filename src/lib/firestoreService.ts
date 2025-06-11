@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -17,14 +18,11 @@ import {
   where,
   writeBatch,
 } from 'firebase/firestore';
-// It's good practice to get auth instance if you need UID for logging, but remember
-// security rules use request.auth.uid directly from the incoming request context.
 import { auth } from '@/lib/firebase';
 
 
 const SCHOLARSHIPS_COLLECTION = 'SCHOLARSHIPS';
 
-// Helper to convert Firestore doc data to Scholarship type
 const mapDocToScholarship = (docSnapshot: any): Scholarship => {
   const data = docSnapshot.data();
   return {
@@ -50,8 +48,6 @@ const mapDocToScholarship = (docSnapshot: any): Scholarship => {
   } as Scholarship;
 };
 
-
-// --- Scholarship Functions ---
 
 export async function getScholarships(): Promise<Scholarship[]> {
   try {
@@ -116,6 +112,8 @@ export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | '
   } catch (error: any) { 
     console.error("--------------------------------------------------------------------");
     console.error("[firestoreService] CRITICAL ERROR adding scholarship to Firestore!");
+    const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE_DURING_ERROR';
+    console.error(`[firestoreService] UID of user attempting write (from server-side auth state, might be unreliable if not direct client action): ${currentAuthUserUid}`);
     console.error("[firestoreService] Original Firebase Error Object:", error);
     console.error("[firestoreService] Firebase Error Code:", error.code); 
     console.error("[firestoreService] Firebase Error Message:", error.message); 
@@ -124,15 +122,15 @@ export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | '
     console.error("--------------------------------------------------------------------");
     
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
-      // Attempt to get current user UID for logging, might be null if auth context isn't fully available server-side
-      const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE';
       throw new Error(
-        `Firestore Permission Denied: ${error.message}. Action: Add Scholarship. ` +
-        `ROOT CAUSE: Your Firestore rules are blocking this operation. ` +
+        `ACTION REQUIRED: Firestore Permission Denied when adding scholarship. ` +
+        `Firebase message: "${error.message}". ` +
         `TROUBLESHOOTING STEPS: ` +
-        `1. VERIFY your deployed Firestore rules allow 'create' on 'SCHOLARSHIPS' for users with role 'Admin'. ` +
-        `2. CONFIRM the admin user's document in the 'USERS' collection (UID potentially: ${currentAuthUserUid}) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
-        `3. CHECK YOUR SERVER CONSOLE (Next.js terminal) for the complete original Firebase error details logged above.`
+        `1. VERIFY your DEPLOYED Firestore rules allow 'create' on '/SCHOLARSHIPS/{scholarshipId}'. ` +
+        `2. CONFIRM the admin user's document in the 'USERS' collection (UID making the request was logged as '${currentAuthUserUid}' if available, cross-check with client-side log) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
+        `3. CHECK YOUR CLIENT-SIDE CONSOLE for the logged UID initiating this action. ` +
+        `4. USE FIREBASE RULES SIMULATOR with that UID, path '/SCHOLARSHIPS/someNewId', and operation 'create'. ` +
+        `5. See full original Firebase error in your SERVER CONSOLE (Next.js terminal).`
       );
     }
     throw new Error(`Failed to add scholarship. Server error: ${error.message || 'Please check server console for details.'}`);
@@ -168,20 +166,25 @@ export async function updateScholarship(id: string, scholarshipData: Partial<Omi
   } catch (error: any) {
     console.error("--------------------------------------------------------------------");
     console.error(`[firestoreService] ERROR updating scholarship ${id} in Firestore!`);
+    const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE_DURING_ERROR';
+    console.error(`[firestoreService] UID of user attempting write (from server-side auth state, might be unreliable if not direct client action): ${currentAuthUserUid}`);
     console.error("[firestoreService] Original Firebase Error Object (update):", error);
     console.error("[firestoreService] Firebase Error Code (update):", error.code);
     console.error("[firestoreService] Firebase Error Message (update):", error.message);
     if (error.details) console.error("[firestoreService] Firebase Error Details (update):", error.details);
     console.error("[firestoreService] Data that was ATTEMPTED TO UPDATE (ID: " + id + "):", dataToUpdate);
     console.error("--------------------------------------------------------------------");
-    const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE';
+    
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
         throw new Error(
-          `Firestore Permission Denied: ${error.message}. Action: Update Scholarship (ID: ${id}). ` +
+          `ACTION REQUIRED: Firestore Permission Denied when updating scholarship (ID: ${id}). ` +
+          `Firebase message: "${error.message}". ` +
           `TROUBLESHOOTING STEPS: ` +
-          `1. VERIFY your deployed Firestore rules allow 'update' on 'SCHOLARSHIPS' for users with role 'Admin'. ` +
-          `2. CONFIRM the admin user's document in the 'USERS' collection (UID potentially: ${currentAuthUserUid}) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
-          `3. CHECK YOUR SERVER CONSOLE (Next.js terminal) for the complete original Firebase error details logged above.`
+          `1. VERIFY your DEPLOYED Firestore rules allow 'update' on '/SCHOLARSHIPS/{scholarshipId}'. ` +
+          `2. CONFIRM the admin user's document in the 'USERS' collection (UID making the request was logged as '${currentAuthUserUid}' if available, cross-check with client-side log) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
+          `3. CHECK YOUR CLIENT-SIDE CONSOLE for the logged UID initiating this action. ` +
+          `4. USE FIREBASE RULES SIMULATOR with that UID, path '/SCHOLARSHIPS/${id}', and operation 'update'. ` +
+          `5. See full original Firebase error in your SERVER CONSOLE (Next.js terminal).`
         );
     }
     throw new Error(`Failed to update scholarship ${id}. Server error: ${error.message || 'Unknown Firestore error. Check server console for full details.'}`);
@@ -194,14 +197,17 @@ export async function deleteScholarship(id: string): Promise<void> {
     await deleteDoc(scholarshipDocRef);
   } catch (error: any) {
     console.error(`Error deleting scholarship ${id}: `, error);
-    const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE';
+    const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE_DURING_ERROR';
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
         throw new Error(
-          `Firestore Permission Denied: ${error.message}. Action: Delete Scholarship (ID: ${id}). ` +
+          `ACTION REQUIRED: Firestore Permission Denied when deleting scholarship (ID: ${id}). ` +
+          `Firebase message: "${error.message}". ` +
           `TROUBLESHOOTING STEPS: ` +
-          `1. VERIFY your deployed Firestore rules allow 'delete' on 'SCHOLARSHIPS' for users with role 'Admin'. ` +
-          `2. CONFIRM the admin user's document in the 'USERS' collection (UID potentially: ${currentAuthUserUid}) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
-          `3. CHECK YOUR SERVER CONSOLE (Next.js terminal) for the complete original Firebase error details logged above.`
+          `1. VERIFY your DEPLOYED Firestore rules allow 'delete' on '/SCHOLARSHIPS/{scholarshipId}'. ` +
+          `2. CONFIRM the admin user's document in the 'USERS' collection (UID making the request was logged as '${currentAuthUserUid}' if available, cross-check with client-side log) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
+          `3. CHECK YOUR CLIENT-SIDE CONSOLE for the logged UID initiating this action. ` +
+          `4. USE FIREBASE RULES SIMULATOR with that UID, path '/SCHOLARSHIPS/${id}', and operation 'delete'. ` +
+          `5. See full original Firebase error in your SERVER CONSOLE (Next.js terminal).`
         );
     }
     throw new Error(`Failed to delete scholarship ${id}.`);
