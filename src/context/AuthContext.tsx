@@ -44,13 +44,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (userDocSnap.exists()) {
             const profileData = userDocSnap.data() as UserProfile;
-            console.log("[AuthContext] User profile FOUND in Firestore:", JSON.stringify(profileData, null, 2));
+            console.log("[AuthContext] User profile FOUND in Firestore (raw data):", JSON.stringify(profileData, null, 2));
             
-            // Verify UID match between auth and Firestore doc if paranoia strikes
-            if (profileData.uid !== currentUser.uid) {
-                console.error(`[AuthContext] CRITICAL MISMATCH: Auth UID (${currentUser.uid}) does not match Firestore document UID (${profileData.uid})!`);
+            if (!profileData || typeof profileData.uid !== 'string' || profileData.uid.trim() === '') {
+              console.error(`[AuthContext] User profile data is invalid: 'uid' field is missing, not a string, or empty. Auth UID: ${currentUser.uid}. Profile data received:`, JSON.stringify(profileData));
+              setError(`User profile data is corrupted or 'uid' field is missing for user ${currentUser.uid}. Please contact support or check Firestore 'USERS/${currentUser.uid}'.`);
+              setUserProfile(null);
+              setIsAdmin(false);
+            } else if (profileData.uid !== currentUser.uid) {
+                console.error(`[AuthContext] CRITICAL MISMATCH: Auth UID (${currentUser.uid}) does not match Firestore document UID field (${profileData.uid})!`);
                 setError("User profile UID mismatch. Please contact support.");
-                // Potentially clear user state here or force logout
+                setUserProfile(null);
+                setIsAdmin(false);
             } else {
                 setUserProfile(profileData);
                 if (profileData.role === 'Admin') {
