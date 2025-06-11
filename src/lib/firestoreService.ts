@@ -47,7 +47,6 @@ const mapDocToScholarship = (docSnapshot: any): Scholarship => {
     imageUrl: data.imageUrl || undefined,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
-    // icon and dataAiHint are typically for static data, ensure they don't cause issues if missing
     icon: data.icon || undefined, 
     dataAiHint: data.dataAiHint || undefined,
   } as Scholarship; 
@@ -64,7 +63,6 @@ const mapDocToStudyTip = (docSnapshot: any): StudyTip => {
     imageUrl: data.imageUrl || undefined,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt : undefined,
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : undefined,
-    // icon and dataAiHint are typically for static data
     icon: data.icon || undefined,
     dataAiHint: data.dataAiHint || undefined,
   } as StudyTip;
@@ -187,7 +185,7 @@ export async function getScholarships(): Promise<Scholarship[]> {
     return querySnapshot.docs.map(mapDocToScholarship);
   } catch (error) {
     console.error("[firestoreService] Error fetching scholarships (client SDK): ", error);
-    throw new Error("Failed to fetch scholarships from the database.");
+    throw error; // Re-throw original error
   }
 }
 
@@ -201,7 +199,7 @@ export async function getScholarshipById(id: string): Promise<Scholarship | null
     return null;
   } catch (error) {
     console.error(`[firestoreService] Error fetching scholarship with ID ${id} (client SDK): `, error);
-    throw new Error(`Failed to fetch scholarship ${id}.`);
+    throw error; // Re-throw original error
   }
 }
 
@@ -214,7 +212,7 @@ export async function getStudyTips(): Promise<StudyTip[]> {
     return querySnapshot.docs.map(mapDocToStudyTip);
   } catch (error) {
     console.error("[firestoreService] Error fetching study tips (client SDK): ", error);
-    throw new Error("Failed to fetch study tips from the database.");
+    throw error; // Re-throw original error
   }
 }
 
@@ -228,7 +226,7 @@ export async function getStudyTipById(id: string): Promise<StudyTip | null> {
     return null;
   } catch (error) {
     console.error(`[firestoreService] Error fetching study tip with ID ${id} (client SDK): `, error);
-    throw new Error(`Failed to fetch study tip ${id}.`);
+    throw error; // Re-throw original error
   }
 }
 
@@ -241,7 +239,7 @@ export async function getSummerPrograms(): Promise<SummerProgram[]> {
     return querySnapshot.docs.map(mapDocToSummerProgram);
   } catch (error) {
     console.error("[firestoreService] Error fetching summer programs (client SDK): ", error);
-    throw new Error("Failed to fetch summer programs from the database.");
+    throw error; // Re-throw original error
   }
 }
 
@@ -255,7 +253,7 @@ export async function getSummerProgramById(id: string): Promise<SummerProgram | 
     return null;
   } catch (error) {
     console.error(`[firestoreService] Error fetching summer program with ID ${id} (client SDK): `, error);
-    throw new Error(`Failed to fetch summer program ${id}.`);
+    throw error; // Re-throw original error
   }
 }
 
@@ -268,7 +266,7 @@ export async function getExchangePrograms(): Promise<ExchangeProgram[]> {
     return querySnapshot.docs.map(mapDocToExchangeProgram);
   } catch (error) {
     console.error("[firestoreService] Error fetching exchange programs (client SDK): ", error);
-    throw new Error("Failed to fetch exchange programs from the database.");
+    throw error; // Re-throw original error
   }
 }
 
@@ -282,7 +280,7 @@ export async function getExchangeProgramById(id: string): Promise<ExchangeProgra
     return null;
   } catch (error) {
     console.error(`[firestoreService] Error fetching exchange program with ID ${id} (client SDK): `, error);
-    throw new Error(`Failed to fetch exchange program ${id}.`);
+    throw error; // Re-throw original error
   }
 }
 
@@ -295,7 +293,7 @@ export async function getVolunteerOpportunities(): Promise<VolunteerOpportunity[
     return querySnapshot.docs.map(mapDocToVolunteerOpportunity);
   } catch (error) {
     console.error("[firestoreService] Error fetching volunteer opportunities (client SDK): ", error);
-    throw new Error("Failed to fetch volunteer opportunities from the database.");
+    throw error; // Re-throw original error
   }
 }
 
@@ -309,7 +307,7 @@ export async function getVolunteerOpportunityById(id: string): Promise<Volunteer
     return null;
   } catch (error) {
     console.error(`[firestoreService] Error fetching volunteer opportunity with ID ${id} (client SDK): `, error);
-    throw new Error(`Failed to fetch volunteer opportunity ${id}.`);
+    throw error; // Re-throw original error
   }
 }
 
@@ -322,7 +320,7 @@ export async function getPreCollegeCourses(): Promise<PreCollegeCourse[]> {
     return querySnapshot.docs.map(mapDocToPreCollegeCourse);
   } catch (error) {
     console.error("[firestoreService] Error fetching pre-college courses (client SDK): ", error);
-    throw new Error("Failed to fetch pre-college courses from the database.");
+    throw error; // Re-throw original error
   }
 }
 
@@ -336,7 +334,7 @@ export async function getPreCollegeCourseById(id: string): Promise<PreCollegeCou
     return null;
   } catch (error) {
     console.error(`[firestoreService] Error fetching pre-college course with ID ${id} (client SDK): `, error);
-    throw new Error(`Failed to fetch pre-college course ${id}.`);
+    throw error; // Re-throw original error
   }
 }
 
@@ -405,4 +403,3 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
     console.log("[firestoreService] seedInitialScholarships: No new scholarships were provided for seeding.");
   }
 }
-
