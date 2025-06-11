@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Link from 'next/link';
 import { LogIn, Loader2, Mail, KeyRound } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import type { UserProfile } from '@/types';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -35,8 +36,19 @@ export default function LoginPage() {
         await setDoc(userDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
         toast({ title: "Login Successful!", description: "Welcome back to LISGE Hub." });
       } else {
-         console.warn(`[LoginSuccess] Profile not found in USERS collection for email/password user UID: ${userId}. This is unexpected. Login successful, but profile might be missing if signup didn't complete.`);
-         toast({ title: "Login Warning", description: "Profile not found, but login successful. Please contact support if issues persist.", variant: "default" });
+         // This case should ideally not happen for email/password sign-ins if signup is robust
+         console.warn(`[LoginSuccess] Profile not found in USERS collection for user UID: ${userId}. Creating a basic profile.`);
+         const basicProfile: UserProfile = {
+            uid: userId,
+            email: userEmail,
+            name: userEmail ? userEmail.split('@')[0] : "User", // Basic name from email
+            role: 'user',
+            createdAt: serverTimestamp(),
+            lastLoginAt: serverTimestamp(),
+            photoURL: null,
+         };
+         await setDoc(userDocRef, basicProfile);
+         toast({ title: "Login Successful!", description: "Welcome to LISGE Hub. Your profile has been set up." });
       }
 
       const redirectUrl = searchParams.get('redirect') || '/dashboard';
@@ -54,12 +66,22 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    console.log(`[Login Page] Attempting email login with: ${email}`); // Added log
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await handleLoginSuccess(userCredential.user.uid, userCredential.user.email);
     } catch (err: any) {
-      setError(err.message || "Failed to login. Please check your credentials.");
-      toast({ title: "Login Failed", description: err.message, variant: "destructive" });
+      let friendlyMessage = "Failed to login. Please check your credentials.";
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        friendlyMessage = "Invalid email or password. Please try again.";
+      } else if (err.code === 'auth/user-disabled') {
+        friendlyMessage = "This account has been disabled. Please contact support.";
+      } else if (err.code === 'auth/too-many-requests') {
+        friendlyMessage = "Access to this account has been temporarily disabled due to many failed login attempts. You can reset your password or try again later.";
+      }
+      setError(friendlyMessage);
+      toast({ title: "Login Failed", description: friendlyMessage, variant: "destructive" });
+      console.error("[Login Page] Email Login Error:", err.code, err.message); 
     } finally {
       setLoading(false);
     }
