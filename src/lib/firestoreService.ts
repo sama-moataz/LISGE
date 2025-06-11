@@ -77,87 +77,89 @@ export async function getScholarshipById(id: string): Promise<Scholarship | null
 }
 
 export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-  console.log("Data received by addScholarship service:", scholarshipData);
+  console.log("[firestoreService] addScholarship: Received data:", scholarshipData);
+  
+  const dataToSave: Partial<Scholarship> & { createdAt: any, updatedAt: any } = {
+    name: scholarshipData.name, 
+    description: scholarshipData.description, 
+    eligibility: scholarshipData.eligibility, 
+    websiteUrl: scholarshipData.websiteUrl, 
+    location: scholarshipData.location, 
+
+    iconName: scholarshipData.iconName || null,
+    category: scholarshipData.category || null,
+    ageRequirement: scholarshipData.ageRequirement || null,
+    fundingLevel: scholarshipData.fundingLevel || null,
+    destinationRegion: scholarshipData.destinationRegion || null,
+    targetLevel: scholarshipData.targetLevel || null,
+    fundingCountry: scholarshipData.fundingCountry || null,
+    partner: scholarshipData.partner || null,
+    coverage: scholarshipData.coverage || null,
+    deadline: scholarshipData.deadline || null,
+    imageUrl: scholarshipData.imageUrl || null, 
+
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+  
+  delete (dataToSave as any).id; 
+  
   try {
     const scholarshipsRef = collection(db, SCHOLARSHIPS_COLLECTION);
-    
-    // Explicitly construct the object to save, ensuring all optional fields are null if not provided or empty
-    // and required fields are present.
-    const dataToSave: Partial<Scholarship> & { createdAt: any, updatedAt: any } = {
-      name: scholarshipData.name, // Required
-      description: scholarshipData.description, // Required
-      eligibility: scholarshipData.eligibility, // Required
-      websiteUrl: scholarshipData.websiteUrl, // Required
-      location: scholarshipData.location, // Required
-
-      iconName: scholarshipData.iconName || null,
-      category: scholarshipData.category || null,
-      ageRequirement: scholarshipData.ageRequirement || null,
-      fundingLevel: scholarshipData.fundingLevel || null,
-      destinationRegion: scholarshipData.destinationRegion || null,
-      targetLevel: scholarshipData.targetLevel || null,
-      fundingCountry: scholarshipData.fundingCountry || null,
-      partner: scholarshipData.partner || null,
-      coverage: scholarshipData.coverage || null,
-      deadline: scholarshipData.deadline || null,
-      imageUrl: scholarshipData.imageUrl || null, 
-
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-    
-    // Firestore does not allow 'id' field to be part of the data in addDoc if it's the document ID itself.
-    // Omit type should handle this, but defensive delete.
-    delete (dataToSave as any).id; 
-    
-    console.log("Data being sent to Firestore for addDoc:", dataToSave);
-    const docRef = await addDoc(scholarshipsRef, dataToSave as any); // Cast to any to satisfy addDoc, since serverTimestamp is complex
+    console.log("[firestoreService] addScholarship: Attempting to save data to Firestore:", dataToSave);
+    const docRef = await addDoc(scholarshipsRef, dataToSave as any); 
+    console.log("[firestoreService] addScholarship: Successfully added document with ID:", docRef.id);
     return docRef.id;
   } catch (error: any) { 
-    console.error("[firestoreService] Error adding scholarship: ", error);
-    console.error("[firestoreService] Error Code: ", error.code); 
-    console.error("[firestoreService] Error Message: ", error.message); 
-    console.error("[firestoreService] Error Details: ", error.details); 
-    throw new Error(`Failed to add scholarship. Server error: ${error.message || 'Please check server console for details.'}`);
+    console.error("--------------------------------------------------------------------");
+    console.error("[firestoreService] ERROR adding scholarship to Firestore!");
+    console.error("[firestoreService] Original Firebase Error Object:", error);
+    console.error("[firestoreService] Firebase Error Code:", error.code); 
+    console.error("[firestoreService] Firebase Error Message:", error.message); 
+    if (error.details) console.error("[firestoreService] Firebase Error Details:", error.details);
+    console.error("[firestoreService] Data that was ATTEMPTED TO SAVE:", dataToSave);
+    console.error("--------------------------------------------------------------------");
+    throw new Error(`Failed to add scholarship. Server error: ${error.message || 'Unknown Firestore error. Check server console for full details.'}`);
   }
 }
 
 export async function updateScholarship(id: string, scholarshipData: Partial<Omit<Scholarship, 'id' | 'createdAt'>>): Promise<void> {
-  console.log(`Data received by updateScholarship service for ID ${id}:`, scholarshipData);
+  console.log(`[firestoreService] updateScholarship: Received data for ID ${id}:`, scholarshipData);
+  
+  const dataToUpdate: { [key: string]: any } = {};
+  (Object.keys(scholarshipData) as Array<keyof typeof scholarshipData>).forEach(key => {
+      const value = scholarshipData[key];
+      if (value === undefined || value === null) {
+          dataToUpdate[key] = null;
+      } else if (typeof value === 'string' && value.trim() === '' && 
+                 key !== 'name' && key !== 'description' && key !== 'eligibility' && key !== 'websiteUrl' && key !== 'location') {
+           if (key === 'imageUrl' || key === 'iconName' || key === 'category' || key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || key === 'coverage' || key === 'deadline') {
+             dataToUpdate[key] = null;
+          } else {
+             dataToUpdate[key] = value;
+          }
+      }
+      else {
+          dataToUpdate[key] = value;
+      }
+  });
+  dataToUpdate.updatedAt = serverTimestamp();
+
   try {
     const scholarshipDocRef = doc(db, SCHOLARSHIPS_COLLECTION, id);
-    
-    const dataToUpdate: { [key: string]: any } = {};
-    // Iterate over scholarshipData and prepare for update, ensuring undefined becomes null
-    (Object.keys(scholarshipData) as Array<keyof typeof scholarshipData>).forEach(key => {
-        const value = scholarshipData[key];
-        // For updateDoc, explicitly set fields to null if they are meant to be cleared
-        // and were passed as undefined or null from the form.
-        // Empty strings for optional text fields that are not required URLs should also become null.
-        if (value === undefined || value === null) {
-            dataToUpdate[key] = null;
-        } else if (typeof value === 'string' && value.trim() === '' && 
-                   key !== 'name' && key !== 'description' && key !== 'eligibility' && key !== 'websiteUrl' && key !== 'location') {
-             if (key === 'imageUrl' || key === 'iconName' || key === 'category' || key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || key === 'coverage' || key === 'deadline') {
-               dataToUpdate[key] = null;
-            } else {
-               dataToUpdate[key] = value; // Keep empty string for required fields if it somehow passes validation
-            }
-        }
-        else {
-            dataToUpdate[key] = value;
-        }
-    });
-    dataToUpdate.updatedAt = serverTimestamp();
-
-    console.log(`Data being sent to Firestore for updateDoc (ID: ${id}):`, dataToUpdate);
+    console.log(`[firestoreService] updateScholarship: Attempting to update data in Firestore (ID: ${id}):`, dataToUpdate);
     await updateDoc(scholarshipDocRef, dataToUpdate);
+    console.log(`[firestoreService] updateScholarship: Successfully updated document with ID: ${id}`);
   } catch (error: any) {
-    console.error(`[firestoreService] Error updating scholarship ${id}: `, error);
-    console.error(`[firestoreService] Error Code (update): ${error.code}`);
-    console.error(`[firestoreService] Error Message (update): ${error.message}`);
-    console.error(`[firestoreService] Error Details (update): ${error.details}`);
-    throw new Error(`Failed to update scholarship ${id}. Server error: ${error.message || 'Please check server console for details.'}`);
+    console.error("--------------------------------------------------------------------");
+    console.error(`[firestoreService] ERROR updating scholarship ${id} in Firestore!`);
+    console.error("[firestoreService] Original Firebase Error Object (update):", error);
+    console.error("[firestoreService] Firebase Error Code (update):", error.code);
+    console.error("[firestoreService] Firebase Error Message (update):", error.message);
+    if (error.details) console.error("[firestoreService] Firebase Error Details (update):", error.details);
+    console.error("[firestoreService] Data that was ATTEMPTED TO UPDATE (ID: " + id + "):", dataToUpdate);
+    console.error("--------------------------------------------------------------------");
+    throw new Error(`Failed to update scholarship ${id}. Server error: ${error.message || 'Unknown Firestore error. Check server console for full details.'}`);
   }
 }
 
@@ -210,3 +212,4 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
     console.log("No new scholarships to seed (based on name check).");
   }
 }
+
