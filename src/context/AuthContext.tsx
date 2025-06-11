@@ -27,60 +27,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log("[AuthContext] onAuthStateChanged triggered. currentUser UID:", currentUser?.uid || "No user (currentUser is null)");
+      console.log("[AuthContext] onAuthStateChanged triggered. currentUser?.uid:", currentUser?.uid || "No user (currentUser is null). Resetting state.");
       setLoading(true);
-      setError(null);
-      setUserProfile(null); 
-      setIsAdmin(false);
+      setError(null); // Reset error on auth state change
+      setUserProfile(null); // Reset profile on auth state change
+      setIsAdmin(false); // Reset admin status
 
       if (currentUser) {
         setUser(currentUser);
-        console.log(`[AuthContext] User authenticated with UID (from AuthStateChanged): ${currentUser.uid}, Email: ${currentUser.email}`);
+        const currentAuthUid = currentUser.uid;
+        console.log(`[AuthContext] User IS AUTHENTICATED with Firebase Auth. UID: ${currentAuthUid}, Email: ${currentUser.email}`);
+        
         try {
-          const userDocRef = doc(db, 'USERS', currentUser.uid);
-          console.log(`[AuthContext] Attempting to fetch profile from Firestore: USERS/${currentUser.uid}`);
+          const userDocPath = `USERS/${currentAuthUid}`;
+          const userDocRef = doc(db, userDocPath);
+          console.log(`[AuthContext] Attempting to fetch Firestore profile from: ${userDocPath}`);
           
           const userDocSnap = await getDoc(userDocRef);
           
           if (userDocSnap.exists()) {
-            const profileData = userDocSnap.data() as UserProfile;
-            console.log("[AuthContext] User profile FOUND in Firestore (raw data):", JSON.stringify(profileData, null, 2));
+            const profileData = userDocSnap.data() as UserProfile; // Assume UserProfile structure for now
+            console.log(`[AuthContext] User profile FOUND in Firestore at ${userDocPath}. Raw data:`, JSON.stringify(profileData, null, 2));
             
-            if (!profileData || typeof profileData.uid !== 'string' || profileData.uid.trim() === '') {
-              console.error(`[AuthContext] User profile data is invalid: 'uid' field is missing, not a string, or empty. Auth UID: ${currentUser.uid}. Profile data received:`, JSON.stringify(profileData));
-              setError(`User profile data is corrupted or 'uid' field is missing for user ${currentUser.uid}. Please contact support or check Firestore 'USERS/${currentUser.uid}'.`);
-              setUserProfile(null);
-              setIsAdmin(false);
-            } else if (profileData.uid !== currentUser.uid) {
-                console.error(`[AuthContext] CRITICAL MISMATCH: Auth UID (${currentUser.uid}) does not match Firestore document UID field (${profileData.uid})!`);
+            // Validate essential fields in profileData
+            if (!profileData) { // Should not happen if exists() is true, but defensive check
+                console.error(`[AuthContext] CRITICAL: userDocSnap.exists() was true for ${userDocPath}, but userDocSnap.data() returned falsy:`, profileData);
+                setError(`User profile data for ${currentAuthUid} is unexpectedly empty/null despite document existing. Contact support.`);
+            } else if (typeof profileData.uid !== 'string' || profileData.uid.trim() === '') {
+              console.error(`[AuthContext] CRITICAL: User profile data at ${userDocPath} is MISSING 'uid' field or 'uid' is not a non-empty string. profileData.uid: '${profileData.uid}'. Auth UID: ${currentAuthUid}. This indicates a problem with profile creation/update.`);
+              setError(`User profile data is corrupted: 'uid' field is missing or invalid for user ${currentAuthUid}. Please contact support or try to re-login. If you just signed up, the profile might not have been fully created.`);
+            } else if (profileData.uid !== currentAuthUid) {
+                console.error(`[AuthContext] CRITICAL MISMATCH: Auth UID (${currentAuthUid}) does not match Firestore document's 'uid' field (${profileData.uid}) at ${userDocPath}!`);
                 setError("User profile UID mismatch. Please contact support.");
-                setUserProfile(null);
-                setIsAdmin(false);
             } else {
+                console.log(`[AuthContext] UID match successful (Auth UID: ${currentAuthUid}, Firestore doc UID field: ${profileData.uid}). Setting userProfile.`);
                 setUserProfile(profileData);
                 if (profileData.role === 'Admin') {
                   setIsAdmin(true);
                   console.log("[AuthContext] User IS ADMIN based on Firestore role 'Admin'.");
                 } else {
                   setIsAdmin(false);
-                  console.log(`[AuthContext] User is NOT ADMIN. Role found: '${profileData.role}' (Expected 'Admin').`);
+                  console.log(`[AuthContext] User is NOT ADMIN. Role found: '${profileData.role}' (Expected 'Admin' for admin privileges).`);
                 }
             }
           } else {
-            console.warn(`[AuthContext] User profile NOT FOUND in Firestore at path USERS/${currentUser.uid}. This means userDocSnap.exists() is false.`);
-            setError(`User profile not found in database for UID ${currentUser.uid}. If you just signed up, this might resolve shortly or on next login attempt. Ensure profile creation on signup is robust.`);
+            console.warn(`[AuthContext] User profile NOT FOUND in Firestore at path ${userDocPath}. userDocSnap.exists() is false.`);
+            setError(`User profile not found in database for UID ${currentAuthUid}. If you just signed up, this might resolve shortly or on next login attempt. Ensure profile creation on signup is robust.`);
+            // The login page has a fallback to create a basic profile, which might resolve this.
           }
         } catch (e: any) {
-          console.error("[AuthContext] Error fetching user profile from Firestore:", e);
+          console.error(`[AuthContext] Error fetching user profile from Firestore for UID ${currentAuthUid}:`, e);
           console.error(`[AuthContext] Firestore error details: Code - ${e.code}, Message - ${e.message}`);
           setError(`Could not retrieve user profile: ${e.message}. Check Firestore rules and connectivity.`);
         }
       } else {
-        setUser(null);
-        console.log("[AuthContext] No user authenticated (currentUser from onAuthStateChanged was null).");
+        setUser(null); // Clear user if no one is authenticated
+        console.log("[AuthContext] No user authenticated (currentUser from onAuthStateChanged was null). All user-specific state cleared.");
       }
       setLoading(false);
-      console.log("[AuthContext] Auth state processing complete. Loading: false, isAdmin:", isAdmin, "User:", user?.uid, "UserProfile:", userProfile?.uid);
+      console.log("[AuthContext] Auth state processing complete. Loading: false. Final states -> isAdmin:", isAdmin, "user UID:", user?.uid, "userProfile UID:", userProfile?.uid);
     });
 
     return () => {

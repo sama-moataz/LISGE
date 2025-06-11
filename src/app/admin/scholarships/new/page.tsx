@@ -17,7 +17,8 @@ import { Loader2, Save, ShieldAlert, ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
-import { addScholarshipAdmin } from '@/lib/firestoreAdminService';
+// Import the Server Action
+import { handleAddScholarshipAction } from './actions';
 
 const curatedIconNames = [
   'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle', 
@@ -119,59 +120,7 @@ const scholarshipSchema = z.object({
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
 
-async function handleAddScholarship(formData: ScholarshipFormData) {
-  'use server';
-  console.log('[Server Action - handleAddScholarship] INVOKED.');
-  console.log('[Server Action - handleAddScholarship] GOOGLE_APPLICATION_CREDENTIALS (at start of Server Action):', process.env.GOOGLE_APPLICATION_CREDENTIALS || "NOT SET in Server Action environment");
-  
-  // CRITICAL: AUTHORIZATION CHECK (Placeholder)
-  // In a real application, you MUST verify the user is an admin here.
-  // This typically involves:
-  // 1. Getting the user's ID token (passed from client or from a session).
-  // 2. Verifying the ID token using `adminAuth.verifyIdToken(idToken)` from `firebaseAdmin.ts`.
-  // 3. Checking custom claims or fetching user role from Firestore using Admin SDK.
-  // Example:
-  // const { adminAuth } = await import('@/lib/firebaseAdmin'); // Dynamically import if needed
-  // if (!adminAuth) throw new Error("Admin Auth not initialized");
-  // const idToken = formData.idToken; // Assume client sends it
-  // const decodedToken = await adminAuth.verifyIdToken(idToken);
-  // const userRecord = await adminAuth.getUser(decodedToken.uid);
-  // if (userRecord.customClaims?.role !== 'Admin') throw new Error('Unauthorized');
-  // For this example, we'll proceed, assuming authorization is handled.
-  console.log('[Server Action - handleAddScholarship] Placeholder for Admin Authorization Check.');
-
-
-  try {
-    const processedData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'> = {
-        ...formData,
-        iconName: formData.iconName === '_none_' ? null : formData.iconName,
-        ageRequirement: formData.ageRequirement === '_none_' ? null : formData.ageRequirement,
-        fundingLevel: formData.fundingLevel === '_none_' ? null : formData.fundingLevel,
-        destinationRegion: formData.destinationRegion === '_none_' ? null : formData.destinationRegion,
-        targetLevel: formData.targetLevel === '_none_' ? null : formData.targetLevel,
-        fundingCountry: formData.fundingCountry === '_none_' ? null : formData.fundingCountry,
-        imageUrl: formData.imageUrl === '' ? null : formData.imageUrl,
-    };
-    console.log("[Server Action - handleAddScholarship] Processed data for Admin SDK service:", JSON.stringify(processedData, null, 2));
-    const scholarshipId = await addScholarshipAdmin(processedData); // Calls the Admin SDK service
-    console.log("[Server Action - handleAddScholarship] Scholarship added successfully with ID:", scholarshipId);
-    return { success: true, scholarshipId, name: processedData.name };
-  } catch (err: any) {
-    console.error("[Server Action - handleAddScholarship] CAUGHT ERROR while calling addScholarshipAdmin or during processing:", err);
-    console.error("[Server Action - handleAddScholarship] Error Name:", err.name);
-    console.error("[Server Action - handleAddScholarship] Error Message:", err.message);
-    console.error("[Server Action - handleAddScholarship] Error Stack:", err.stack);
-    // Ensure the error message sent to client is a simple string
-    let clientErrorMessage = "Failed to add scholarship. An unexpected server error occurred.";
-    if (err.message) {
-        clientErrorMessage = err.message.includes("SERVER_CONFIG_ERROR:") 
-                             ? err.message // Propagate specific config error
-                             : `Failed to add scholarship: ${err.message}`;
-    }
-    return { success: false, error: clientErrorMessage };
-  }
-}
-
+// Inline Server Action removed
 
 export default function NewScholarshipPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -216,30 +165,35 @@ export default function NewScholarshipPage() {
     setIsSubmitting(true);
     console.log("[NewScholarshipPage Client] Submitting form data to Server Action:", data);
     
-    const processedClientData: ScholarshipFormData = { ...data };
-    (Object.keys(processedClientData) as Array<keyof ScholarshipFormData>).forEach(key => {
-      if (processedClientData[key] === "_none_") {
-        (processedClientData[key] as any) = null;
-      }
-      if (typeof processedClientData[key] === 'string' && (processedClientData[key] as string).trim() === '' && key !== 'name' && key !== 'description' && key !== 'eligibility' && key !== 'websiteUrl' && key !== 'location') {
-        if (key === 'imageUrl' || key === 'iconName' || key === 'category' || key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || key === 'coverage' || key === 'deadline') {
-            (processedClientData[key] as any) = null;
-        }
-      }
-    });
-
-    // Add ID token for server-side auth verification if needed
+    const processedDataForAction: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'> = {
+        ...data,
+        iconName: data.iconName === '_none_' ? null : data.iconName,
+        ageRequirement: data.ageRequirement === '_none_' ? null : (data.ageRequirement || null),
+        fundingLevel: data.fundingLevel === '_none_' ? null : (data.fundingLevel || null),
+        destinationRegion: data.destinationRegion === '_none_' ? null : (data.destinationRegion || null),
+        targetLevel: data.targetLevel === '_none_' ? null : (data.targetLevel || null),
+        fundingCountry: data.fundingCountry === '_none_' ? null : (data.fundingCountry || null),
+        imageUrl: data.imageUrl === '' ? null : data.imageUrl,
+        // Ensure all optional fields that are not required by Omit<> but might be empty strings are null
+        category: data.category || null,
+        partner: data.partner || null,
+        coverage: data.coverage || null,
+        deadline: data.deadline || null,
+    };
+    
+    // If your Server Action needs an ID token for auth (recommended)
     // const idToken = await user?.getIdToken();
-    // const dataWithToken = { ...processedClientData, idToken };
+    // const result = await handleAddScholarshipAction({ ...processedDataForAction, idToken }); 
+    // Server Action would need to be adapted to receive and verify this.
 
-    const result = await handleAddScholarship(processedClientData); // Pass processedClientData
+    const result = await handleAddScholarshipAction(processedDataForAction);
 
     if (result.success) {
       toast({ title: "Success", description: `Scholarship "${result.name}" added successfully with ID: ${result.scholarshipId}.` });
       router.push('/admin/scholarships');
     } else {
       toast({ title: "Error Adding Scholarship", description: result.error || "Failed to add scholarship. Check server console for details.", variant: "destructive" });
-      console.error("[NewScholarshipPage Client] Error from Server Action 'handleAddScholarship':", result.error);
+      console.error("[NewScholarshipPage Client] Error from Server Action 'handleAddScholarshipAction':", result.error);
     }
     setIsSubmitting(false);
   };

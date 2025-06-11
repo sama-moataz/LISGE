@@ -26,36 +26,47 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const handleLoginSuccess = async (userId: string, userEmail: string | null) => {
-    console.log(`[LoginSuccess] Handling for UID: ${userId}, Email: ${userEmail}`);
+    console.log(`[Login Page - handleLoginSuccess] Handling successful Firebase Auth for UID: ${userId}, Email: ${userEmail}`);
     try {
       const userDocRef = doc(db, "USERS", userId);
+      console.log(`[Login Page - handleLoginSuccess] Checking Firestore for profile at: USERS/${userId}`);
       const userDocSnap = await getDoc(userDocRef);
 
       if (userDocSnap.exists()) {
-        console.log("[LoginSuccess] Existing user. Updating lastLoginAt in USERS collection.");
-        await setDoc(userDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
+        const existingProfile = userDocSnap.data();
+        console.log(`[Login Page - handleLoginSuccess] Existing user profile FOUND in Firestore at USERS/${userId}. Data:`, JSON.stringify(existingProfile));
+        // Ensure UID field consistency if it's missing, though primary check is in AuthContext
+        const updateData: { lastLoginAt: any; uid?: string } = { lastLoginAt: serverTimestamp() as any };
+        if (!existingProfile.uid || existingProfile.uid !== userId) {
+            console.warn(`[Login Page - handleLoginSuccess] UID field in Firestore document (USERS/${userId}) is missing or mismatched. Existing UID field: '${existingProfile.uid}', Auth UID: '${userId}'. Attempting to correct.`);
+            updateData.uid = userId; // Add/Correct UID field
+        }
+        await setDoc(userDocRef, updateData, { merge: true });
+        console.log(`[Login Page - handleLoginSuccess] Updated lastLoginAt (and UID if needed) for USERS/${userId}.`);
         toast({ title: "Login Successful!", description: "Welcome back to LISGE Hub." });
       } else {
-         // This case should ideally not happen for email/password sign-ins if signup is robust
-         console.warn(`[LoginSuccess] Profile not found in USERS collection for user UID: ${userId}. Creating a basic profile.`);
+         console.warn(`[Login Page - handleLoginSuccess] User profile NOT FOUND in Firestore at USERS/${userId}. Creating a basic profile as a fallback.`);
          const basicProfile: UserProfile = {
-            uid: userId,
+            uid: userId, // CRITICAL: Store the Auth UID
             email: userEmail,
-            name: userEmail ? userEmail.split('@')[0] : "User", // Basic name from email
-            role: 'user',
-            createdAt: serverTimestamp(),
-            lastLoginAt: serverTimestamp(),
-            photoURL: null,
+            name: userEmail ? userEmail.split('@')[0] : "User", 
+            role: 'user', // Default role
+            createdAt: serverTimestamp() as any,
+            lastLoginAt: serverTimestamp() as any,
+            photoURL: null, 
          };
+         console.log(`[Login Page - handleLoginSuccess] Attempting to create basic profile for USERS/${userId} with data:`, JSON.stringify(basicProfile));
          await setDoc(userDocRef, basicProfile);
+         console.log(`[Login Page - handleLoginSuccess] Basic profile CREATED for USERS/${userId}.`);
          toast({ title: "Login Successful!", description: "Welcome to LISGE Hub. Your profile has been set up." });
       }
 
       const redirectUrl = searchParams.get('redirect') || '/dashboard';
+      console.log(`[Login Page - handleLoginSuccess] Redirecting to: ${redirectUrl}`);
       router.push(redirectUrl);
     } catch (dbError: any) {
-      console.error("[LoginSuccess] Error during Firestore operation: ", dbError);
-      toast({ title: "Login Error", description: `Could not finalize login with database: ${dbError.message}`, variant: "destructive" });
+      console.error(`[Login Page - handleLoginSuccess] Error during Firestore operation for UID: ${userId}: `, dbError);
+      toast({ title: "Login Error", description: `Could not finalize login with database: ${dbError.message}. You are logged in, but profile data might be inconsistent.`, variant: "destructive" });
       // Fallback redirect even if Firestore fails, as auth was successful.
       const redirectUrl = searchParams.get('redirect') || '/dashboard';
       router.push(redirectUrl);
@@ -66,9 +77,10 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    console.log(`[Login Page] Attempting email login with: ${email}`); // Added log
+    console.log(`[Login Page] Attempting email login with: ${email}`);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log(`[Login Page] Firebase Auth SUCCEEDED for email: ${email}. UID: ${userCredential.user.uid}`);
       await handleLoginSuccess(userCredential.user.uid, userCredential.user.email);
     } catch (err: any) {
       let friendlyMessage = "Failed to login. Please check your credentials.";
@@ -81,7 +93,7 @@ export default function LoginPage() {
       }
       setError(friendlyMessage);
       toast({ title: "Login Failed", description: friendlyMessage, variant: "destructive" });
-      console.error("[Login Page] Email Login Error:", err.code, err.message); 
+      console.error("[Login Page] Firebase Auth Email Login Error:", err.code, err.message); 
     } finally {
       setLoading(false);
     }

@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Link from 'next/link';
 import { UserPlus, Loader2, Mail, KeyRound, User } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import type { UserProfile } from '@/types';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -38,54 +39,62 @@ export default function SignupPage() {
       return;
     }
     setLoading(true);
-    console.log(`[Signup Page] Attempting signup with: ${email}`);
-    let firebaseUser; // Declare firebaseUser here to access in Firestore catch block
+    console.log(`[Signup Page] Attempting signup for email: ${email}`);
+    let firebaseUser; 
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       firebaseUser = userCredential.user;
-      console.log(`[Signup] User created in Auth with UID: ${firebaseUser.uid}`);
+      console.log(`[Signup Page] User CREATED in Firebase Auth. UID: ${firebaseUser.uid}, Email: ${firebaseUser.email}`);
 
-      await updateAuthProfile(firebaseUser, { displayName: name });
-      console.log(`[Signup] Firebase Auth profile updated with name: ${name}`);
-
-      // Nested try-catch for Firestore profile creation
+      // Update Firebase Auth profile (displayName)
       try {
-        const userDocRef = doc(db, "USERS", firebaseUser.uid); 
-        const userProfileData = {
-          uid: firebaseUser.uid,
-          name: name,
-          email: firebaseUser.email,
-          role: 'user', 
-          createdAt: serverTimestamp(),
-          lastLoginAt: serverTimestamp(), 
-          photoURL: firebaseUser.photoURL || null,
-        };
-        console.log("[Signup] Creating user profile in Firestore (USERS collection):", userProfileData);
+        await updateAuthProfile(firebaseUser, { displayName: name });
+        console.log(`[Signup Page] Firebase Auth profile updated with displayName: ${name} for UID: ${firebaseUser.uid}`);
+      } catch (authProfileError: any) {
+        console.warn(`[Signup Page] Non-critical: Failed to update Firebase Auth profile displayName for UID: ${firebaseUser.uid}. Error: ${authProfileError.message}`);
+        // Continue with Firestore profile creation even if Auth profile update fails slightly
+      }
+
+      // Create user profile in Firestore
+      const userDocRef = doc(db, "USERS", firebaseUser.uid); 
+      const userProfileData: UserProfile = {
+        uid: firebaseUser.uid, // CRITICAL: Ensure UID is stored in the document
+        name: name.trim() || (firebaseUser.email ? firebaseUser.email.split('@')[0] : "New User"),
+        email: firebaseUser.email,
+        role: 'user', 
+        createdAt: serverTimestamp() as any, // Cast to any to satisfy TS, Firestore handles it
+        lastLoginAt: serverTimestamp() as any, 
+        photoURL: firebaseUser.photoURL || null,
+      };
+      
+      console.log(`[Signup Page] Preparing to create Firestore document at USERS/${firebaseUser.uid} with data:`, JSON.stringify(userProfileData));
+
+      try {
         await setDoc(userDocRef, userProfileData);
-        console.log("[Signup] User profile successfully created in Firestore.");
+        console.log(`[Signup Page] Firestore document CREATED successfully at USERS/${firebaseUser.uid}.`);
 
         toast({
           title: "Account Created!",
-          description: "Welcome to LISGE Hub.",
+          description: "Welcome to LISGE Hub. Redirecting to dashboard...",
         });
         router.push('/dashboard'); 
 
       } catch (firestoreError: any) {
-        console.error(`[Signup] CRITICAL: Firebase Auth user ${firebaseUser?.uid} created, but FAILED to create Firestore profile: `, firestoreError);
-        const profileCreationErrorMessage = `Account authentication successful, but profile setup in our database failed: ${firestoreError.message}. ` +
+        console.error(`[Signup Page] CRITICAL: Firebase Auth user ${firebaseUser?.uid} created, BUT FAILED to create Firestore profile at USERS/${firebaseUser?.uid}. Error:`, firestoreError);
+        const profileCreationErrorMessage = `Account authentication was successful, but we encountered an issue setting up your profile in our database (Error: ${firestoreError.message}). ` +
                                             `Please try logging in. If the problem persists, contact support with your email and this UID: ${firebaseUser?.uid || 'N/A'}.`;
-        setError(profileCreationErrorMessage);
+        setError(profileCreationErrorMessage); // Display error on signup page
         toast({
           title: "Signup Incomplete",
           description: profileCreationErrorMessage,
           variant: "destructive",
           duration: 15000, // Longer duration for this critical error
         });
-        // Important: Do not redirect. Let the user see the error on the signup page.
+        // DO NOT redirect if Firestore profile creation fails.
       }
 
-    } catch (authError: any) { // This outer catch handles errors from createUserWithEmailAndPassword or updateAuthProfile
+    } catch (authError: any) { // Handles errors from createUserWithEmailAndPassword
       let friendlyMessage = "Failed to create account. Please try again.";
       if (authError.code === 'auth/email-already-in-use') {
         friendlyMessage = "This email address is already registered. Please try logging in or use a different email.";
@@ -100,7 +109,7 @@ export default function SignupPage() {
         description: friendlyMessage,
         variant: "destructive",
       });
-      console.error("[Signup] Auth Error (createUser or updateProfile):", authError.code, authError.message);
+      console.error("[Signup Page] Firebase Auth Error (createUserWithEmailAndPassword):", authError.code, authError.message);
     } finally {
       setLoading(false);
     }

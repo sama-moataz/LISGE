@@ -15,10 +15,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Save, ShieldAlert, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { getScholarshipById } from '@/lib/firestoreService'; // Read uses client SDK
-import { updateScholarshipAdmin } from '@/lib/firestoreAdminService'; // Write uses Admin SDK
 import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
+// Import the Server Action
+import { handleUpdateScholarshipAction } from '../actions';
+
 
 const curatedIconNames = [
   'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle', 
@@ -119,38 +121,7 @@ const scholarshipSchema = z.object({
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
 
-// Server Action defined in the page
-async function handleUpdateScholarship(id: string, formData: ScholarshipFormData) {
-  'use server';
-  console.log(`[Server Action - handleUpdateScholarship] Received form data for ID ${id}:`, formData);
-
-  // CRITICAL: AUTHORIZATION CHECK (Placeholder - see new/page.tsx for detailed comments)
-  // You MUST verify the user is an admin here before proceeding.
-  // This involves verifying an ID token and checking the user's role.
-  // For this example, we'll proceed, assuming authorization is handled.
-  // if (!isCallerAdmin(idToken)) { return { success: false, error: 'Unauthorized' }; }
-
-  try {
-    const processedData: Partial<Omit<Scholarship, 'id' | 'createdAt'>> = {
-        ...formData,
-        iconName: formData.iconName === '_none_' ? null : formData.iconName,
-        ageRequirement: formData.ageRequirement === '_none_' ? null : formData.ageRequirement,
-        fundingLevel: formData.fundingLevel === '_none_' ? null : formData.fundingLevel,
-        destinationRegion: formData.destinationRegion === '_none_' ? null : formData.destinationRegion,
-        targetLevel: formData.targetLevel === '_none_' ? null : formData.targetLevel,
-        fundingCountry: formData.fundingCountry === '_none_' ? null : formData.fundingCountry,
-        imageUrl: formData.imageUrl === '' ? null : formData.imageUrl,
-    };
-    console.log("[Server Action - handleUpdateScholarship] Processed data for Admin SDK:", processedData);
-    await updateScholarshipAdmin(id, processedData);
-    console.log("[Server Action - handleUpdateScholarship] Scholarship updated for ID:", id);
-    return { success: true, id, name: processedData.name };
-  } catch (err: any) {
-    console.error("[Server Action - handleUpdateScholarship] Error calling updateScholarshipAdmin:", err);
-    return { success: false, error: err.message || "Failed to update scholarship via Admin SDK." };
-  }
-}
-
+// Inline Server Action removed
 
 export default function EditScholarshipPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -236,19 +207,28 @@ export default function EditScholarshipPage() {
     setIsSubmitting(true);
     console.log("[EditScholarshipPage Client] Submitting form data for ID " + scholarshipId + ":", data);
     
-    const processedClientData: ScholarshipFormData = { ...data };
-    (Object.keys(processedClientData) as Array<keyof ScholarshipFormData>).forEach(key => {
-        if (processedClientData[key] === "_none_") {
-            (processedClientData[key] as any) = null;
-        }
-        if (typeof processedClientData[key] === 'string' && (processedClientData[key] as string).trim() === '' && key !== 'name' && key !== 'description' && key !== 'eligibility' && key !== 'websiteUrl' && key !== 'location') {
-             if (key === 'imageUrl' || key === 'iconName' || key === 'category' || key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || key === 'coverage' || key === 'deadline') {
-                (processedClientData[key] as any) = null;
-            }
-        }
-    });
+    const processedDataForAction: Partial<Omit<Scholarship, 'id' | 'createdAt'>> = {
+        ...data,
+        iconName: data.iconName === '_none_' ? null : data.iconName,
+        ageRequirement: data.ageRequirement === '_none_' ? null : (data.ageRequirement || null),
+        fundingLevel: data.fundingLevel === '_none_' ? null : (data.fundingLevel || null),
+        destinationRegion: data.destinationRegion === '_none_' ? null : (data.destinationRegion || null),
+        targetLevel: data.targetLevel === '_none_' ? null : (data.targetLevel || null),
+        fundingCountry: data.fundingCountry === '_none_' ? null : (data.fundingCountry || null),
+        imageUrl: data.imageUrl === '' ? null : data.imageUrl,
+        // Ensure all optional fields that are not required by Omit<> but might be empty strings are null
+        category: data.category || null,
+        partner: data.partner || null,
+        coverage: data.coverage || null,
+        deadline: data.deadline || null,
+    };
 
-    const result = await handleUpdateScholarship(scholarshipId, processedClientData);
+    // If your Server Action needs an ID token for auth (recommended)
+    // const idToken = await user?.getIdToken();
+    // const result = await handleUpdateScholarshipAction(scholarshipId, { ...processedDataForAction, idToken });
+    // Server Action would need to be adapted to receive and verify this.
+
+    const result = await handleUpdateScholarshipAction(scholarshipId, processedDataForAction);
 
     if (result.success) {
       toast({ title: "Success", description: `Scholarship "${result.name}" updated successfully.` });
