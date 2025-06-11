@@ -122,15 +122,16 @@ export async function addScholarship(scholarshipData: Omit<Scholarship, 'id' | '
     console.error("--------------------------------------------------------------------");
     
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
+      const clientUidMessage = `The client-side application reported the UID initiating this request as '${currentAuthUserUid}'. `;
       throw new Error(
         `ACTION REQUIRED: Firestore Permission Denied when adding scholarship. ` +
         `Firebase message: "${error.message}". ` +
+        `${currentAuthUserUid !== 'UNKNOWN_UID_ON_SERVER_SIDE_DURING_ERROR' ? clientUidMessage : ''}` +
         `TROUBLESHOOTING STEPS: ` +
-        `1. VERIFY your DEPLOYED Firestore rules allow 'create' on '/SCHOLARSHIPS/{scholarshipId}'. ` +
-        `2. CONFIRM the admin user's document in the 'USERS' collection (UID making the request was logged as '${currentAuthUserUid}' if available, cross-check with client-side log) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
-        `3. CHECK YOUR CLIENT-SIDE CONSOLE for the logged UID initiating this action. ` +
-        `4. USE FIREBASE RULES SIMULATOR with that UID, path '/SCHOLARSHIPS/someNewId', and operation 'create'. ` +
-        `5. See full original Firebase error in your SERVER CONSOLE (Next.js terminal).`
+        `1. DOUBLE-CHECK your DEPLOYED Firestore rules in the Firebase Console. Ensure they EXACTLY match the required rules for 'SCHOLARSHIPS' and 'USERS' collections (path casing, field names like 'role', and value 'Admin' must be precise). ` +
+        `2. VERIFY the admin user's document in the 'USERS' collection (UID: '${currentAuthUserUid}') has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
+        `3. MOST IMPORTANT: USE THE FIREBASE RULES SIMULATOR in the Firebase Console: Simulate a 'create' operation on path '/SCHOLARSHIPS/testId' with Authentication ON and User UID set to '${currentAuthUserUid}'. Observe the evaluation of the 'get()' call to the USERS collection. ` +
+        `4. See full original Firebase error in your SERVER CONSOLE (Next.js terminal).`
       );
     }
     throw new Error(`Failed to add scholarship. Server error: ${error.message || 'Please check server console for details.'}`);
@@ -176,15 +177,16 @@ export async function updateScholarship(id: string, scholarshipData: Partial<Omi
     console.error("--------------------------------------------------------------------");
     
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
+        const clientUidMessage = `The client-side application reported the UID initiating this request as '${currentAuthUserUid}'. `;
         throw new Error(
           `ACTION REQUIRED: Firestore Permission Denied when updating scholarship (ID: ${id}). ` +
           `Firebase message: "${error.message}". ` +
+          `${currentAuthUserUid !== 'UNKNOWN_UID_ON_SERVER_SIDE_DURING_ERROR' ? clientUidMessage : ''}` +
           `TROUBLESHOOTING STEPS: ` +
-          `1. VERIFY your DEPLOYED Firestore rules allow 'update' on '/SCHOLARSHIPS/{scholarshipId}'. ` +
-          `2. CONFIRM the admin user's document in the 'USERS' collection (UID making the request was logged as '${currentAuthUserUid}' if available, cross-check with client-side log) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
-          `3. CHECK YOUR CLIENT-SIDE CONSOLE for the logged UID initiating this action. ` +
-          `4. USE FIREBASE RULES SIMULATOR with that UID, path '/SCHOLARSHIPS/${id}', and operation 'update'. ` +
-          `5. See full original Firebase error in your SERVER CONSOLE (Next.js terminal).`
+          `1. DOUBLE-CHECK your DEPLOYED Firestore rules in the Firebase Console. Ensure they EXACTLY match the required rules for 'SCHOLARSHIPS' and 'USERS' collections. ` +
+          `2. VERIFY the admin user's document in the 'USERS' collection (UID: '${currentAuthUserUid}') has a field 'role' with value 'Admin'. ` +
+          `3. MOST IMPORTANT: USE THE FIREBASE RULES SIMULATOR: Simulate an 'update' operation on path '/SCHOLARSHIPS/${id}' with Authentication ON and User UID set to '${currentAuthUserUid}'. Observe the 'get()' call. ` +
+          `4. See full original Firebase error in your SERVER CONSOLE.`
         );
     }
     throw new Error(`Failed to update scholarship ${id}. Server error: ${error.message || 'Unknown Firestore error. Check server console for full details.'}`);
@@ -199,15 +201,16 @@ export async function deleteScholarship(id: string): Promise<void> {
     console.error(`Error deleting scholarship ${id}: `, error);
     const currentAuthUserUid = auth.currentUser?.uid || 'UNKNOWN_UID_ON_SERVER_SIDE_DURING_ERROR';
     if (error.code === 'permission-denied' || (error.message && error.message.includes('PERMISSION_DENIED'))) {
+        const clientUidMessage = `The client-side application reported the UID initiating this request as '${currentAuthUserUid}'. `;
         throw new Error(
           `ACTION REQUIRED: Firestore Permission Denied when deleting scholarship (ID: ${id}). ` +
           `Firebase message: "${error.message}". ` +
+          `${currentAuthUserUid !== 'UNKNOWN_UID_ON_SERVER_SIDE_DURING_ERROR' ? clientUidMessage : ''}` +
           `TROUBLESHOOTING STEPS: ` +
-          `1. VERIFY your DEPLOYED Firestore rules allow 'delete' on '/SCHOLARSHIPS/{scholarshipId}'. ` +
-          `2. CONFIRM the admin user's document in the 'USERS' collection (UID making the request was logged as '${currentAuthUserUid}' if available, cross-check with client-side log) has a field named 'role' with the exact string value 'Admin' (case-sensitive). ` +
-          `3. CHECK YOUR CLIENT-SIDE CONSOLE for the logged UID initiating this action. ` +
-          `4. USE FIREBASE RULES SIMULATOR with that UID, path '/SCHOLARSHIPS/${id}', and operation 'delete'. ` +
-          `5. See full original Firebase error in your SERVER CONSOLE (Next.js terminal).`
+          `1. DOUBLE-CHECK your DEPLOYED Firestore rules. ` +
+          `2. VERIFY the admin user's document in 'USERS' (UID: '${currentAuthUserUid}') has role: 'Admin'. ` +
+          `3. MOST IMPORTANT: USE THE FIREBASE RULES SIMULATOR: Simulate a 'delete' on '/SCHOLARSHIPS/${id}' with Auth ON and User UID '${currentAuthUserUid}'. ` +
+          `4. See full original Firebase error in your SERVER CONSOLE.`
         );
     }
     throw new Error(`Failed to delete scholarship ${id}.`);
@@ -253,3 +256,5 @@ export async function seedInitialScholarships(scholarshipsToSeed: Omit<Scholarsh
     console.log("No new scholarships to seed (based on name check). All provided scholarship names already exist.");
   }
 }
+
+    
