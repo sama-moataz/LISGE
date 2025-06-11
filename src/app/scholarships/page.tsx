@@ -20,8 +20,8 @@ const scholarshipsData: Scholarship[] = [
     websiteUrl: 'https://www.guc.edu.eg/',
     icon: GraduationCap,
     category: "Full Scholarship",
-    location: 'Egypt', 
-    ageRequirement: '18+', 
+    location: 'Egypt',
+    ageRequirement: '18+',
     fundingLevel: 'Fully Funded',
     destinationRegion: 'Egypt/MENA',
     targetLevel: 'Undergraduate',
@@ -53,12 +53,12 @@ const scholarshipsData: Scholarship[] = [
     name: 'U.S.-Egypt HEI Local Scholarships (Private Universities)',
     description: 'Scholarships for Egyptian public school graduates to pursue programs in Egyptian private universities. Focus on agribusiness, engineering, economics, IT.',
     eligibility: 'Egyptian public school graduates. Economically disadvantaged. High-achieving.',
-    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo', 
+    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo',
     icon: Users,
     category: "Higher Education",
     location: 'Egypt',
-    ageRequirement: '18+', 
-    fundingLevel: 'Varies', 
+    ageRequirement: '18+',
+    fundingLevel: 'Varies',
     destinationRegion: 'Egypt/MENA',
     targetLevel: 'Undergraduate',
     fundingCountry: 'USA',
@@ -74,8 +74,8 @@ const scholarshipsData: Scholarship[] = [
     websiteUrl: 'https://www.yesprograms.org/',
     icon: Globe,
     category: "Cultural Exchange",
-    location: 'International', 
-    ageRequirement: '16-18', 
+    location: 'International',
+    ageRequirement: '16-18',
     fundingLevel: 'Fully Funded',
     destinationRegion: 'USA',
     targetLevel: 'Exchange',
@@ -111,7 +111,7 @@ const scholarshipsData: Scholarship[] = [
     icon: Award,
     category: "Postgraduate Leadership",
     location: 'International',
-    ageRequirement: '18+', 
+    ageRequirement: '18+',
     fundingLevel: 'Fully Funded',
     destinationRegion: 'UK',
     targetLevel: 'Postgraduate',
@@ -133,7 +133,7 @@ const fundingOptions: { value: ScholarshipFundingFilter; label: string }[] = [
   { value: 'All', label: 'All Funding Levels' },
   { value: 'Fully Funded', label: 'Fully Funded' },
   { value: 'Partial Scholarship', label: 'Partial Scholarship' },
-  { value: 'No Funding', label: 'No Funding' }, 
+  { value: 'No Funding', label: 'No Funding' },
   { value: 'Varies', label: 'Varies' },
 ];
 
@@ -196,7 +196,7 @@ export default function ScholarshipsPage() {
       return ageMatch && fundingMatch && regionMatch && levelMatch && fundingCountryMatch;
     });
   }, [selectedAge, selectedFunding, selectedRegion, selectedLevel, selectedFundingCountry]);
-  
+
   const clearFilters = () => {
     setSelectedAge('All');
     setSelectedFunding('All');
@@ -206,7 +206,7 @@ export default function ScholarshipsPage() {
   };
 
   if (!mounted) {
-    return null; 
+    return null;
   }
 
   return (
@@ -269,10 +269,10 @@ export default function ScholarshipsPage() {
           </Accordion>
         </Card>
       </div>
-      
+
       {filteredScholarships.length > 0 ? (
         <div className="grid md:grid-cols-2 gap-6">
-          {filteredScholarships.map((scholarship) => (
+          {filteredScholarships.map((scholarship, index) => (
             <Card key={scholarship.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
@@ -288,14 +288,25 @@ export default function ScholarshipsPage() {
                 <CardDescription className="pt-3 text-sm">{scholarship.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-3 text-sm">
-                 <Image 
-                  src={`https://placehold.co/600x300.png?text=${encodeURIComponent(scholarship.name)}`}
-                  alt={scholarship.name}
-                  data-ai-hint="education opportunity"
-                  width={600}
-                  height={300}
-                  className="rounded-md object-cover aspect-[2/1] mb-4"
-                />
+                 {index === 0 ? (
+                    <Image
+                      src="/images/inspiring-student.jpg" // Example of a local image
+                      alt={`Image for ${scholarship.name} - an inspiring student`}
+                      data-ai-hint="student learning success" // Updated hint for the new image
+                      width={600}
+                      height={300}
+                      className="rounded-md object-cover aspect-[2/1] mb-4"
+                    />
+                  ) : (
+                    <Image
+                      src={`https://placehold.co/600x300.png?text=${encodeURIComponent(scholarship.name)}`}
+                      alt={scholarship.name}
+                      data-ai-hint="education opportunity"
+                      width={600}
+                      height={300}
+                      className="rounded-md object-cover aspect-[2/1] mb-4"
+                    />
+                  )}
                 {scholarship.partner && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Landmark className="h-4 w-4 text-primary" />
@@ -316,7 +327,7 @@ export default function ScholarshipsPage() {
                 )}
                 {scholarship.deadline && (
                   <div className="flex items-center gap-2 text-muted-foreground pt-1">
-                    <CalendarDays className="h-4 w-4 text-primary" /> 
+                    <CalendarDays className="h-4 w-4 text-primary" />
                     <p><strong>Deadline:</strong> {scholarship.deadline}</p>
                   </div>
                 )}
@@ -337,5 +348,3 @@ export default function ScholarshipsPage() {
     </div>
   );
 }
-
-    
