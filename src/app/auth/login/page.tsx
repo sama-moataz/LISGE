@@ -3,92 +3,40 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  signInWithEmailAndPassword, 
-  signInWithPopup,
-  signInWithPhoneNumber,
-  type ConfirmationResult
-} from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'; 
-import { auth, db, googleAuthProvider, RecaptchaVerifier } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { LogIn, Loader2, Mail, KeyRound, Smartphone, MessageSquare } from 'lucide-react';
+import { LogIn, Loader2, Mail, KeyRound } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import Image from 'next/image'; 
-
-// Declare reCAPTCHA verifier at the module level
-declare global {
-  interface Window {
-    recaptchaVerifier?: RecaptchaVerifier;
-    confirmationResult?: ConfirmationResult;
-  }
-}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
   
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<'email' | 'google' | 'phone' | 'otp' | false>(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && auth && !window.recaptchaVerifier) { 
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible', 
-        'callback': (response: any) => {
-          console.log("reCAPTCHA solved", response);
-        },
-        'expired-callback': () => {
-          toast({ title: "reCAPTCHA Expired", description: "Please try sending the OTP again.", variant: "destructive" });
-        }
-      });
-    }
-    return () => {
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-      }
-    };
-  }, [toast]);
-
-  const handleLoginSuccess = async (userId: string, userEmail: string | null, isNewSocialOrPhoneUser?: boolean, userName?: string | null, userPhotoURL?: string | null, userPhoneNumber?: string | null) => {
-    console.log(`[LoginSuccess] Handling for UID: ${userId}, Email: ${userEmail}, isNewSocialOrPhoneUser: ${isNewSocialOrPhoneUser}`);
+  const handleLoginSuccess = async (userId: string, userEmail: string | null) => {
+    console.log(`[LoginSuccess] Handling for UID: ${userId}, Email: ${userEmail}`);
     try {
-      const userDocRef = doc(db, "USERS", userId); // Changed 'users' to 'USERS'
+      const userDocRef = doc(db, "USERS", userId);
       const userDocSnap = await getDoc(userDocRef);
 
-      if (!userDocSnap.exists() && isNewSocialOrPhoneUser) {
-        const profileToCreate = {
-          uid: userId,
-          name: userName || (userEmail ? userEmail.split('@')[0] : (userPhoneNumber ? `User-${userId.substring(0,5)}` : "User")),
-          email: userEmail || null,
-          role: 'user', 
-          createdAt: serverTimestamp(),
-          lastLoginAt: serverTimestamp(),
-          photoURL: userPhotoURL || null,
-          phoneNumber: userPhoneNumber || null,
-        };
-        console.log("[LoginSuccess] New social/phone user. Creating profile in USERS collection:", profileToCreate);
-        await setDoc(userDocRef, profileToCreate);
-        toast({ title: "Account Created & Logged In!", description: "Welcome to LISGE Hub." });
-      } else if (userDocSnap.exists()) {
+      if (userDocSnap.exists()) {
         console.log("[LoginSuccess] Existing user. Updating lastLoginAt in USERS collection.");
         await setDoc(userDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
         toast({ title: "Login Successful!", description: "Welcome back to LISGE Hub." });
-      } else if (!userDocSnap.exists() && !isNewSocialOrPhoneUser) {
-        console.warn(`[LoginSuccess] Profile not found in USERS collection for email/password user UID: ${userId}. This is unexpected for non-social/phone logins.`);
-        toast({ title: "Login Warning", description: "Profile not found, but login successful. Please contact support if issues persist.", variant: "default" });
       } else {
-         console.log("[LoginSuccess] User profile already exists or this is not a new social/phone user being created now.");
+         console.warn(`[LoginSuccess] Profile not found in USERS collection for email/password user UID: ${userId}. This is unexpected. Login successful, but profile might be missing if signup didn't complete.`);
+         toast({ title: "Login Warning", description: "Profile not found, but login successful. Please contact support if issues persist.", variant: "default" });
       }
 
       const redirectUrl = searchParams.get('redirect') || '/dashboard';
@@ -96,83 +44,22 @@ export default function LoginPage() {
     } catch (dbError: any) {
       console.error("[LoginSuccess] Error during Firestore operation: ", dbError);
       toast({ title: "Login Error", description: `Could not finalize login with database: ${dbError.message}`, variant: "destructive" });
-      if(!isNewSocialOrPhoneUser && (userDocSnap && userDocSnap.exists())) router.push('/dashboard'); 
+      // Fallback redirect even if Firestore fails, as auth was successful.
+      const redirectUrl = searchParams.get('redirect') || '/dashboard';
+      router.push(redirectUrl);
     }
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading('email');
+    setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await handleLoginSuccess(userCredential.user.uid, userCredential.user.email, false);
+      await handleLoginSuccess(userCredential.user.uid, userCredential.user.email);
     } catch (err: any) {
       setError(err.message || "Failed to login. Please check your credentials.");
       toast({ title: "Login Failed", description: err.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setError(null);
-    setLoading('google');
-    try {
-      const result = await signInWithPopup(auth, googleAuthProvider);
-      const user = result.user;
-      await handleLoginSuccess(user.uid, user.email, true, user.displayName, user.photoURL, user.phoneNumber);
-    } catch (err: any) {
-      setError(err.message || "Failed to login with Google.");
-      toast({ title: "Google Login Failed", description: err.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePhoneLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading('phone');
-    try {
-      const appVerifier = window.recaptchaVerifier!;
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-      window.confirmationResult = confirmationResult; 
-      setOtpSent(true);
-      toast({ title: "OTP Sent", description: `An OTP has been sent to ${phoneNumber}.` });
-    } catch (err: any) {
-      setError(err.message || "Failed to send OTP. Ensure phone number is correct and reCAPTCHA is working.");
-      toast({ title: "Phone Login Failed", description: err.message, variant: "destructive" });
-      console.error("Phone auth error:", err);
-      if (window.recaptchaVerifier) {
-        // @ts-ignore
-        if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
-            window.recaptchaVerifier.render().then(function(widgetId) {
-                // @ts-ignore
-                grecaptcha.reset(widgetId);
-            }).catch(console.error);
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading('otp');
-    try {
-      if (window.confirmationResult) {
-        const userCredential = await window.confirmationResult.confirm(otp);
-        const user = userCredential.user;
-        await handleLoginSuccess(user.uid, user.email, true, user.displayName, user.photoURL, user.phoneNumber);
-      } else {
-        throw new Error("OTP confirmation result not found. Please try sending OTP again.");
-      }
-    } catch (err: any) {
-      setError(err.message || "Failed to verify OTP. Please try again.");
-      toast({ title: "OTP Verification Failed", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -188,78 +75,26 @@ export default function LoginPage() {
           <CardDescription>Access your LISGE Hub account.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div id="recaptcha-container"></div>
-
-          {!otpSent ? (
-            <>
-              <form onSubmit={handleEmailLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-1"><Mail size={14}/>Email</Label>
-                  <Input
-                    id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com" required disabled={!!loading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="flex items-center gap-1"><KeyRound size={14}/>Password</Label>
-                  <Input
-                    id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••" required disabled={!!loading}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading === 'email' || !!loading && loading !== 'email'}>
-                  {loading === 'email' ? <Loader2 className="animate-spin mr-2" /> : null}
-                  Login with Email
-                </Button>
-              </form>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                </div>
-              </div>
-              
-              <Button variant="outline" onClick={handleGoogleLogin} className="w-full" disabled={loading === 'google' || !!loading && loading !== 'google'}>
-                {loading === 'google' ? <Loader2 className="animate-spin mr-2" /> :  <Image src="/google-icon.svg" alt="Google" width={18} height={18} className="mr-2" data-ai-hint="google logo"/>}
-                Sign in with Google
-              </Button>
-
-              <form onSubmit={handlePhoneLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-1"><Smartphone size={14}/>Phone Number</Label>
-                  <Input
-                    id="phone" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+1 123 456 7890 (include country code)" required disabled={!!loading}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading === 'phone' || !!loading && loading !== 'phone'}>
-                  {loading === 'phone' ? <Loader2 className="animate-spin mr-2" /> : null}
-                  Send OTP
-                </Button>
-              </form>
-            </>
-          ) : (
-            <form onSubmit={handleOtpSubmit} className="space-y-4">
-              <p className="text-sm text-center text-muted-foreground">Enter OTP sent to {phoneNumber}</p>
-              <div className="space-y-2">
-                <Label htmlFor="otp" className="flex items-center gap-1"><MessageSquare size={14}/>OTP Code</Label>
-                <Input
-                  id="otp" type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
-                  placeholder="123456" required maxLength={6} disabled={!!loading}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading === 'otp' || !!loading && loading !== 'otp'}>
-                {loading === 'otp' ? <Loader2 className="animate-spin mr-2" /> : null}
-                Verify OTP & Login
-              </Button>
-              <Button variant="link" onClick={() => { setOtpSent(false); setError(null); }} className="w-full text-sm" disabled={!!loading}>
-                Change phone number or method
-              </Button>
-            </form>
-          )}
+          <form onSubmit={handleEmailLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center gap-1"><Mail size={14}/>Email</Label>
+              <Input
+                id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com" required disabled={loading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="flex items-center gap-1"><KeyRound size={14}/>Password</Label>
+              <Input
+                id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••" required disabled={loading}
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin mr-2" /> : null}
+              Login with Email
+            </Button>
+          </form>
 
           {error && <p className="text-sm text-destructive py-1 text-center">{error}</p>}
           
