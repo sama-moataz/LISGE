@@ -18,7 +18,9 @@ function ensureAdminDBInitialized() {
 export async function addScholarshipAdmin(scholarshipData: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
   console.log("[firestoreAdminService] addScholarshipAdmin: Attempting to add data:", JSON.stringify(scholarshipData, null, 2));
   ensureAdminDBInitialized(); // Explicit check
-  
+
+  // If scholarshipData.imageUrl is a Data URI, it will be stored as is.
+  // Future enhancement: Upload Data URI to Firebase Storage and save the URL instead.
   const dataToSave: Partial<Scholarship> & { createdAt: any, updatedAt: any } = {
     name: scholarshipData.name || '',
     description: scholarshipData.description || '',
@@ -35,17 +37,17 @@ export async function addScholarshipAdmin(scholarshipData: Omit<Scholarship, 'id
     partner: scholarshipData.partner || null,
     coverage: scholarshipData.coverage || null,
     deadline: scholarshipData.deadline || null,
-    imageUrl: scholarshipData.imageUrl || null,
+    imageUrl: scholarshipData.imageUrl || null, // This can now be a Data URI string
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   };
-  
+
   try {
     const scholarshipsRef = adminDB!.collection(SCHOLARSHIPS_COLLECTION); // Added non-null assertion as ensureAdminDBInitialized would have thrown
     const docRef = await scholarshipsRef.add(dataToSave as any);
     console.log("[firestoreAdminService] addScholarshipAdmin: Successfully added document with ID:", docRef.id);
     return docRef.id;
-  } catch (error: any) { 
+  } catch (error: any) {
     console.error("[firestoreAdminService] addScholarshipAdmin: CRITICAL ERROR during Admin SDK Firestore 'add' operation:", error);
     throw new Error(`Admin SDK Firestore Error: ${error.message || 'Failed to add scholarship using Admin SDK. Check server console for details.'}`);
   }
@@ -54,18 +56,22 @@ export async function addScholarshipAdmin(scholarshipData: Omit<Scholarship, 'id
 export async function updateScholarshipAdmin(id: string, scholarshipData: Partial<Omit<Scholarship, 'id' | 'createdAt'>>): Promise<void> {
   console.log(`[firestoreAdminService] updateScholarshipAdmin: Attempting to update ID ${id} with data:`, JSON.stringify(scholarshipData, null, 2));
   ensureAdminDBInitialized();
-  
+
+  // If scholarshipData.imageUrl is a Data URI, it will be stored as is.
+  // Future enhancement: Upload Data URI to Firebase Storage and save the URL instead.
   const dataToUpdate: { [key: string]: any } = {};
   (Object.keys(scholarshipData) as Array<keyof typeof scholarshipData>).forEach(key => {
       const value = scholarshipData[key];
       if (value === undefined || value === null || value === '_none_') {
           dataToUpdate[key] = null;
-      } else if (typeof value === 'string' && value.trim() === '' && 
-                 (key === 'imageUrl' || key === 'iconName' || key === 'category' || 
-                  key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' || 
-                  key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' || 
+      } else if (typeof value === 'string' && value.trim() === '' &&
+                 (key === 'iconName' || key === 'category' || // imageUrl is handled by the string check now
+                  key === 'ageRequirement' || key === 'fundingLevel' || key === 'destinationRegion' ||
+                  key === 'targetLevel' || key === 'fundingCountry' || key === 'partner' ||
                   key === 'coverage' || key === 'deadline')) {
           dataToUpdate[key] = null;
+      } else if (key === 'imageUrl' && typeof value === 'string' && value.trim() === '') {
+          dataToUpdate[key] = null; // Specifically handle empty string for imageUrl to set as null
       }
       else {
           dataToUpdate[key] = value;

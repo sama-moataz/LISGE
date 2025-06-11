@@ -13,28 +13,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Save, ShieldAlert, ArrowLeft } from 'lucide-react';
-// Intentionally removed: import { addScholarship } from '@/lib/firestoreService';
+import { Loader2, Save, ShieldAlert, ArrowLeft, UploadCloud } from 'lucide-react';
 import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
+import Image from 'next/image'; // Import Next Image
 // Import the Server Action
 import { handleAddScholarshipAction } from '../actions';
 
 const curatedIconNames = [
-  'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle', 
+  'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle',
   'ClipboardList', 'Coins', 'Compass', 'DollarSign', 'Edit3', 'ExternalLink', 'Feather', 'FileText',
-  'Filter', 'Flag', 'FolderOpen', 'Gift', 'Globe', 'GraduationCap', 'HeartHandshake', 'HelpCircle', 'Home', 
-  'Image', 'Info', 'Landmark', 'Languages', 'Laptop', 'LayoutDashboard', 'Library', 'LifeBuoy', 'Lightbulb', 
-  'Link', 'ListChecks', 'Loader2', 'LockKeyhole', 'LogIn', 'LogOut', 'Mail', 'Map', 'MapPin', 'Medal', 'Menu', 
-  'MessageSquare', 'Mic2', 'Moon', 'MoreHorizontal', 'MousePointerSquare', 'Move', 'Music2', 'Newspaper', 
-  'Package', 'Paperclip', 'PenLine', 'Percent', 'PersonStanding', 'Phone', 'PieChart', 'Pin', 'PlayCircle', 
-  'Plus', 'PlusCircle', 'Pocket', 'Printer', 'Puzzle', 'RefreshCcw', 'RefreshCw', 'Rocket', 'Save', 
-  'School', 'ScreenShare', 'Search', 'Send', 'Settings', 'Settings2', 'Share2', 'Sheet', 'ShieldCheck', 
-  'ShoppingBag', 'ShoppingCart', 'SlidersHorizontal', 'Smile', 'Sparkles', 'Speaker', 'Star', 'StickyNote', 'Sun', 
-  'Table', 'Tablet', 'Tag', 'Target', 'Tent', 'ThumbsUp', 'Timer', 'ToggleLeft', 'ToggleRight', 'Tool', 
-  'Trash2', 'TrendingUp', 'Trophy', 'Truck', 'Tv2', 'University', 'UploadCloud', 'User', 'UserCheck', 
-  'UserCog', 'UserPlus', 'Users', 'Video', 'Voicemail', 'WalletCards', 'Waypoints', 'Wifi', 'Wind', 'Workflow', 
+  'Filter', 'Flag', 'FolderOpen', 'Gift', 'Globe', 'GraduationCap', 'HeartHandshake', 'HelpCircle', 'Home',
+  'Image', 'Info', 'Landmark', 'Languages', 'Laptop', 'LayoutDashboard', 'Library', 'LifeBuoy', 'Lightbulb',
+  'Link', 'ListChecks', 'Loader2', 'LockKeyhole', 'LogIn', 'LogOut', 'Mail', 'Map', 'MapPin', 'Medal', 'Menu',
+  'MessageSquare', 'Mic2', 'Moon', 'MoreHorizontal', 'MousePointerSquare', 'Move', 'Music2', 'Newspaper',
+  'Package', 'Paperclip', 'PenLine', 'Percent', 'PersonStanding', 'Phone', 'PieChart', 'Pin', 'PlayCircle',
+  'Plus', 'PlusCircle', 'Pocket', 'Printer', 'Puzzle', 'RefreshCcw', 'RefreshCw', 'Rocket', 'Save',
+  'School', 'ScreenShare', 'Search', 'Send', 'Settings', 'Settings2', 'Share2', 'Sheet', 'ShieldCheck',
+  'ShoppingBag', 'ShoppingCart', 'SlidersHorizontal', 'Smile', 'Sparkles', 'Speaker', 'Star', 'StickyNote', 'Sun',
+  'Table', 'Tablet', 'Tag', 'Target', 'Tent', 'ThumbsUp', 'Timer', 'ToggleLeft', 'ToggleRight', 'Tool',
+  'Trash2', 'TrendingUp', 'Trophy', 'Truck', 'Tv2', 'University', 'UploadCloud', 'User', 'UserCheck',
+  'UserCog', 'UserPlus', 'Users', 'Video', 'Voicemail', 'WalletCards', 'Waypoints', 'Wifi', 'Wind', 'Workflow',
   'Youtube', 'Zap'
 ];
 
@@ -113,10 +113,7 @@ const scholarshipSchema = z.object({
   partner: z.string().optional().nullable(),
   coverage: z.string().optional().nullable(),
   deadline: z.string().optional().nullable(),
-  imageUrl: z.string().url({ message: "Please enter a valid image URL." })
-    .or(z.literal('')) 
-    .optional()
-    .nullable(), 
+  imageUrl: z.string().optional().nullable(), // Accept Data URI or null
 });
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
@@ -128,14 +125,14 @@ export default function NewScholarshipPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<ScholarshipFormData>({
+  const { control, handleSubmit, formState: { errors }, watch, setValue } = useForm<ScholarshipFormData>({
     resolver: zodResolver(scholarshipSchema),
     defaultValues: {
       name: '',
       description: '',
       eligibility: '',
       websiteUrl: '',
-      iconName: null, 
+      iconName: null,
       category: null,
       location: 'International',
       ageRequirement: null,
@@ -149,6 +146,8 @@ export default function NewScholarshipPage() {
       imageUrl: null,
     },
   });
+
+  const watchedImageUrl = watch('imageUrl');
 
   useEffect(() => {
     if (!authLoading) {
@@ -164,7 +163,7 @@ export default function NewScholarshipPage() {
   const onSubmit: SubmitHandler<ScholarshipFormData> = async (data) => {
     setIsSubmitting(true);
     console.log("[NewScholarshipPage Client] Submitting form data to Server Action:", data);
-    
+
     const processedDataForAction: Omit<Scholarship, 'id' | 'createdAt' | 'updatedAt'> = {
         ...data,
         iconName: data.iconName === '_none_' ? null : data.iconName,
@@ -173,19 +172,14 @@ export default function NewScholarshipPage() {
         destinationRegion: data.destinationRegion === '_none_' ? null : (data.destinationRegion || null),
         targetLevel: data.targetLevel === '_none_' ? null : (data.targetLevel || null),
         fundingCountry: data.fundingCountry === '_none_' ? null : (data.fundingCountry || null),
-        imageUrl: data.imageUrl === '' ? null : data.imageUrl,
+        imageUrl: data.imageUrl || null, // Will be Data URI or null
         category: data.category || null,
         partner: data.partner || null,
         coverage: data.coverage || null,
         deadline: data.deadline || null,
     };
-    
-    console.log('[Server Action - handleAddScholarship] GOOGLE_APPLICATION_CREDENTIALS (at start of Server Action):', process.env.GOOGLE_APPLICATION_CREDENTIALS || "NOT SET in Server Action environment");
 
-    // If your Server Action needs an ID token for auth (recommended)
-    // const idToken = await user?.getIdToken();
-    // const result = await handleAddScholarshipAction({ ...processedDataForAction, idToken }); 
-    // Server Action would need to be adapted to receive and verify this.
+    console.log('[Server Action - handleAddScholarship] GOOGLE_APPLICATION_CREDENTIALS (at start of Server Action):', process.env.GOOGLE_APPLICATION_CREDENTIALS || "NOT SET in Server Action environment");
 
     const result = await handleAddScholarshipAction(processedDataForAction);
 
@@ -235,7 +229,7 @@ export default function NewScholarshipPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            
+
             <div>
               <Label htmlFor="name">Scholarship Name <span className="text-destructive">*</span></Label>
               <Controller
@@ -277,15 +271,44 @@ export default function NewScholarshipPage() {
             </div>
 
             <div>
-              <Label htmlFor="imageUrl">Image URL</Label>
+              <Label htmlFor="imageUrl" className="flex items-center gap-2">
+                <UploadCloud className="h-4 w-4 text-muted-foreground" /> Scholarship Image
+              </Label>
               <Controller
                 name="imageUrl"
                 control={control}
-                render={({ field }) => <Input id="imageUrl" {...field} value={field.value ?? ''} placeholder="https://example.com/image.jpg" />}
+                render={({ field: { onChange, onBlur, name, ref } }) => (
+                  <Input
+                    id="imageUrl"
+                    type="file"
+                    accept="image/*"
+                    onBlur={onBlur}
+                    name={name}
+                    ref={ref}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          onChange(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      } else {
+                        onChange(null);
+                      }
+                    }}
+                  />
+                )}
               />
               {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
+              {watchedImageUrl && typeof watchedImageUrl === 'string' && watchedImageUrl.startsWith('data:image') && (
+                <div className="mt-4">
+                  <Label>Image Preview:</Label>
+                  <Image src={watchedImageUrl} alt="Selected image preview" width={200} height={120} className="rounded-md object-cover border" />
+                </div>
+              )}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="iconName">Icon Name (Lucide)</Label>
@@ -357,7 +380,7 @@ export default function NewScholarshipPage() {
                 {errors.ageRequirement && <p className="text-sm text-destructive mt-1">{errors.ageRequirement.message}</p>}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="fundingLevel">Funding Level</Label>
@@ -459,7 +482,7 @@ export default function NewScholarshipPage() {
               />
               {errors.coverage && <p className="text-sm text-destructive mt-1">{errors.coverage.message}</p>}
             </div>
-            
+
             <div>
               <Label htmlFor="deadline">Application Deadline</Label>
               <Controller
@@ -480,5 +503,3 @@ export default function NewScholarshipPage() {
     </div>
   );
 }
-
-    

@@ -1,5 +1,28 @@
 {
-  "node": {},
+  "node": {
+    "6078df80afe875f0715264ab2c1dfd262c62d64c73": {
+      "workers": {
+        "app/admin/scholarships/page": {
+          "moduleId": "[project]/.next-internal/server/app/admin/scholarships/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/scholarships/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/admin/scholarships/page": "action-browser"
+      }
+    },
+    "40037e7ff8ae96661e5144367a12d348a43a9581d7": {
+      "workers": {
+        "app/admin/scholarships/new/page": {
+          "moduleId": "[project]/.next-internal/server/app/admin/scholarships/new/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/scholarships/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/admin/scholarships/new/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
   "encryptionKey": "bfSk8eRhT0piIZeAy2hnX8C73006Oo26cXpRUYPz/Vk="
 }

@@ -13,29 +13,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Save, ShieldAlert, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Loader2, Save, ShieldAlert, ArrowLeft, AlertTriangle, UploadCloud } from 'lucide-react';
 import { getScholarshipById } from '@/lib/firestoreService'; // Read uses client SDK
 import type { Scholarship, LocationFilter, ScholarshipAgeFilter, ScholarshipFundingFilter, ScholarshipRegionFilter, ScholarshipLevelFilter, FundingCountryFilter } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
+import Image from 'next/image'; // Import Next Image
 // Import the Server Action
 import { handleUpdateScholarshipAction } from '../actions';
 
 
 const curatedIconNames = [
-  'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle', 
+  'Award', 'Book', 'BookOpen', 'Briefcase', 'Building', 'CalendarDays', 'CheckCircle',
   'ClipboardList', 'Coins', 'Compass', 'DollarSign', 'Edit3', 'ExternalLink', 'Feather', 'FileText',
-  'Filter', 'Flag', 'FolderOpen', 'Gift', 'Globe', 'GraduationCap', 'HeartHandshake', 'HelpCircle', 'Home', 
-  'Image', 'Info', 'Landmark', 'Languages', 'Laptop', 'LayoutDashboard', 'Library', 'LifeBuoy', 'Lightbulb', 
-  'Link', 'ListChecks', 'Loader2', 'LockKeyhole', 'LogIn', 'LogOut', 'Mail', 'Map', 'MapPin', 'Medal', 'Menu', 
-  'MessageSquare', 'Mic2', 'Moon', 'MoreHorizontal', 'MousePointerSquare', 'Move', 'Music2', 'Newspaper', 
-  'Package', 'Paperclip', 'PenLine', 'Percent', 'PersonStanding', 'Phone', 'PieChart', 'Pin', 'PlayCircle', 
-  'Plus', 'PlusCircle', 'Pocket', 'Printer', 'Puzzle', 'RefreshCcw', 'RefreshCw', 'Rocket', 'Save', 
-  'School', 'ScreenShare', 'Search', 'Send', 'Settings', 'Settings2', 'Share2', 'Sheet', 'ShieldCheck', 
-  'ShoppingBag', 'ShoppingCart', 'SlidersHorizontal', 'Smile', 'Sparkles', 'Speaker', 'Star', 'StickyNote', 'Sun', 
-  'Table', 'Tablet', 'Tag', 'Target', 'Tent', 'ThumbsUp', 'Timer', 'ToggleLeft', 'ToggleRight', 'Tool', 
-  'Trash2', 'TrendingUp', 'Trophy', 'Truck', 'Tv2', 'University', 'UploadCloud', 'User', 'UserCheck', 
-  'UserCog', 'UserPlus', 'Users', 'Video', 'Voicemail', 'WalletCards', 'Waypoints', 'Wifi', 'Wind', 'Workflow', 
+  'Filter', 'Flag', 'FolderOpen', 'Gift', 'Globe', 'GraduationCap', 'HeartHandshake', 'HelpCircle', 'Home',
+  'Image', 'Info', 'Landmark', 'Languages', 'Laptop', 'LayoutDashboard', 'Library', 'LifeBuoy', 'Lightbulb',
+  'Link', 'ListChecks', 'Loader2', 'LockKeyhole', 'LogIn', 'LogOut', 'Mail', 'Map', 'MapPin', 'Medal', 'Menu',
+  'MessageSquare', 'Mic2', 'Moon', 'MoreHorizontal', 'MousePointerSquare', 'Move', 'Music2', 'Newspaper',
+  'Package', 'Paperclip', 'PenLine', 'Percent', 'PersonStanding', 'Phone', 'PieChart', 'Pin', 'PlayCircle',
+  'Plus', 'PlusCircle', 'Pocket', 'Printer', 'Puzzle', 'RefreshCcw', 'RefreshCw', 'Rocket', 'Save',
+  'School', 'ScreenShare', 'Search', 'Send', 'Settings', 'Settings2', 'Share2', 'Sheet', 'ShieldCheck',
+  'ShoppingBag', 'ShoppingCart', 'SlidersHorizontal', 'Smile', 'Sparkles', 'Speaker', 'Star', 'StickyNote', 'Sun',
+  'Table', 'Tablet', 'Tag', 'Target', 'Tent', 'ThumbsUp', 'Timer', 'ToggleLeft', 'ToggleRight', 'Tool',
+  'Trash2', 'TrendingUp', 'Trophy', 'Truck', 'Tv2', 'University', 'UploadCloud', 'User', 'UserCheck',
+  'UserCog', 'UserPlus', 'Users', 'Video', 'Voicemail', 'WalletCards', 'Waypoints', 'Wifi', 'Wind', 'Workflow',
   'Youtube', 'Zap'
 ];
 
@@ -113,15 +114,10 @@ const scholarshipSchema = z.object({
   partner: z.string().optional().nullable(),
   coverage: z.string().optional().nullable(),
   deadline: z.string().optional().nullable(),
-  imageUrl: z.string().url({ message: "Please enter a valid image URL." })
-    .or(z.literal('')) 
-    .optional()
-    .nullable(), 
+  imageUrl: z.string().optional().nullable(), // Accept Data URI, existing URL, or null
 });
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
-
-// Inline Server Action removed
 
 export default function EditScholarshipPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -129,14 +125,16 @@ export default function EditScholarshipPage() {
   const params = useParams();
   const scholarshipId = params.id as string;
   const { toast } = useToast();
-  
+
   const [isLoadingScholarship, setIsLoadingScholarship] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [scholarshipNotFound, setScholarshipNotFound] = useState(false);
+  const [currentImagePreview, setCurrentImagePreview] = useState<string | null>(null);
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<ScholarshipFormData>({
+
+  const { control, handleSubmit, reset, formState: { errors }, watch, setValue } = useForm<ScholarshipFormData>({
     resolver: zodResolver(scholarshipSchema),
-    defaultValues: { 
+    defaultValues: {
       name: '', description: '', eligibility: '', websiteUrl: '',
       iconName: null, category: null, location: 'International',
       ageRequirement: null, fundingLevel: null, destinationRegion: null,
@@ -144,7 +142,20 @@ export default function EditScholarshipPage() {
       coverage: null, deadline: null, imageUrl: null,
     },
   });
-  
+
+  const watchedImageUrl = watch('imageUrl');
+
+  useEffect(() => {
+    if (watchedImageUrl) {
+      setCurrentImagePreview(watchedImageUrl);
+    } else {
+        // If imageUrl becomes null (e.g., user clears file), clear preview
+        // Or if it was an external URL, it might still be shown by `defaultValues`
+        // This logic might need refinement based on exact UX for clearing images
+    }
+  }, [watchedImageUrl]);
+
+
   const loadScholarshipData = useCallback(async () => {
     if (!scholarshipId) {
       setScholarshipNotFound(true);
@@ -171,9 +182,10 @@ export default function EditScholarshipPage() {
           partner: scholarship.partner || null,
           coverage: scholarship.coverage || null,
           deadline: scholarship.deadline || null,
-          imageUrl: scholarship.imageUrl || null,
+          imageUrl: scholarship.imageUrl || null, // This could be a URL from DB
         };
-        reset(formData); 
+        reset(formData);
+        setCurrentImagePreview(scholarship.imageUrl || null); // Set initial preview
         setScholarshipNotFound(false);
       } else {
         setScholarshipNotFound(true);
@@ -181,7 +193,7 @@ export default function EditScholarshipPage() {
       }
     } catch (err: any) {
       toast({ title: "Error Loading Data", description: err.message || "Failed to load scholarship data.", variant: "destructive" });
-      setScholarshipNotFound(true); 
+      setScholarshipNotFound(true);
     } finally {
       setIsLoadingScholarship(false);
     }
@@ -206,7 +218,7 @@ export default function EditScholarshipPage() {
     if (!scholarshipId) return;
     setIsSubmitting(true);
     console.log("[EditScholarshipPage Client] Submitting form data for ID " + scholarshipId + ":", data);
-    
+
     const processedDataForAction: Partial<Omit<Scholarship, 'id' | 'createdAt'>> = {
         ...data,
         iconName: data.iconName === '_none_' ? null : data.iconName,
@@ -215,18 +227,12 @@ export default function EditScholarshipPage() {
         destinationRegion: data.destinationRegion === '_none_' ? null : (data.destinationRegion || null),
         targetLevel: data.targetLevel === '_none_' ? null : (data.targetLevel || null),
         fundingCountry: data.fundingCountry === '_none_' ? null : (data.fundingCountry || null),
-        imageUrl: data.imageUrl === '' ? null : data.imageUrl,
-        // Ensure all optional fields that are not required by Omit<> but might be empty strings are null
+        imageUrl: data.imageUrl || null, // Will be Data URI, existing URL, or null
         category: data.category || null,
         partner: data.partner || null,
         coverage: data.coverage || null,
         deadline: data.deadline || null,
     };
-
-    // If your Server Action needs an ID token for auth (recommended)
-    // const idToken = await user?.getIdToken();
-    // const result = await handleUpdateScholarshipAction(scholarshipId, { ...processedDataForAction, idToken });
-    // Server Action would need to be adapted to receive and verify this.
 
     const result = await handleUpdateScholarshipAction(scholarshipId, processedDataForAction);
 
@@ -249,7 +255,7 @@ export default function EditScholarshipPage() {
     );
   }
 
-  if (!isAdmin && !authLoading) { 
+  if (!isAdmin && !authLoading) {
      return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)] text-center p-4">
         <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
@@ -259,7 +265,7 @@ export default function EditScholarshipPage() {
       </div>
     );
   }
-  
+
   if (scholarshipNotFound) {
     return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)] text-center p-4">
@@ -290,7 +296,7 @@ export default function EditScholarshipPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            
+
             <div>
               <Label htmlFor="name">Scholarship Name <span className="text-destructive">*</span></Label>
               <Controller
@@ -332,15 +338,54 @@ export default function EditScholarshipPage() {
             </div>
 
             <div>
-              <Label htmlFor="imageUrl">Image URL</Label>
+              <Label htmlFor="imageUrl" className="flex items-center gap-2">
+                <UploadCloud className="h-4 w-4 text-muted-foreground" /> Scholarship Image (Optional)
+              </Label>
               <Controller
                 name="imageUrl"
                 control={control}
-                render={({ field }) => <Input id="imageUrl" {...field} value={field.value ?? ''} placeholder="https://example.com/image.jpg" />}
+                render={({ field: { onChange, onBlur, name, ref } }) => (
+                  <Input
+                    id="imageUrl"
+                    type="file"
+                    accept="image/*"
+                    onBlur={onBlur}
+                    name={name}
+                    ref={ref}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          onChange(reader.result as string); // Sets Data URI
+                        };
+                        reader.readAsDataURL(file);
+                      } else {
+                        onChange(null); // Clear if no file selected or file removed
+                      }
+                    }}
+                  />
+                )}
               />
               {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
+              {currentImagePreview && (
+                <div className="mt-4">
+                  <Label>Image Preview:</Label>
+                  <Image src={currentImagePreview} alt="Current image preview" width={200} height={120} className="rounded-md object-cover border" />
+                  <Button variant="link" size="sm" className="text-destructive p-0 h-auto mt-1" onClick={() => {
+                      setValue('imageUrl', null); // Clear the RHF value
+                      setCurrentImagePreview(null); // Clear the preview state
+                      const fileInput = document.getElementById('imageUrl') as HTMLInputElement;
+                        if (fileInput) {
+                            fileInput.value = ''; // Attempt to clear the file input visually
+                        }
+                  }}>
+                    Remove image
+                  </Button>
+                </div>
+              )}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="iconName">Icon Name (Lucide)</Label>
@@ -412,7 +457,7 @@ export default function EditScholarshipPage() {
                 {errors.ageRequirement && <p className="text-sm text-destructive mt-1">{errors.ageRequirement.message}</p>}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="fundingLevel">Funding Level</Label>
@@ -514,7 +559,7 @@ export default function EditScholarshipPage() {
               />
               {errors.coverage && <p className="text-sm text-destructive mt-1">{errors.coverage.message}</p>}
             </div>
-            
+
             <div>
               <Label htmlFor="deadline">Application Deadline</Label>
               <Controller
