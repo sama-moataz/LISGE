@@ -237,7 +237,14 @@ export default function ExchangeProgramsPage() {
       
       {filteredPrograms.length > 0 ? (
         <div className="grid md:grid-cols-2 gap-6">
-          {filteredPrograms.map((program) => (
+          {filteredPrograms.map((program) => {
+            let imageUrl;
+            if (program.id === 'techgirls-program') {
+              imageUrl = "/images/summer-techgirls.jpg"; // Use specific image for techgirls
+            } else {
+              imageUrl = `/images/exchange-${program.id}.jpg`;
+            }
+            return (
             <Card key={program.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
@@ -255,12 +262,13 @@ export default function ExchangeProgramsPage() {
               </CardHeader>
               <CardContent className="flex-grow space-y-3 text-sm">
                  <Image 
-                  src={`/images/exchange-${program.id}.jpg`}
+                  src={imageUrl}
                   alt={program.name}
-                  data-ai-hint="students global"
+                  data-ai-hint={program.id === 'techgirls-program' ? "tech girls summer" : "students global"}
                   width={600}
                   height={300}
                   className="rounded-md object-cover aspect-[2/1] mb-4"
+                  onError={(e) => { e.currentTarget.src = `https://placehold.co/600x300.png?text=Image+Error`; }}
                 />
                 {program.partner && (
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -295,7 +303,8 @@ export default function ExchangeProgramsPage() {
                 </Button>
               </CardFooter>
             </Card>
-          ))}
+          );
+        })}
         </div>
       ) : (
         <p className="text-center text-muted-foreground text-lg py-8">No exchange programs found matching your criteria. Try broadening your search or clearing some filters.</p>
@@ -308,5 +317,3 @@ export default function ExchangeProgramsPage() {
     </div>
   );
 }
-
-    

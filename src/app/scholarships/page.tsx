@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Award, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign, Globe, Loader2, ExternalLink, BookOpen, Building, Plane } from 'lucide-react'; // Added Plane
+import { Award, Building, Plane, Users, Globe, ExternalLink, Filter, GraduationCap, RefreshCw, Landmark, CalendarDays, Info, MapPin, DollarSign, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -14,98 +14,121 @@ import { getScholarships } from '@/lib/firestoreService';
 import IconByName from '@/components/IconByName';
 import { useToast } from "@/hooks/use-toast";
 
-// Updated and more comprehensive static scholarship data
 const staticScholarshipsData: Scholarship[] = [
   {
-    id: 'static-sawiris',
-    name: 'Sawiris Foundation Scholarship',
-    description: 'A prestigious scholarship by the Sawiris Foundation for Egyptian students for undergraduate and postgraduate studies in various fields, promoting excellence and social development.',
-    eligibility: 'Egyptian nationals, demonstrating academic excellence, leadership potential, and financial need. Specific criteria vary by program (Undergrad/Postgrad).',
-    websiteUrl: 'https://www.sawirisfoundation.org/sfsp/',
-    icon: Award,
-    category: "Higher Education",
-    location: 'International',
-    destinationRegion: 'Global',
-    targetLevel: 'Undergraduate', // Can also be Postgraduate
-    fundingLevel: 'Fully Funded',
-    partner: "Sawiris Foundation",
-    coverage: "Tuition, living expenses, travel, health insurance.",
-    deadline: "Varies (check official website)",
-    imageUrl: '/images/scholarship-static-sawiris.jpg',
-    dataAiHint: "egyptian scholarship award",
-  },
-  {
-    id: 'static-ched',
-    name: 'CHED Scholarship (Egyptian Public Universities)',
-    description: 'The Egyptian government, through the Ministry of Higher Education, offers various scholarships and grants for students enrolled in Egyptian public universities, often based on merit or specific fields of study.',
-    eligibility: 'Egyptian students enrolled in public universities. Criteria vary widely based on the specific grant or scholarship program.',
-    websiteUrl: 'https://mohesr.gov.eg/ar-eg/Pages/default.aspx',
-    icon: Building,
-    category: "Public University",
+    id: 'guc-thanaweya-amma',
+    name: "National Top Ranked Thanaweya Amma Students' Scholarship",
+    description: 'Full scholarship for Egyptian citizens ranked top 10 nationally in Al-Thanaweya Al-Amma. Covers study fees, accommodation (if outside Cairo), transportation, etc.',
+    eligibility: "Egyptian citizen, top 10 national rank in Al-Thanaweya Al-Amma, pass GUC tests, maintain 3.00 GPA.",
+    websiteUrl: 'https://www.guc.edu.eg/',
+    icon: GraduationCap,
+    category: "Full Scholarship",
     location: 'Egypt',
+    ageRequirement: '18+',
+    fundingLevel: 'Fully Funded',
     destinationRegion: 'Egypt/MENA',
     targetLevel: 'Undergraduate',
-    fundingLevel: 'Varies',
-    partner: "Ministry of Higher Education, Egypt",
-    coverage: "Varies; can range from tuition waivers to stipends.",
-    deadline: "Varies by university and program",
-    imageUrl: '/images/scholarship-static-ched.jpg',
-    dataAiHint: "egypt university building",
+    fundingCountry: 'Egypt',
+    partner: 'GUC (in cooperation with MoHESR)',
+    coverage: 'Full tuition, accommodation, transportation, admission test fees, lab insurance.',
+    deadline: "July 30 (Typical, check official site)",
+    dataAiHint: "student learning success"
   },
   {
-    id: 'static-qalaa',
-    name: 'Qalaa Holdings Scholarship Foundation',
-    description: 'Offers full postgraduate scholarships for talented young Egyptians to pursue master’s degrees at top universities abroad in all fields of study.',
-    eligibility: 'Egyptian nationals under 35, accepted at a top university abroad, demonstrate financial need, and plan to return to Egypt.',
-    websiteUrl: 'https://qalaascholarships.org/',
-    icon: Landmark,
-    category: "Postgraduate Studies",
-    location: 'International',
-    destinationRegion: 'Global',
-    targetLevel: 'Postgraduate',
+    id: 'mohesr-innovators-gss',
+    name: "Ministry of Higher Education Innovators Support Fund Scholarship (GSS)",
+    description: 'Full scholarship for gifted Egyptian students in Sciences and Technology to study at Nile University.',
+    eligibility: "Egyptian national, Thanaweya Amma/STEM graduate, pass IQ tests, strong extracurriculars, maintain 3.0 CGPA.",
+    websiteUrl: 'https://nu.edu.eg/scholarships/',
+    icon: Award,
+    category: "STEM Scholarship",
+    location: 'Egypt',
+    ageRequirement: '18+',
     fundingLevel: 'Fully Funded',
-    partner: "Qalaa Holdings",
-    coverage: "Full tuition, living expenses, travel, and health insurance.",
-    deadline: "Typically April (Check website)",
-    imageUrl: '/images/scholarship-static-qalaa.jpg',
-    dataAiHint: "global education scholarship",
+    destinationRegion: 'Egypt/MENA',
+    targetLevel: 'Undergraduate',
+    fundingCountry: 'Egypt',
+    partner: 'Innovators Support Fund (at Nile University)',
+    coverage: 'Full tuition for specific STEM programs (Fall & Spring semesters).',
+    deadline: "August 22 (Typical, check official site)",
+    dataAiHint: "egypt university science"
   },
   {
-    id: 'static-educationusa-ccc',
-    name: 'EducationUSA Competitive College Club (CCC)',
-    description: 'A program by EducationUSA to assist high-achieving Egyptian students in applying to U.S. colleges. While not a direct scholarship, it is a key pathway to securing U.S. university funding.',
-    eligibility: 'High-achieving Egyptian high school students (typically grades 10-11).',
-    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo', // Link to local center
-    icon: Plane,
-    category: "College Prep / US Pathway",
-    location: 'Egypt', // Program is in Egypt
-    destinationRegion: 'USA', // For study in the USA
-    targetLevel: 'High School', // For high school students applying to undergrad
-    fundingLevel: 'Varies', // Helps access scholarships
-    partner: "EducationUSA (U.S. Department of State)",
-    coverage: "Guidance, workshops, test prep resources for U.S. college applications and scholarship seeking.",
-    deadline: "Varies by local center (check EducationUSA Egypt)",
-    imageUrl: '/images/scholarship-static-educationusa.jpg',
-    dataAiHint: "usa education study",
+    id: 'hei-local',
+    name: 'U.S.-Egypt HEI Local Scholarships (Private Universities)',
+    description: 'Scholarships for Egyptian public school graduates to pursue programs in Egyptian private universities. Focus on agribusiness, engineering, economics, IT.',
+    eligibility: 'Egyptian public school graduates. Economically disadvantaged. High-achieving.',
+    websiteUrl: 'https://educationusa.state.gov/find-advising-center/egypt-cairo',
+    icon: Users, // Changed from Building to Users based on typical HEI focus
+    category: "Higher Education",
+    location: 'Egypt',
+    ageRequirement: '18+',
+    fundingLevel: 'Varies',
+    destinationRegion: 'Egypt/MENA',
+    targetLevel: 'Undergraduate',
+    fundingCountry: 'USA', // Funding is often US-backed
+    partner: 'U.S. Embassy/USAID (via AMIDEAST or similar)',
+    coverage: 'Academic skill-building, English training, internships, entrepreneurship.',
+    deadline: "Varies (check official announcements)",
+    dataAiHint: "egypt private university"
   },
   {
-    id: 'static-daad',
-    name: 'DAAD Scholarships (Germany)',
-    description: 'The German Academic Exchange Service (DAAD) provides a wide range of scholarships for Egyptian students for study and research in Germany, from summer courses to PhDs.',
-    eligibility: 'Varies greatly by specific DAAD program (undergraduate, graduate, PhD, researchers). Check DAAD Egypt website.',
+    id: 'yes-program',
+    name: 'Kennedy-Lugar Youth Exchange and Study (YES) Program',
+    description: 'Provides scholarships for high school students from countries with significant Muslim populations to spend up to one academic year in the United States.',
+    eligibility: 'High school students aged 15-17, Egyptian nationality, min 80% grades.',
+    websiteUrl: 'https://www.yesprograms.org/',
+    icon: Plane, // Changed from Globe to Plane for exchange emphasis
+    category: "Cultural Exchange",
+    location: 'International',
+    ageRequirement: '16-18',
+    fundingLevel: 'Fully Funded',
+    destinationRegion: 'USA',
+    targetLevel: 'Exchange',
+    fundingCountry: 'USA',
+    partner: 'U.S. Department of State',
+    coverage: 'Full scholarship to spend one academic year in the U.S., living with a host family.',
+    deadline: "May (Typical, for next academic year)",
+    dataAiHint: "usa exchange student"
+  },
+  {
+    id: 'daad-summer',
+    name: 'DAAD University Summer Courses (Germany)',
+    description: 'Language & Regional Studies courses in Germany. Enhances profile for future Master\'s scholarships.',
+    eligibility: 'Egyptian undergraduate students. Approx. deadline Dec.',
     websiteUrl: 'https://www.daad.eg/en/find-funding/scholarship-database/',
     icon: Globe,
-    category: "Study in Germany",
+    category: "Language & Regional Studies",
     location: 'International',
-    destinationRegion: 'Europe', // Specifically Germany
-    targetLevel: 'Varies', // Undergrad, Postgrad, PhD
-    fundingLevel: 'Varies', // Many are fully funded
-    partner: "DAAD (German Academic Exchange Service)",
-    coverage: "Typically covers tuition (if any), living allowance, travel, health insurance. Varies by program.",
-    deadline: "Varies significantly by program (check DAAD website)",
-    imageUrl: '/images/scholarship-static-daad.jpg',
-    dataAiHint: "germany scholarship study",
-  }
+    ageRequirement: '18+',
+    fundingLevel: 'Partial Scholarship',
+    destinationRegion: 'Europe',
+    targetLevel: 'Language',
+    fundingCountry: 'Germany',
+    partner: 'DAAD',
+    coverage: 'One-time scholarship of €1,134 plus allowances for language/regional studies course.',
+    deadline: "December (Approximate)",
+    dataAiHint: "germany study summer"
+  },
+   {
+    id: 'chevening',
+    name: 'Chevening Scholarships',
+    description: 'Fully funded one-year Master\'s degree at any UK university for individuals with demonstrable leadership potential.',
+    eligibility: "Demonstrable leadership potential, strong academic background, Egyptian citizen.",
+    websiteUrl: 'https://www.chevening.org/egypt/',
+    icon: Award,
+    category: "Postgraduate Leadership",
+    location: 'International',
+    ageRequirement: '18+',
+    fundingLevel: 'Fully Funded',
+    destinationRegion: 'UK',
+    targetLevel: 'Postgraduate',
+    fundingCountry: 'UK',
+    partner: 'UK Government (FCDO)',
+    coverage: 'Fully funded (tuition, stipend, travel, allowances).',
+    deadline: "Typically November (check website for next cycle)",
+    dataAiHint: "uk leadership scholarship"
+  },
 ];
 
 
@@ -178,12 +201,12 @@ export default function ScholarshipsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const dynamicData = await getScholarships(); // Fetches Firestore data
+      const dynamicData = await getScholarships(); 
       setFirestoreScholarships(dynamicData);
     } catch (err: any) {
       setError(err.message || "Failed to load dynamic scholarships.");
-      toast({ title: "Error Loading Dynamic Scholarships", description: err.message || "Could not fetch dynamic scholarship data.", variant: "destructive" });
-      setFirestoreScholarships([]); // Clear dynamic data on error
+      toast({ title: "Error Loading Scholarships", description: err.message || "Could not fetch scholarship data from the database.", variant: "destructive" });
+      setFirestoreScholarships([]); 
     } finally {
       setIsLoading(false);
     }
@@ -196,7 +219,6 @@ export default function ScholarshipsPage() {
 
 
   const combinedAndFilteredScholarships = useMemo(() => {
-    // Combine static data first, then Firestore data
     const allScholarships = [...staticScholarshipsData, ...firestoreScholarships];
     return allScholarships.filter(scholarship => {
       const ageMatch = selectedAge === 'All' || (scholarship.ageRequirement && scholarship.ageRequirement === selectedAge);
@@ -225,11 +247,11 @@ export default function ScholarshipsPage() {
     );
   }
 
-  if (error && firestoreScholarships.length === 0) { // Show error only if Firestore fetch failed and there are no dynamic items
+  if (error && firestoreScholarships.length === 0 && staticScholarshipsData.length === 0) { 
     return (
       <div className="text-center py-10">
         <p className="text-destructive text-lg">Error fetching dynamic scholarships: {error}</p>
-        <p className="text-muted-foreground mb-2">Displaying default scholarships. Some listings may be unavailable.</p>
+        <p className="text-muted-foreground mb-2">Please try again later.</p>
         <Button onClick={fetchDynamicScholarships} className="mt-4">Try Again</Button>
       </div>
     );
@@ -297,71 +319,91 @@ export default function ScholarshipsPage() {
 
       {combinedAndFilteredScholarships.length > 0 ? (
         <div className="grid md:grid-cols-2 gap-6">
-          {combinedAndFilteredScholarships.map((scholarship) => (
-            <Card key={scholarship.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
-              <CardHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  {scholarship.icon ? ( // For static scholarships with direct icon components
-                     <scholarship.icon className="h-8 w-8 text-accent" />
-                  ) : scholarship.iconName ? ( // For Firestore scholarships with iconName string
-                    <IconByName name={scholarship.iconName} className="h-8 w-8 text-accent" fallbackIcon={Award} />
-                  ) : ( // Fallback if neither is provided
-                    <Award className="h-8 w-8 text-accent" />
+          {combinedAndFilteredScholarships.map((scholarship, index) => {
+            let imageUrl = scholarship.imageUrl; // For dynamic scholarships or if static has imageUrl
+            let isStatic = staticScholarshipsData.some(staticItem => staticItem.id === scholarship.id);
+
+            if (isStatic && !scholarship.imageUrl) { // If it's a static item and doesn't have an imageUrl field
+              if (index < staticScholarshipsData.length && staticScholarshipsData[index].id === 'guc-thanaweya-amma') { // More robust check for the first static item
+                imageUrl = "/images/inspiring-student.jpg";
+              } else if (scholarship.id === 'chevening') {
+                imageUrl = "/images/chevening-scholarship.jpg";
+              } else {
+                imageUrl = `/images/scholarship-${scholarship.id}.jpg`;
+              }
+            }
+            
+            // Fallback for any item (static or dynamic) if imageUrl ends up undefined/empty
+            if (!imageUrl) {
+                imageUrl = `https://placehold.co/600x300.png?text=${encodeURIComponent(scholarship.name)}`;
+            }
+
+            return (
+              <Card key={scholarship.id} className="flex flex-col hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-2">
+                    {scholarship.icon ? ( 
+                       <scholarship.icon className="h-8 w-8 text-accent" />
+                    ) : scholarship.iconName ? ( 
+                      <IconByName name={scholarship.iconName} className="h-8 w-8 text-accent" fallbackIcon={Award} />
+                    ) : ( 
+                      <Award className="h-8 w-8 text-accent" />
+                    )}
+                    <CardTitle className="text-xl font-headline leading-tight">{scholarship.name}</CardTitle>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs mt-1">
+                      {scholarship.targetLevel && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><GraduationCap size={12}/>{scholarship.targetLevel}</span>}
+                      {scholarship.destinationRegion && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{scholarship.destinationRegion}</span>}
+                      {scholarship.fundingLevel && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{scholarship.fundingLevel}</span>}
+                      {scholarship.fundingCountry && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><Globe size={12}/>Fund: {scholarship.fundingCountry}</span>}
+                  </div>
+                  <CardDescription className="pt-3 text-sm">{scholarship.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-3 text-sm">
+                    <Image
+                      src={imageUrl}
+                      alt={scholarship.name}
+                      data-ai-hint={scholarship.dataAiHint || "education opportunity"}
+                      width={600}
+                      height={300}
+                      className="rounded-md object-cover aspect-[2/1] mb-4"
+                      onError={(e) => { e.currentTarget.src = `https://placehold.co/600x300.png?text=Image+Error`; }}
+                    />
+                  {scholarship.partner && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Landmark className="h-4 w-4 text-primary" />
+                      <p><strong>Partner:</strong> {scholarship.partner}</p>
+                    </div>
                   )}
-                  <CardTitle className="text-xl font-headline leading-tight">{scholarship.name}</CardTitle>
-                </div>
-                <div className="flex flex-wrap gap-2 text-xs mt-1">
-                    {scholarship.targetLevel && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1"><GraduationCap size={12}/>{scholarship.targetLevel}</span>}
-                    {scholarship.destinationRegion && <span className="bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><MapPin size={12}/>{scholarship.destinationRegion}</span>}
-                    {scholarship.fundingLevel && <span className="bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><DollarSign size={12}/>{scholarship.fundingLevel}</span>}
-                    {scholarship.fundingCountry && <span className="bg-muted/30 text-muted-foreground px-2 py-0.5 rounded-full flex items-center gap-1"><Globe size={12}/>Fund: {scholarship.fundingCountry}</span>}
-                </div>
-                <CardDescription className="pt-3 text-sm">{scholarship.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow space-y-3 text-sm">
-                  <Image
-                    src={scholarship.imageUrl || `https://placehold.co/600x300.png?text=${encodeURIComponent(scholarship.name)}`}
-                    alt={scholarship.name}
-                    data-ai-hint={scholarship.dataAiHint || "education opportunity"}
-                    width={600}
-                    height={300}
-                    className="rounded-md object-cover aspect-[2/1] mb-4"
-                    onError={(e) => { e.currentTarget.src = `https://placehold.co/600x300.png?text=Image+Error`; }}
-                  />
-                {scholarship.partner && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Landmark className="h-4 w-4 text-primary" />
-                    <p><strong>Partner:</strong> {scholarship.partner}</p>
-                  </div>
-                )}
-                {scholarship.coverage && (
-                  <div className="flex items-start gap-2 text-muted-foreground">
-                    <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <p><strong>Coverage:</strong> {scholarship.coverage.length > 100 ? scholarship.coverage.substring(0,100) + '...' : scholarship.coverage}</p>
-                  </div>
-                )}
-                {scholarship.eligibility && (
-                  <div>
-                    <h4 className="font-semibold mb-0.5">Eligibility:</h4>
-                    <p className="text-muted-foreground">{scholarship.eligibility.length > 120 ? scholarship.eligibility.substring(0,120) + '...' : scholarship.eligibility}</p>
-                  </div>
-                )}
-                {scholarship.deadline && (
-                  <div className="flex items-center gap-2 text-muted-foreground pt-1">
-                    <CalendarDays className="h-4 w-4 text-primary" />
-                    <p><strong>Deadline:</strong> {scholarship.deadline}</p>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button asChild className="w-full group">
-                  <Link href={scholarship.websiteUrl} target="_blank" rel="noopener noreferrer">
-                    Visit Official Website <ExternalLink className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                  {scholarship.coverage && (
+                    <div className="flex items-start gap-2 text-muted-foreground">
+                      <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <p><strong>Coverage:</strong> {scholarship.coverage.length > 100 ? scholarship.coverage.substring(0,100) + '...' : scholarship.coverage}</p>
+                    </div>
+                  )}
+                  {scholarship.eligibility && (
+                    <div>
+                      <h4 className="font-semibold mb-0.5">Eligibility:</h4>
+                      <p className="text-muted-foreground">{scholarship.eligibility.length > 120 ? scholarship.eligibility.substring(0,120) + '...' : scholarship.eligibility}</p>
+                    </div>
+                  )}
+                  {scholarship.deadline && (
+                    <div className="flex items-center gap-2 text-muted-foreground pt-1">
+                      <CalendarDays className="h-4 w-4 text-primary" />
+                      <p><strong>Deadline:</strong> {scholarship.deadline}</p>
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter>
+                  <Button asChild className="w-full group">
+                    <Link href={scholarship.websiteUrl} target="_blank" rel="noopener noreferrer">
+                      Visit Official Website <ExternalLink className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            )
+          })}
         </div>
       ) : (
         <p className="text-center text-muted-foreground text-lg py-8">No scholarships found matching your criteria. Try broadening your search or clearing some filters.</p>
