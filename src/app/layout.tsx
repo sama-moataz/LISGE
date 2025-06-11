@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { Analytics } from "@vercel/analytics/next";
+import { AuthProvider } from '@/context/AuthContext'; // Added AuthProvider
 
 export const metadata: Metadata = {
   title: {
@@ -68,21 +69,23 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Header />
-          <main className="flex-grow container mx-auto px-4 py-8">
-            {children}
-          </main>
-          <Footer />
-          <Toaster />
-          <CookieConsentBanner />
-          <Analytics />
-        </ThemeProvider>
+        <AuthProvider> {/* Added AuthProvider */}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Header />
+            <main className="flex-grow container mx-auto px-4 py-8">
+              {children}
+            </main>
+            <Footer />
+            <Toaster />
+            <CookieConsentBanner />
+            <Analytics />
+          </ThemeProvider>
+        </AuthProvider> {/* Added AuthProvider */}
       </body>
     </html>
   );
