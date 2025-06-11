@@ -9,7 +9,7 @@ import {
   signInWithPhoneNumber,
   type ConfirmationResult
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'; // Added getDoc
 import { auth, db, googleAuthProvider, RecaptchaVerifier } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Link from 'next/link';
 import { LogIn, Loader2, Mail, KeyRound, Smartphone, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import Image from 'next/image'; // For Google icon
+import Image from 'next/image'; 
 
 // Declare reCAPTCHA verifier at the module level
 declare global {
@@ -27,7 +27,6 @@ declare global {
     confirmationResult?: ConfirmationResult;
   }
 }
-
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -43,20 +42,17 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && auth) { // Ensure auth is initialized
+    if (typeof window !== 'undefined' && auth && !window.recaptchaVerifier) { 
         window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible', // Can be 'normal' or 'invisible'
+        'size': 'invisible', 
         'callback': (response: any) => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
           console.log("reCAPTCHA solved", response);
         },
         'expired-callback': () => {
-          // Response expired. Ask user to solve reCAPTCHA again.
           toast({ title: "reCAPTCHA Expired", description: "Please try sending the OTP again.", variant: "destructive" });
         }
       });
     }
-    // Clean up reCAPTCHA widget when component unmounts
     return () => {
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
@@ -64,18 +60,37 @@ export default function LoginPage() {
     };
   }, [toast]);
 
-
-  const handleLoginSuccess = async (userId: string, userEmail: string | null) => {
+  const handleLoginSuccess = async (userId: string, userEmail: string | null, isNewUserCreation?: boolean, userName?: string | null, userPhotoURL?: string | null, userPhoneNumber?: string | null) => {
     try {
       const userDocRef = doc(db, "users", userId);
-      await setDoc(userDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
-      toast({ title: "Login Successful!", description: "Welcome back to LISGE Hub." });
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists() && isNewUserCreation) {
+        // Create user document if it's a new user sign-up/first-time social login
+        await setDoc(userDocRef, {
+          uid: userId,
+          name: userName || (userEmail ? userEmail.split('@')[0] : "User"),
+          email: userEmail,
+          role: 'user', // Default role
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(),
+          photoURL: userPhotoURL || null,
+          phoneNumber: userPhoneNumber || null,
+        });
+        toast({ title: "Account Created & Logged In!", description: "Welcome to LISGE Hub." });
+      } else {
+        // Update lastLoginAt for existing users
+        await setDoc(userDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
+        toast({ title: "Login Successful!", description: "Welcome back to LISGE Hub." });
+      }
+
       const redirectUrl = searchParams.get('redirect') || '/dashboard';
       router.push(redirectUrl);
-    } catch (dbError) {
-      console.error("Error updating lastLoginAt: ", dbError);
-      toast({ title: "Login Successful (but profile update failed)", description: "Could not update your last login time.", variant: "destructive" });
-      router.push('/dashboard'); // Proceed even if Firestore update fails
+    } catch (dbError: any) {
+      console.error("Error during login success handling: ", dbError);
+      toast({ title: "Login Error", description: `Could not finalize login: ${dbError.message}`, variant: "destructive" });
+      // Still try to redirect to dashboard if login itself was successful before db error
+      if(!isNewUserCreation) router.push('/dashboard'); 
     }
   };
 
@@ -100,20 +115,7 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(auth, googleAuthProvider);
       const user = result.user;
-      // Check if user exists in Firestore, if not, create them
-      const userDocRef = doc(db, "users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      if (!userDocSnap.exists()) {
-        await setDoc(userDocRef, {
-          uid: user.uid,
-          name: user.displayName,
-          email: user.email,
-          role: 'user',
-          createdAt: serverTimestamp(),
-          photoURL: user.photoURL,
-        });
-      }
-      await handleLoginSuccess(user.uid, user.email);
+      await handleLoginSuccess(user.uid, user.email, true, user.displayName, user.photoURL);
     } catch (err: any) {
       setError(err.message || "Failed to login with Google.");
       toast({ title: "Google Login Failed", description: err.message, variant: "destructive" });
@@ -128,20 +130,21 @@ export default function LoginPage() {
     setLoading('phone');
     try {
       const appVerifier = window.recaptchaVerifier!;
+      // Ensure reCAPTCHA is rendered and ready (Firebase handles this internally for invisible)
       const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-      window.confirmationResult = confirmationResult; // Store for OTP verification
+      window.confirmationResult = confirmationResult; 
       setOtpSent(true);
       toast({ title: "OTP Sent", description: `An OTP has been sent to ${phoneNumber}.` });
     } catch (err: any) {
       setError(err.message || "Failed to send OTP. Ensure phone number is correct and reCAPTCHA is working.");
       toast({ title: "Phone Login Failed", description: err.message, variant: "destructive" });
       console.error("Phone auth error:", err);
-       // Reset reCAPTCHA if it exists
+      // Reset reCAPTCHA if it exists and failed
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.render().then(function(widgetId) {
-          // @ts-ignore grecaptcha is available globally via Firebase
-          grecaptcha.reset(widgetId);
-        });
+          // @ts-ignore
+          if (typeof grecaptcha !== 'undefined') grecaptcha.reset(widgetId);
+        }).catch(console.error);
       }
     } finally {
       setLoading(false);
@@ -155,25 +158,10 @@ export default function LoginPage() {
     try {
       if (window.confirmationResult) {
         const userCredential = await window.confirmationResult.confirm(otp);
-        // User signed in successfully.
-        // Potentially create/update user doc in Firestore if phone-only signup
         const user = userCredential.user;
-        const userDocRef = doc(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (!userDocSnap.exists()) {
-            await setDoc(userDocRef, {
-            uid: user.uid,
-            name: user.phoneNumber || "Phone User", // Placeholder name
-            email: null, // No email for phone auth unless collected separately
-            role: 'user',
-            createdAt: serverTimestamp(),
-            photoURL: null, // Or a default avatar
-            phoneNumber: user.phoneNumber,
-            });
-        }
-        await handleLoginSuccess(user.uid, user.email); // user.email will be null here
+        await handleLoginSuccess(user.uid, user.email, true, user.phoneNumber, user.photoURL, user.phoneNumber);
       } else {
-        throw new Error("OTP confirmation result not found.");
+        throw new Error("OTP confirmation result not found. Please try sending OTP again.");
       }
     } catch (err: any) {
       setError(err.message || "Failed to verify OTP. Please try again.");
@@ -182,7 +170,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="flex justify-center items-center min-h-[calc(100vh-200px)] py-12">
@@ -194,12 +181,10 @@ export default function LoginPage() {
           <CardDescription>Access your LISGE Hub account.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* reCAPTCHA container for phone auth */}
           <div id="recaptcha-container"></div>
 
           {!otpSent ? (
             <>
-              {/* Email/Password Login Form */}
               <form onSubmit={handleEmailLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="flex items-center gap-1"><Mail size={14}/>Email</Label>
@@ -230,13 +215,11 @@ export default function LoginPage() {
                 </div>
               </div>
               
-              {/* Google Login Button */}
               <Button variant="outline" onClick={handleGoogleLogin} className="w-full" disabled={loading === 'google' || !!loading && loading !== 'google'}>
                 {loading === 'google' ? <Loader2 className="animate-spin mr-2" /> :  <Image src="/google-icon.svg" alt="Google" width={18} height={18} className="mr-2" data-ai-hint="google logo"/>}
                 Sign in with Google
               </Button>
 
-              {/* Phone Login Form */}
               <form onSubmit={handlePhoneLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="flex items-center gap-1"><Smartphone size={14}/>Phone Number</Label>
@@ -252,7 +235,6 @@ export default function LoginPage() {
               </form>
             </>
           ) : (
-            // OTP Submission Form
             <form onSubmit={handleOtpSubmit} className="space-y-4">
               <p className="text-sm text-center text-muted-foreground">Enter OTP sent to {phoneNumber}</p>
               <div className="space-y-2">
@@ -266,7 +248,7 @@ export default function LoginPage() {
                 {loading === 'otp' ? <Loader2 className="animate-spin mr-2" /> : null}
                 Verify OTP & Login
               </Button>
-              <Button variant="link" onClick={() => setOtpSent(false)} className="w-full text-sm" disabled={!!loading}>
+              <Button variant="link" onClick={() => { setOtpSent(false); setError(null); }} className="w-full text-sm" disabled={!!loading}>
                 Change phone number or method
               </Button>
             </form>

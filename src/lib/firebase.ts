@@ -6,7 +6,7 @@ import {
   PhoneAuthProvider, 
   RecaptchaVerifier
 } from 'firebase/auth';
-import { getFirestore, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, serverTimestamp } from 'firebase/firestore'; // Corrected import for serverTimestamp
 
 // Critical check for API Key presence
 const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
@@ -35,18 +35,21 @@ const firebaseConfig: FirebaseOptions = {
 let app;
 if (!getApps().length) {
   try {
+    // Minimal check for essential config values before attempting init
     if (!firebaseConfig.authDomain || !firebaseConfig.projectId) {
-        const errorMsg = `CRITICAL_CONFIG_ERROR: One or more essential Firebase config values (authDomain, projectId) are missing in the firebaseConfig object just before initializeApp. Check .env.local and server restart.`;
+        const errorMsg = `CRITICAL_CONFIG_ERROR: Essential Firebase config values (authDomain, projectId) are missing in firebaseConfig. Check .env.local and restart server.`;
         console.error(errorMsg);
-        if (typeof window === 'undefined') {
+        if (typeof window === 'undefined') { // Server-side
             throw new Error(errorMsg);
         }
     }
     app = initializeApp(firebaseConfig);
-    // console.log('Firebase app initialization attempted. If you still see auth/invalid-api-key, the API KEY VALUE in your .env.local is likely incorrect or restricted.');
-  } catch (error) {
-    console.error('Error during Firebase initializeApp():', error);
-    throw error; // Re-throw to ensure visibility
+    // console.log('Firebase app initialization attempted successfully.');
+  } catch (error: any) {
+    console.error('CRITICAL_ERROR_DURING_FIREBASE_INIT:', error.message, error.code);
+    // Log the config that was attempted, but be careful not to leak sensitive info in production logs if this code path is ever hit
+    // console.error('Attempted Firebase Config:', JSON.stringify(firebaseConfig, (key, value) => key === 'apiKey' ? 'REDACTED' : value));
+    throw error; // Re-throw to ensure visibility and stop further execution
   }
 } else {
   app = getApp();
@@ -56,7 +59,6 @@ if (!getApps().length) {
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleAuthProvider = new GoogleAuthProvider();
-const phoneAuthProvider = new PhoneAuthProvider(auth);
+// PhoneAuthProvider doesn't need to be exported if used inline with signInWithPhoneNumber
 
-
-export { app, auth, db, googleAuthProvider, phoneAuthProvider, RecaptchaVerifier, serverTimestamp };
+export { app, auth, db, googleAuthProvider, RecaptchaVerifier, serverTimestamp };
