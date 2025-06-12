@@ -1,5 +1,6 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
+  "/admin/pre-college/page": "app/admin/pre-college/page.js",
   "/admin/volunteer/new/page": "app/admin/volunteer/new/page.js",
   "/admin/volunteer/page": "app/admin/volunteer/page.js",
   "/dashboard/page": "app/dashboard/page.js",

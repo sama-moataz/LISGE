@@ -21,6 +21,17 @@
       "layer": {
         "app/admin/volunteer/new/page": "action-browser"
       }
+    },
+    "60a462a67a53e1a131b27fbcdcbe0ad56a122b3deb": {
+      "workers": {
+        "app/admin/pre-college/page": {
+          "moduleId": "[project]/.next-internal/server/app/admin/pre-college/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/pre-college/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/admin/pre-college/page": "action-browser"
+      }
     }
   },
   "edge": {},
