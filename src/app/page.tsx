@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Library } from "lucide-react"; // Added Library
+import { ArrowRight, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Library } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: 'Home | LISGE - Your Guide to Success',
-  description: "Explore different scholarships, exchange programs, summer programs, and pre-college programs.",
+  title: 'Explore Scholarships, Programs & Study Tips | LISGE Guide',
+  description: "Explore diverse scholarships, exchange programs, summer programs, and pre-college courses with LISGE. Find essential study tips and resources to achieve academic excellence.",
 };
 
 export default function Home() {
@@ -16,13 +16,12 @@ export default function Home() {
     <div className="space-y-12">
       {/* Hero Section */}
       <section className="relative text-center py-16 md:py-24 rounded-lg overflow-hidden shadow-lg bg-gradient-to-br from-primary/10 to-accent/10">
-        {/* Background image div removed from here */}
         <div className="relative z-10 container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold font-headline mb-6 text-primary-foreground bg-primary/80 backdrop-blur-sm py-2 px-4 rounded-md inline-block">
             LISGE
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8 text-foreground/90 bg-background/70 dark:bg-black/50 backdrop-blur-sm py-3 px-4 rounded-md">
-            Explore different scholarships, exchange programs, summer programs, and pre-college programs.
+            Explore different scholarships, exchange programs, summer programs, and pre-college programs. Find study tips and resources to guide your academic journey.
           </p>
           <div className="space-x-0 space-y-4 sm:space-x-4 sm:space-y-0">
             <Button asChild size="lg" className="group">
@@ -44,7 +43,7 @@ export default function Home() {
         <Card className="hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <GraduationCap className="h-12 w-12 text-primary mb-4" />
-            <CardTitle className="font-headline text-2xl">Scholarships</CardTitle>
+            <CardTitle className="font-headline text-2xl"><h2>Scholarships</h2></CardTitle>
             <CardDescription>Discover life-changing scholarship opportunities to fund your education.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -59,7 +58,7 @@ export default function Home() {
         <Card className="hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <Globe2 className="h-12 w-12 text-primary mb-4" />
-            <CardTitle className="font-headline text-2xl">Exchange Programs</CardTitle>
+            <CardTitle className="font-headline text-2xl"><h2>Exchange Programs</h2></CardTitle>
             <CardDescription>Embark on cultural and academic exchange journeys around the world.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -74,7 +73,7 @@ export default function Home() {
         <Card className="hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <Lightbulb className="h-12 w-12 text-primary mb-4" />
-            <CardTitle className="font-headline text-2xl">Study Tips</CardTitle>
+            <CardTitle className="font-headline text-2xl"><h2>Study Tips</h2></CardTitle>
             <CardDescription>Equip yourself with smart strategies and insights for academic excellence.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -89,7 +88,7 @@ export default function Home() {
         <Card className="hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <Briefcase className="h-12 w-12 text-primary mb-4" />
-            <CardTitle className="font-headline text-2xl">Summer Programs</CardTitle>
+            <CardTitle className="font-headline text-2xl"><h2>Summer Programs</h2></CardTitle>
             <CardDescription>Explore enriching summer programs to broaden your horizons.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -104,7 +103,7 @@ export default function Home() {
         <Card className="hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <HeartHandshake className="h-12 w-12 text-primary mb-4" />
-            <CardTitle className="font-headline text-2xl">Volunteer Opportunities</CardTitle>
+            <CardTitle className="font-headline text-2xl"><h2>Volunteer Opportunities</h2></CardTitle>
             <CardDescription>Find meaningful ways to contribute to your community and gain experience.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -119,7 +118,7 @@ export default function Home() {
         <Card className="hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <School2 className="h-12 w-12 text-primary mb-4" />
-            <CardTitle className="font-headline text-2xl">Pre-College Courses</CardTitle>
+            <CardTitle className="font-headline text-2xl"><h2>Pre-College Courses</h2></CardTitle>
             <CardDescription>Prepare for university with introductory courses and academic experiences.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -134,7 +133,7 @@ export default function Home() {
         <Card className="hover:shadow-xl transition-shadow duration-300 md:col-span-2 lg:col-span-1">
           <CardHeader>
             <Library className="h-12 w-12 text-primary mb-4" />
-            <CardTitle className="font-headline text-2xl">Test Prep Resources</CardTitle>
+            <CardTitle className="font-headline text-2xl"><h2>Test Prep Resources</h2></CardTitle>
             <CardDescription>Find materials and guidance for SAT, IELTS, TOEFL, and more.</CardDescription>
           </CardHeader>
           <CardContent>
