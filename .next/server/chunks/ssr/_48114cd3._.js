@@ -223,7 +223,7 @@ function Home() {
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                             className: "text-lg md:text-xl max-w-3xl mx-auto mb-8 text-foreground/90 bg-background/70 dark:bg-black/50 backdrop-blur-sm py-3 px-4 rounded-md",
-                            children: "Welcome to LISGE! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, transformative summer programs, exchange programs, volunteer opportunities, pre-college courses, and test preparation. Explore your potential and embark on your journey to global success."
+                            children: "Explore different scholarships, exchange programs, summer programs, and pre-college programs."
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
                             lineNumber: 24,

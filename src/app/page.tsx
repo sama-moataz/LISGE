@@ -22,7 +22,7 @@ export default function Home() {
             LISGE
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8 text-foreground/90 bg-background/70 dark:bg-black/50 backdrop-blur-sm py-3 px-4 rounded-md">
-            Welcome to LISGE! We are dedicated to empowering students, especially teenagers in Egypt, by providing comprehensive resources on scholarships, study strategies, transformative summer programs, exchange programs, volunteer opportunities, pre-college courses, and test preparation. Explore your potential and embark on your journey to global success.
+            Explore different scholarships, exchange programs, summer programs, and pre-college programs.
           </p>
           <div className="space-x-0 space-y-4 sm:space-x-4 sm:space-y-0">
             <Button asChild size="lg" className="group">
