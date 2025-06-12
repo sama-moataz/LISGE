@@ -10,6 +10,17 @@
       "layer": {
         "app/admin/volunteer/page": "action-browser"
       }
+    },
+    "403d29a795d475c21af6bca0de0656e9d6000bb785": {
+      "workers": {
+        "app/admin/volunteer/new/page": {
+          "moduleId": "[project]/.next-internal/server/app/admin/volunteer/new/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/volunteer/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/admin/volunteer/new/page": "action-browser"
+      }
     }
   },
   "edge": {},
