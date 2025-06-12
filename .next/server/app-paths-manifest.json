@@ -7,8 +7,14 @@
   "/auth/login/page": "app/auth/login/page.js",
   "/auth/signup/page": "app/auth/signup/page.js",
   "/dashboard/page": "app/dashboard/page.js",
+  "/exchange-programs/page": "app/exchange-programs/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/page": "app/page.js",
   "/pre-college/page": "app/pre-college/page.js",
+  "/programs/page": "app/programs/page.js",
+  "/resources/page": "app/resources/page.js",
+  "/scholarships/page": "app/scholarships/page.js",
+  "/terms-of-service/page": "app/terms-of-service/page.js",
+  "/tips/page": "app/tips/page.js",
   "/volunteer/page": "app/volunteer/page.js"
 }
