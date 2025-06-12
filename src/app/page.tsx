@@ -7,8 +7,8 @@ import Link from "next/link";
 import { ArrowRight, GraduationCap, Lightbulb, Briefcase, HeartHandshake, School2, Globe2, Library } from "lucide-react"; // Added Library
 
 export const metadata: Metadata = {
-  title: 'Home | LISGE - Your Guide to Academic Excellence',
-  description: "Welcome to LISGE! We empower Egyptian students with resources on scholarships, study tips, summer programs, exchange programs, volunteer work, pre-college courses, and test preparation. Start your journey to global success.",
+  title: 'Home | LISGE - Your Guide to Success',
+  description: "Explore different scholarships, exchange programs, summer programs, and pre-college programs.",
 };
 
 export default function Home() {
