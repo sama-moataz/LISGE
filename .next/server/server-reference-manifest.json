@@ -1,25 +1,14 @@
 {
   "node": {
-    "602f6269ba08be2ea9c72c30689f4b525f8b1e3f5e": {
+    "604244311d6627bcd7f081dd25e84c6588abcbfc32": {
       "workers": {
-        "app/admin/exchange-programs/page": {
-          "moduleId": "[project]/.next-internal/server/app/admin/exchange-programs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/exchange-programs/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/admin/volunteer/page": {
+          "moduleId": "[project]/.next-internal/server/app/admin/volunteer/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/volunteer/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         }
       },
       "layer": {
-        "app/admin/exchange-programs/page": "action-browser"
-      }
-    },
-    "40055593905608ccbcf961a1b695f1318b2f9e1f31": {
-      "workers": {
-        "app/admin/exchange-programs/new/page": {
-          "moduleId": "[project]/.next-internal/server/app/admin/exchange-programs/new/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/admin/exchange-programs/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        }
-      },
-      "layer": {
-        "app/admin/exchange-programs/new/page": "action-browser"
+        "app/admin/volunteer/page": "action-browser"
       }
     }
   },
